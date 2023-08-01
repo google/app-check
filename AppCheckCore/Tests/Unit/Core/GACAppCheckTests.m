@@ -16,6 +16,7 @@
 
 #import <XCTest/XCTest.h>
 
+#import <FirebaseCoreExtension/FirebaseCoreInternal.h>
 #import <OCMock/OCMock.h>
 
 #import "FBLPromise+Testing.h"
@@ -31,8 +32,6 @@
 #import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefresher.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckTokenDelegate.h"
-
-#import "FirebaseCore/Extension/FirebaseCoreInternal.h"
 
 // The FAC token value returned when an error occurs.
 static NSString *const kDummyToken = @"eyJlcnJvciI6IlVOS05PV05fRVJST1IifQ==";

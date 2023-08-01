@@ -16,6 +16,7 @@
 
 #import <XCTest/XCTest.h>
 
+#import <FirebaseCoreExtension/FirebaseCoreInternal.h>
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
@@ -30,8 +31,6 @@
 #import "AppCheckCore/Tests/Unit/Utils/GACFixtureLoader.h"
 #import "AppCheckCore/Tests/Utils/Date/GACDateTestUtils.h"
 #import "AppCheckCore/Tests/Utils/URLSession/GACURLSessionOCMockStub.h"
-
-#import "FirebaseCore/Extension/FirebaseCoreInternal.h"
 
 static NSString *const kAPIKeyHeaderKey = @"X-Goog-Api-Key";
 static NSString *const kAPIKeyHeaderValue = @"Test-API-Key";

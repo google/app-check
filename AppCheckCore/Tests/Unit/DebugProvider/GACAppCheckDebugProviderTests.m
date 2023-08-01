@@ -16,14 +16,13 @@
 
 #import <XCTest/XCTest.h>
 
+#import <FirebaseCoreExtension/FirebaseCoreInternal.h>
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
 #import "AppCheckCore/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckDebugProvider.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
-
-#import "FirebaseCore/Extension/FirebaseCoreInternal.h"
 
 static NSString *const kDebugTokenEnvKey = @"FIRAAppCheckDebugToken";
 static NSString *const kDebugTokenUserDefaultsKey = @"FIRAAppCheckDebugToken";
