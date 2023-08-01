@@ -16,6 +16,7 @@
 
 #import <XCTest/XCTest.h>
 
+#import <FirebaseCoreExtension/FirebaseCoreInternal.h>
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
@@ -29,8 +30,6 @@
 
 #import "AppCheckCore/Tests/Unit/Utils/GACFixtureLoader.h"
 #import "AppCheckCore/Tests/Utils/URLSession/GACURLSessionOCMockStub.h"
-
-#import "FirebaseCore/Extension/FirebaseCoreInternal.h"
 
 static NSString *const kResourceName = @"projects/project_id/apps/app_id";
 

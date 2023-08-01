@@ -29,7 +29,6 @@
 
 #import "FBLPromise+Testing.h"
 
-#import <FirebaseCore/FirebaseCore.h>
 #import <FirebaseCoreExtension/FirebaseCoreInternal.h>
 
 #import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"

@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'AppCheckCore'
-  s.version          = '10.13.0'
+  s.version          = '0.1.0-alpha.1'
   s.summary          = 'App Check Core SDK.'
 
   s.description      = <<-DESC
@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.authors          = 'Google, Inc.'
 
   s.source           = {
-    :git => 'https://github.com/firebase/firebase-ios-sdk.git',
+    :git => 'https://github.com/google/app-check.git',
     :tag => 'CocoaPods-' + s.version.to_s
   }
   s.social_media_url = 'https://twitter.com/Firebase'
@@ -63,7 +63,7 @@ Pod::Spec.new do |s|
     ]
 
     unit_tests.resources = base_dir + 'Tests/Fixture/**/*'
-    unit_tests.dependency 'FirebaseCore', '~> 10.0'
+    unit_tests.dependency 'FirebaseCoreExtension', '~> 10.0'
     unit_tests.dependency 'OCMock'
     unit_tests.requires_app_host = true
   end
@@ -79,7 +79,6 @@ Pod::Spec.new do |s|
       base_dir + 'Tests/Integration/**/*.[mh]',
     ]
     integration_tests.resources = base_dir + 'Tests/Fixture/**/*'
-    integration_tests.dependency 'FirebaseCore', '~> 10.0'
     integration_tests.dependency 'FirebaseCoreExtension', '~> 10.0'
     integration_tests.requires_app_host = true
   end
