@@ -22,7 +22,7 @@ Pod::Spec.new do |s|
   tvos_deployment_target = '12.0'
   watchos_deployment_target = '6.0'
 
-  s.swift_version = '5.3'
+  s.swift_version = '5.7.1'
 
   s.ios.deployment_target = ios_deployment_target
   s.osx.deployment_target = osx_deployment_target
@@ -43,8 +43,8 @@ Pod::Spec.new do |s|
   s.osx.weak_framework = 'DeviceCheck'
   s.tvos.weak_framework = 'DeviceCheck'
 
-  s.dependency 'PromisesObjC', '~> 2.1'
-  s.dependency 'GoogleUtilities/Environment', '~> 7.8'
+  s.dependency 'PromisesObjC', '~> 2.3'
+  s.dependency 'GoogleUtilities/Environment', '~> 7.11'
 
   s.pod_target_xcconfig = {
     'GCC_C_LANGUAGE_STANDARD' => 'c99',
