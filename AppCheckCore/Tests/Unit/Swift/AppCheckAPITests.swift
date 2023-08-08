@@ -19,23 +19,24 @@
 import Foundation
 
 import AppCheckCore
-import FirebaseCore
 
 final class AppCheckAPITests {
   func usage() {
-    let app = FirebaseApp.app()!
-    let projectID = app.options.projectID!
-    let resourceName = "projects/\(projectID)/\(app.options.googleAppID)"
+    let serviceName = "AppCheckAPITests"
+    let resourceName = "projects/test-project-id/google-app-id"
+    let appGroupID = "TeamIDPrefix.com.google.appcheck"
+    let apiKey = "test-api-key"
 
     // MARK: - AppAttestProvider
 
-    #if TARGET_OS_IOS
-      if #available(iOS 14.0, *) {
+    #if os(iOS) || os(tvOS) || os(watchOS)
+      if #available(iOS 14.0, tvOS 15.0, watchOS 9.0, *) {
         // TODO(andrewheard): Add `requestHooks` in API tests.
         if let provider = AppCheckCoreAppAttestProvider(
-          storageID: app.name,
+          serviceName: serviceName,
           resourceName: resourceName,
-          apiKey: app.options.apiKey,
+          baseURL: nil,
+          apiKey: apiKey,
           keychainAccessGroup: nil,
           requestHooks: nil
         ) {
@@ -44,20 +45,18 @@ final class AppCheckAPITests {
           }
         }
       }
-    #endif // TARGET_OS_IOS
+    #endif // os(iOS) || os(tvOS) || os(watchOS)
 
-    // MARK: - AppCheck
-
-    guard let app = FirebaseApp.app() else { return }
+    // MARK: - AppCheckCore
 
     // Retrieving an AppCheck instance
     let appCheck = AppCheckCore(
-      serviceName: app.name,
+      serviceName: serviceName,
       resourceName: resourceName,
       appCheckProvider: DummyAppCheckProvider(),
       settings: DummyAppCheckSettings(),
       tokenDelegate: DummyAppCheckTokenDelegate(),
-      keychainAccessGroup: app.options.appGroupID
+      keychainAccessGroup: appGroupID
     )
 
     // Get token
@@ -86,9 +85,9 @@ final class AppCheckAPITests {
     // `AppCheckDebugProvider` initializer
     // TODO(andrewheard): Add `requestHooks` in API tests.
     let debugProvider = AppCheckCoreDebugProvider(
-      serviceName: app.name,
+      serviceName: serviceName,
       resourceName: resourceName,
-      apiKey: app.options.apiKey,
+      apiKey: apiKey,
       requestHooks: nil
     )
     // Get token
@@ -157,9 +156,9 @@ final class AppCheckAPITests {
       if #available(iOS 11.0, macOS 10.15, macCatalyst 13.0, tvOS 11.0, *) {
         // TODO(andrewheard): Add `requestHooks` in API tests.
         let deviceCheckProvider = AppCheckCoreDeviceCheckProvider(
-          serviceName: app.name,
+          serviceName: serviceName,
           resourceName: resourceName,
-          apiKey: app.options.apiKey,
+          apiKey: apiKey,
           requestHooks: nil
         )
         // Get token
