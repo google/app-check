@@ -35,6 +35,10 @@ let package = Package(
       url: "https://github.com/google/GoogleUtilities.git",
       "7.11.5" ..< "8.0.0"
     ),
+    .package(
+      url: "https://github.com/erikdoe/ocmock.git",
+      revision: "c5eeaa6dde7c308a5ce48ae4d4530462dd3a1110"
+    ),
   ],
   targets: [
     .target(name: "AppCheckCore",
@@ -53,7 +57,33 @@ let package = Package(
                 .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .appCheckVisionOS])
               ),
             ]),
-    // TODO(andrewheard): Add unit test targets after removing Firebase dependencies.
+    .testTarget(
+      name: "AppCheckCoreUnit",
+      dependencies: [
+        "AppCheckCore",
+        .product(name: "OCMock", package: "ocmock"),
+      ],
+      path: "AppCheckCore/Tests",
+      exclude: [
+        // Swift tests are in the target `AppCheckCoreUnitSwift` since mixed language targets are
+        // not supported (as of Xcode 14.3).
+        "Unit/Swift",
+      ],
+      resources: [
+        .process("Fixture"),
+      ],
+      cSettings: [
+        .headerSearchPath("../.."),
+      ]
+    ),
+    .testTarget(
+      name: "AppCheckCoreUnitSwift",
+      dependencies: ["AppCheckCore"],
+      path: "AppCheckCore/Tests/Unit/Swift",
+      cSettings: [
+        .headerSearchPath("../.."),
+      ]
+    ),
   ]
 )
 
