@@ -78,7 +78,6 @@ Pod::Spec.new do |s|
       base_dir + 'Tests/Integration/**/*.[mh]',
     ]
     integration_tests.resources = base_dir + 'Tests/Fixture/**/*'
-    integration_tests.dependency 'FirebaseCoreExtension', '~> 10.0'
     integration_tests.requires_app_host = true
   end
 

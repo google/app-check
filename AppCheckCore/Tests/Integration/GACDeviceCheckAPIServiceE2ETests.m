@@ -29,16 +29,12 @@
 
 #import "FBLPromise+Testing.h"
 
-#import <FirebaseCoreExtension/FirebaseCoreInternal.h>
-
 #import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
 #import "AppCheckCore/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
-// TODO(andrewheard): Remove from generic App Check SDK.
-// FIREBASE_APP_CHECK_ONLY_BEGIN
-static NSString *const kHeartbeatKey = @"X-firebase-client";
-// FIREBASE_APP_CHECK_ONLY_END
+// TODO: Replace with real resource name to run on CI
+static NSString *const kResourceName = @"projects/test-project-id/google-app-id";
 
 @interface GACDeviceCheckAPIServiceE2ETests : XCTestCase
 @property(nonatomic) GACDeviceCheckAPIService *deviceCheckAPIService;
@@ -53,22 +49,13 @@ static NSString *const kHeartbeatKey = @"X-firebase-client";
 - (void)setUp {
   self.URLSession = [NSURLSession
       sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
-  FIROptions *options = [self firebaseTestOptions];
-  FIRHeartbeatLogger *heartbeatLogger =
-      [[FIRHeartbeatLogger alloc] initWithAppID:options.googleAppID];
-  GACAppCheckAPIRequestHook heartbeatLoggerHook = ^(NSMutableURLRequest *request) {
-    [request setValue:FIRHeaderValueFromHeartbeatsPayload(
-                          [heartbeatLogger flushHeartbeatsIntoPayload])
-        forHTTPHeaderField:kHeartbeatKey];
-  };
 
   self.APIService = [[GACAppCheckAPIService alloc] initWithURLSession:self.URLSession
                                                               baseURL:nil
-                                                               APIKey:options.APIKey
-                                                         requestHooks:@[ heartbeatLoggerHook ]];
-  self.deviceCheckAPIService = [[GACDeviceCheckAPIService alloc]
-      initWithAPIService:self.APIService
-            resourceName:[GACDeviceCheckAPIServiceE2ETests resourceNameFromOptions:options]];
+                                                               APIKey:nil
+                                                         requestHooks:nil];
+  self.deviceCheckAPIService = [[GACDeviceCheckAPIService alloc] initWithAPIService:self.APIService
+                                                                       resourceName:kResourceName];
 }
 
 - (void)tearDown {
@@ -90,25 +77,6 @@ static NSString *const kHeartbeatKey = @"X-firebase-client";
   XCTAssertNotNil(appCheckPromise.value.token);
   XCTAssertNotNil(appCheckPromise.value.expirationDate);
 }
-
-#pragma mark - Helpers
-
-- (FIROptions *)firebaseTestOptions {
-  NSString *plistPath =
-      [[NSBundle bundleForClass:[self class]] pathForResource:@"GoogleService-Info"
-                                                       ofType:@"plist"];
-  FIROptions *options = [[FIROptions alloc] initWithContentsOfFile:plistPath];
-  return options;
-}
-
-// TODO(andrewheard): Remove from generic App Check SDK.
-// FIREBASE_APP_CHECK_ONLY_BEGIN
-
-+ (NSString *)resourceNameFromOptions:(FIROptions *)options {
-  return [NSString stringWithFormat:@"projects/%@/apps/%@", options.projectID, options.googleAppID];
-}
-
-// FIREBASE_APP_CHECK_ONLY_END
 
 @end
 
