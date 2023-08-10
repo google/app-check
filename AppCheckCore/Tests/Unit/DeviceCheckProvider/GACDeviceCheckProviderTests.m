@@ -16,7 +16,6 @@
 
 #import <XCTest/XCTest.h>
 
-#import <FirebaseCoreExtension/FirebaseCoreInternal.h>
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
@@ -70,19 +69,6 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
   self.fakeAPIService = nil;
   self.fakeTokenGenerator = nil;
   self.fakeBackoffWrapper = nil;
-}
-
-- (void)testInitWithValidApp {
-  FIROptions *options = [[FIROptions alloc] initWithGoogleAppID:@"app_id" GCMSenderID:@"sender_id"];
-  options.APIKey = @"api_key";
-  options.projectID = @"project_id";
-  FIRApp *app = [[FIRApp alloc] initInstanceWithName:@"testInitWithValidApp" options:options];
-
-  XCTAssertNotNil([[GACDeviceCheckProvider alloc]
-      initWithServiceName:app.name
-             resourceName:[GACDeviceCheckProviderTests resourceNameFromApp:app]
-                   APIKey:app.options.APIKey
-             requestHooks:nil]);
 }
 
 - (void)testGetTokenSuccess {
@@ -256,18 +242,6 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
   OCMVerifyAll(self.fakeAPIService);
   OCMVerifyAll(self.fakeTokenGenerator);
 }
-
-#pragma mark - Helpers
-
-// TODO(andrewheard): Remove from generic App Check SDK.
-// FIREBASE_APP_CHECK_ONLY_BEGIN
-
-+ (NSString *)resourceNameFromApp:(FIRApp *)app {
-  return [NSString
-      stringWithFormat:@"projects/%@/apps/%@", app.options.projectID, app.options.googleAppID];
-}
-
-// FIREBASE_APP_CHECK_ONLY_END
 
 @end
 

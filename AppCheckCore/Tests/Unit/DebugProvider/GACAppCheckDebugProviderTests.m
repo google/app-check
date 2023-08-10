@@ -16,7 +16,6 @@
 
 #import <XCTest/XCTest.h>
 
-#import <FirebaseCoreExtension/FirebaseCoreInternal.h>
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
@@ -58,21 +57,6 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
   [self.processInfoMock stopMocking];
   self.processInfoMock = nil;
   [[NSUserDefaults standardUserDefaults] removeObjectForKey:kDebugTokenUserDefaultsKey];
-}
-
-#pragma mark - Initialization
-
-- (void)testInitWithValidApp {
-  FIROptions *options = [[FIROptions alloc] initWithGoogleAppID:@"app_id" GCMSenderID:@"sender_id"];
-  options.APIKey = @"api_key";
-  options.projectID = @"project_id";
-  FIRApp *app = [[FIRApp alloc] initInstanceWithName:@"testInitWithValidApp" options:options];
-
-  XCTAssertNotNil([[GACAppCheckDebugProvider alloc]
-      initWithServiceName:options.googleAppID
-             resourceName:[GACAppCheckDebugProviderTests resourceNameFromApp:app]
-                   APIKey:app.options.APIKey
-             requestHooks:nil]);
 }
 
 #pragma mark - Debug token generating/storing
@@ -166,15 +150,5 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
 
   [self waitForExpectations:@[ expectation ] timeout:0.5];
 }
-
-// TODO(andrewheard): Remove from generic App Check SDK.
-// FIREBASE_APP_CHECK_ONLY_BEGIN
-
-+ (NSString *)resourceNameFromApp:(FIRApp *)app {
-  return [NSString
-      stringWithFormat:@"projects/%@/apps/%@", app.options.projectID, app.options.googleAppID];
-}
-
-// FIREBASE_APP_CHECK_ONLY_END
 
 @end

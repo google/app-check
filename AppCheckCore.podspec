@@ -63,7 +63,6 @@ Pod::Spec.new do |s|
     ]
 
     unit_tests.resources = base_dir + 'Tests/Fixture/**/*'
-    unit_tests.dependency 'FirebaseCoreExtension', '~> 10.0'
     unit_tests.dependency 'OCMock'
     unit_tests.requires_app_host = true
   end
@@ -79,7 +78,6 @@ Pod::Spec.new do |s|
       base_dir + 'Tests/Integration/**/*.[mh]',
     ]
     integration_tests.resources = base_dir + 'Tests/Fixture/**/*'
-    integration_tests.dependency 'FirebaseCoreExtension', '~> 10.0'
     integration_tests.requires_app_host = true
   end
 
@@ -93,7 +91,6 @@ Pod::Spec.new do |s|
       base_dir + 'Tests/Unit/Swift/**/*.swift',
       base_dir + 'Tests/Unit/Swift/**/*.h',
     ]
-    swift_unit_tests.dependency 'FirebaseCore', '~> 10.0'
   end
 
 end

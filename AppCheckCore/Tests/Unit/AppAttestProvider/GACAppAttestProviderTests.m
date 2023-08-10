@@ -16,7 +16,6 @@
 
 #import <XCTest/XCTest.h>
 
-#import <FirebaseCoreExtension/FirebaseCoreInternal.h>
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
@@ -98,28 +97,6 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   self.mockAppAttestService = nil;
   self.fakeBackoffWrapper = nil;
 }
-
-#pragma mark - Init tests
-
-#if !TARGET_OS_MACCATALYST
-// Keychain dependent logic require additional configuration on Catalyst (enabling Keychain
-// sharing). For now, keychain dependent tests are disabled for Catalyst.
-- (void)testInitWithValidApp {
-  FIROptions *options = [[FIROptions alloc] initWithGoogleAppID:@"app_id" GCMSenderID:@"sender_id"];
-  options.APIKey = @"api_key";
-  options.projectID = @"project_id";
-  FIRApp *app = [[FIRApp alloc] initInstanceWithName:@"testInitWithValidApp" options:options];
-  NSString *resourceName = [GACAppAttestProviderTests resourceNameFromApp:app];
-
-  XCTAssertNotNil([[GACAppAttestProvider alloc] initWithServiceName:app.name
-                                                       resourceName:resourceName
-                                                            baseURL:nil
-                                                             APIKey:app.options.APIKey
-                                                keychainAccessGroup:nil
-                                                         limitedUse:NO
-                                                       requestHooks:nil]);
-}
-#endif  // !TARGET_OS_MACCATALYST
 
 #pragma mark - Initial handshake (attestation)
 
@@ -1093,16 +1070,6 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   OCMExpect([self.mockArtifactStorage setArtifact:nil forKey:@""])
       .andReturn([FBLPromise resolvedWith:nil]);
 }
-
-// TODO(andrewheard): Remove from generic App Check SDK.
-// FIREBASE_APP_CHECK_ONLY_BEGIN
-
-+ (NSString *)resourceNameFromApp:(FIRApp *)app {
-  return [NSString
-      stringWithFormat:@"projects/%@/apps/%@", app.options.projectID, app.options.googleAppID];
-}
-
-// FIREBASE_APP_CHECK_ONLY_END
 
 @end
 
