@@ -1,0 +1,41 @@
+name: app_check_core
+
+on:
+  pull_request:
+  schedule:
+    # Run every day at 11pm (PST) - cron uses UTC times
+    - cron:  '0 7 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pod_lib_lint:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        target: [ios, tvos, macos]
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ruby/setup-ruby@v1
+    - name: Setup Scripts Directory
+      run: ./setup-scripts.sh
+    - name: Setup Bundler
+      run: ./scripts/setup_bundler.sh
+    - name: Build and test
+      run: |
+        scripts/third_party/travis/retry.sh scripts/pod_lib_lint.rb AppCheckCore.podspec \
+          --platforms=${{ matrix.target }}
+
+  catalyst:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ruby/setup-ruby@v1
+    - name: Setup Scripts Directory
+      run: ./setup-scripts.sh
+    - name: Setup Bundler
+      run: scripts/setup_bundler.sh
+    - name: Setup project and Test Catalyst
+      run: scripts/third_party/travis/retry.sh scripts/test_catalyst.sh AppCheckCore test
