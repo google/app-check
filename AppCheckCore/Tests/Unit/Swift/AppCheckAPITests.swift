@@ -29,23 +29,21 @@ final class AppCheckAPITests {
 
     // MARK: - AppAttestProvider
 
-    #if os(iOS) || os(tvOS) || os(watchOS)
-      if #available(iOS 14.0, tvOS 15.0, watchOS 9.0, *) {
-        // TODO(andrewheard): Add `requestHooks` in API tests.
-        if let provider = AppCheckCoreAppAttestProvider(
-          serviceName: serviceName,
-          resourceName: resourceName,
-          baseURL: nil,
-          apiKey: apiKey,
-          keychainAccessGroup: nil,
-          requestHooks: nil
-        ) {
-          provider.getToken { token, error in
-            // ...
-          }
+    if #available(iOS 14.0, macOS 11.3, macCatalyst 14.5, tvOS 15.0, watchOS 9.0, *) {
+      // TODO(andrewheard): Add `requestHooks` in API tests.
+      if let provider = AppCheckCoreAppAttestProvider(
+        serviceName: serviceName,
+        resourceName: resourceName,
+        baseURL: nil,
+        apiKey: apiKey,
+        keychainAccessGroup: nil,
+        requestHooks: nil
+      ) {
+        provider.getToken { token, error in
+          // ...
         }
       }
-    #endif // os(iOS) || os(tvOS) || os(watchOS)
+    }
 
     // MARK: - AppCheckCore
 
