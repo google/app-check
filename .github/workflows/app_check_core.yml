@@ -38,4 +38,4 @@ jobs:
     - name: Setup Bundler
       run: scripts/setup_bundler.sh
     - name: Setup project and Test Catalyst
-      run: scripts/third_party/travis/retry.sh scripts/test_catalyst.sh AppCheckCore build
+      run: scripts/third_party/travis/retry.sh scripts/test_catalyst.sh AppCheckCore test
