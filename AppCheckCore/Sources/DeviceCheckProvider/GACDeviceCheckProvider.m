@@ -106,6 +106,14 @@ NS_ASSUME_NONNULL_BEGIN
       });
 }
 
+- (void)getLimitedUseTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable,
+                                                   NSError *_Nullable))handler {
+  // TODO(andrewheard): Add support for generating limited-use tokens with a 5-minute TTL.
+  [self getTokenWithCompletion:handler];
+}
+
+#pragma mark - Internal
+
 - (FBLPromise<GACAppCheckToken *> *)getTokenPromise {
   // Get DeviceCheck token
   return [self deviceToken]

@@ -119,6 +119,12 @@ static NSString *const kDebugTokenUserDefaultsKey = @"FIRAAppCheckDebugToken";
       });
 }
 
+- (void)getLimitedUseTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable,
+                                                   NSError *_Nullable))handler {
+  // TODO(andrewheard): Add support for generating limited-use tokens with a 5-minute TTL.
+  [self getTokenWithCompletion:handler];
+}
+
 @end
 
 NS_ASSUME_NONNULL_END

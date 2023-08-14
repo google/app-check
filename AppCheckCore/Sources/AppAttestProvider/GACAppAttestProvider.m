@@ -192,7 +192,19 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark - GACAppCheckProvider
 
 - (void)getTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable, NSError *_Nullable))handler {
-  [self getToken]
+  [self getTokenWithLimitedUse:NO completion:handler];
+}
+
+- (void)getLimitedUseTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable,
+                                                   NSError *_Nullable))handler {
+  [self getTokenWithLimitedUse:YES completion:handler];
+}
+
+#pragma mark - Internal
+
+- (void)getTokenWithLimitedUse:(BOOL)limitedUse
+                    completion:(void (^)(GACAppCheckToken *_Nullable, NSError *_Nullable))handler {
+  [self getTokenWithLimitedUse:limitedUse]
       // Call the handler with the result.
       .then(^FBLPromise *(GACAppCheckToken *token) {
         handler(token, nil);
@@ -203,38 +215,40 @@ NS_ASSUME_NONNULL_BEGIN
       });
 }
 
-- (FBLPromise<GACAppCheckToken *> *)getToken {
-  return [FBLPromise onQueue:self.queue
-                          do:^id _Nullable {
-                            if (self.ongoingGetTokenOperation == nil) {
-                              // Kick off a new handshake sequence only when there is not an ongoing
-                              // handshake to avoid race conditions.
-                              self.ongoingGetTokenOperation =
-                                  [self createGetTokenSequenceWithBackoffPromise]
+- (FBLPromise<GACAppCheckToken *> *)getTokenWithLimitedUse:(BOOL)limitedUse {
+  return [FBLPromise
+      onQueue:self.queue
+           do:^id _Nullable {
+             if (self.ongoingGetTokenOperation == nil) {
+               // Kick off a new handshake sequence only when there is not an ongoing
+               // handshake to avoid race conditions.
+               self.ongoingGetTokenOperation =
+                   [self createGetTokenSequenceWithBackoffPromiseWithLimitedUse:limitedUse]
 
-                                      // Release the ongoing operation promise on completion.
-                                      .then(^GACAppCheckToken *(GACAppCheckToken *token) {
-                                        self.ongoingGetTokenOperation = nil;
-                                        return token;
-                                      })
-                                      .recover(^NSError *(NSError *error) {
-                                        self.ongoingGetTokenOperation = nil;
-                                        return error;
-                                      });
-                            }
-                            return self.ongoingGetTokenOperation;
-                          }];
+                       // Release the ongoing operation promise on completion.
+                       .then(^GACAppCheckToken *(GACAppCheckToken *token) {
+                         self.ongoingGetTokenOperation = nil;
+                         return token;
+                       })
+                       .recover(^NSError *(NSError *error) {
+                         self.ongoingGetTokenOperation = nil;
+                         return error;
+                       });
+             }
+             return self.ongoingGetTokenOperation;
+           }];
 }
 
-- (FBLPromise<GACAppCheckToken *> *)createGetTokenSequenceWithBackoffPromise {
+- (FBLPromise<GACAppCheckToken *> *)createGetTokenSequenceWithBackoffPromiseWithLimitedUse:
+    (BOOL)limitedUse {
   return [self.backoffWrapper
       applyBackoffToOperation:^FBLPromise *_Nonnull {
-        return [self createGetTokenSequencePromise];
+        return [self createGetTokenSequencePromiseWithLimitedUse:limitedUse];
       }
                  errorHandler:[self.backoffWrapper defaultAppCheckProviderErrorHandler]];
 }
 
-- (FBLPromise<GACAppCheckToken *> *)createGetTokenSequencePromise {
+- (FBLPromise<GACAppCheckToken *> *)createGetTokenSequencePromiseWithLimitedUse:(BOOL)limitedUse {
   // Check attestation state to decide on the next steps.
   return [self attestationState].thenOn(self.queue, ^id(GACAppAttestProviderState *attestState) {
     switch (attestState.state) {
@@ -247,13 +261,14 @@ NS_ASSUME_NONNULL_BEGIN
       case GACAppAttestAttestationStateSupportedInitial:
       case GACAppAttestAttestationStateKeyGenerated:
         // Initial handshake is required for both the "initial" and the "key generated" states.
-        return [self initialHandshakeWithKeyID:attestState.appAttestKeyID];
+        return [self initialHandshakeWithKeyID:attestState.appAttestKeyID limitedUse:limitedUse];
         break;
 
       case GACAppAttestAttestationStateKeyRegistered:
         // Refresh FAC token using the existing registered App Attest key pair.
         return [self refreshTokenWithKeyID:attestState.appAttestKeyID
-                                  artifact:attestState.attestationArtifact];
+                                  artifact:attestState.attestationArtifact
+                                limitedUse:limitedUse];
         break;
     }
   });
@@ -261,7 +276,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 #pragma mark - Initial handshake sequence (attestation)
 
-- (FBLPromise<GACAppCheckToken *> *)initialHandshakeWithKeyID:(nullable NSString *)keyID {
+- (FBLPromise<GACAppCheckToken *> *)initialHandshakeWithKeyID:(nullable NSString *)keyID
+                                                   limitedUse:(BOOL)limitedUse {
   // 1. Attest the device. Retry once on 403 from Firebase backend (attestation rejection error).
   __block NSString *keyIDForAttempt = keyID;
   return [FBLPromise onQueue:self.queue
@@ -273,7 +289,7 @@ NS_ASSUME_NONNULL_BEGIN
                return [error isKindOfClass:[GACAppAttestRejectionError class]];
              }
              retry:^FBLPromise<NSArray * /*[keyID, attestArtifact]*/> *_Nullable {
-               return [self attestKeyGenerateIfNeededWithID:keyIDForAttempt];
+               return [self attestKeyGenerateIfNeededWithID:keyIDForAttempt limitedUse:limitedUse];
              }]
       .thenOn(self.queue, ^FBLPromise<GACAppCheckToken *> *(NSArray *attestationResults) {
         // 4. Save the artifact and return the received FAC token.
@@ -321,8 +337,9 @@ NS_ASSUME_NONNULL_BEGIN
       });
 }
 
-- (FBLPromise<NSArray * /*[keyID, attestArtifact]*/> *)attestKeyGenerateIfNeededWithID:
-    (nullable NSString *)keyID {
+- (FBLPromise<NSArray * /*[keyID, attestArtifact]*/> *)
+    attestKeyGenerateIfNeededWithID:(nullable NSString *)keyID
+                         limitedUse:(BOOL)limitedUse {
   // 1. Request a random challenge and get App Attest key ID concurrently.
   return [FBLPromise onQueue:self.queue
                          all:@[
@@ -348,7 +365,8 @@ NS_ASSUME_NONNULL_BEGIN
                   // 3.2. Exchange the attestation to FAC token.
                   [self.APIService attestKeyWithAttestation:result.attestation
                                                       keyID:result.keyID
-                                                  challenge:result.challenge]
+                                                  challenge:result.challenge
+                                                 limitedUse:limitedUse]
                 ];
 
                 return [FBLPromise onQueue:self.queue all:attestationResults];
@@ -384,7 +402,8 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark - Token refresh sequence (assertion)
 
 - (FBLPromise<GACAppCheckToken *> *)refreshTokenWithKeyID:(NSString *)keyID
-                                                 artifact:(NSData *)artifact {
+                                                 artifact:(NSData *)artifact
+                                               limitedUse:(BOOL)limitedUse {
   return [self.APIService getRandomChallenge]
       .thenOn(self.queue,
               ^FBLPromise<GACAppAttestAssertionData *> *(NSData *challenge) {
@@ -395,7 +414,8 @@ NS_ASSUME_NONNULL_BEGIN
       .thenOn(self.queue, ^id(GACAppAttestAssertionData *assertion) {
         return [self.APIService getAppCheckTokenWithArtifact:assertion.artifact
                                                    challenge:assertion.challenge
-                                                   assertion:assertion.assertion];
+                                                   assertion:assertion.assertion
+                                                  limitedUse:limitedUse];
       });
 }
 

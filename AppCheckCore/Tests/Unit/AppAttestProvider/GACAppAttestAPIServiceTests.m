@@ -53,8 +53,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   OCMStub([self.mockAPIService baseURL]).andReturn(kBaseURL);
 
   self.appAttestAPIService = [[GACAppAttestAPIService alloc] initWithAPIService:self.mockAPIService
-                                                                   resourceName:kResourceName
-                                                                     limitedUse:NO];
+                                                                   resourceName:kResourceName];
 }
 
 - (void)tearDown {
@@ -229,7 +228,8 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   // 3. Send request.
   __auto_type promise = [self.appAttestAPIService getAppCheckTokenWithArtifact:artifact
                                                                      challenge:challenge
-                                                                     assertion:assertion];
+                                                                     assertion:assertion
+                                                                    limitedUse:NO];
   // 4. Verify.
   XCTAssert(FBLWaitForPromisesWithTimeout(1));
 
@@ -267,7 +267,8 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   // 3. Send request.
   __auto_type promise = [self.appAttestAPIService getAppCheckTokenWithArtifact:artifact
                                                                      challenge:challenge
-                                                                     assertion:assertion];
+                                                                     assertion:assertion
+                                                                    limitedUse:NO];
   // 4. Verify.
   XCTAssert(FBLWaitForPromisesWithTimeout(1));
 
@@ -302,7 +303,8 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   // 3. Send request.
   __auto_type promise = [self.appAttestAPIService getAppCheckTokenWithArtifact:artifact
                                                                      challenge:challenge
-                                                                     assertion:assertion];
+                                                                     assertion:assertion
+                                                                    limitedUse:NO];
   // 4. Verify.
   XCTAssert(FBLWaitForPromisesWithTimeout(1));
 
@@ -337,7 +339,8 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   // 3. Send request.
   __auto_type promise = [self.appAttestAPIService attestKeyWithAttestation:attestation
                                                                      keyID:keyID
-                                                                 challenge:challenge];
+                                                                 challenge:challenge
+                                                                limitedUse:NO];
 
   // 4. Verify.
   XCTAssert(FBLWaitForPromisesWithTimeout(1));
@@ -374,7 +377,8 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   // 2. Send request.
   __auto_type promise = [self.appAttestAPIService attestKeyWithAttestation:attestation
                                                                      keyID:keyID
-                                                                 challenge:challenge];
+                                                                 challenge:challenge
+                                                                limitedUse:NO];
 
   // 3. Verify.
   XCTAssert(FBLWaitForPromisesWithTimeout(1));
@@ -408,7 +412,8 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   // 3. Send request.
   __auto_type promise = [self.appAttestAPIService attestKeyWithAttestation:attestation
                                                                      keyID:keyID
-                                                                 challenge:challenge];
+                                                                 challenge:challenge
+                                                                limitedUse:NO];
 
   // 4. Verify.
   XCTAssert(FBLWaitForPromisesWithTimeout(1));

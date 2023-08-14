@@ -197,6 +197,13 @@ class DummyAppCheckProvider: NSObject, AppCheckCoreProvider {
   func getToken(completion handler: @escaping (AppCheckCoreToken?, Error?) -> Void) {
     handler(AppCheckCoreToken(token: "token", expirationDate: .distantFuture), nil)
   }
+
+  func getLimitedUseToken(completion handler: @escaping (AppCheckCoreToken?, Error?) -> Void) {
+    handler(
+      AppCheckCoreToken(token: "token", expirationDate: .init(timeIntervalSinceNow: 3600)),
+      nil
+    )
+  }
 }
 
 class DummyAppCheckSettings: NSObject, AppCheckCoreSettingsProtocol {

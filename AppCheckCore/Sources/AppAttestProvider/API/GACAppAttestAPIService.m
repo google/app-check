@@ -51,22 +51,16 @@ static NSString *const kHTTPMethodPost = @"POST";
 
 @property(nonatomic, readonly) NSString *resourceName;
 
-// TODO(andrewheard): Remove or refactor property when short-lived token feature is implemented.
-// When `YES`, forces a short-lived token with a 5 minute TTL.
-@property(nonatomic, readonly) BOOL limitedUse;
-
 @end
 
 @implementation GACAppAttestAPIService
 
 - (instancetype)initWithAPIService:(id<GACAppCheckAPIServiceProtocol>)APIService
-                      resourceName:(NSString *)resourceName
-                        limitedUse:(BOOL)limitedUse {
+                      resourceName:(NSString *)resourceName {
   self = [super init];
   if (self) {
     _APIService = APIService;
     _resourceName = [resourceName copy];
-    _limitedUse = limitedUse;
   }
   return self;
 }
@@ -75,10 +69,14 @@ static NSString *const kHTTPMethodPost = @"POST";
 
 - (FBLPromise<GACAppCheckToken *> *)getAppCheckTokenWithArtifact:(NSData *)artifact
                                                        challenge:(NSData *)challenge
-                                                       assertion:(NSData *)assertion {
+                                                       assertion:(NSData *)assertion
+                                                      limitedUse:(BOOL)limitedUse {
   NSURL *URL = [self URLForEndpoint:kExchangeAppAttestAssertionEndpoint];
 
-  return [self HTTPBodyWithArtifact:artifact challenge:challenge assertion:assertion]
+  return [self HTTPBodyWithArtifact:artifact
+                          challenge:challenge
+                          assertion:assertion
+                         limitedUse:limitedUse]
       .then(^FBLPromise<GULURLSessionDataResponse *> *(NSData *HTTPBody) {
         return [self.APIService sendRequestWithURL:URL
                                         HTTPMethod:kHTTPMethodPost
@@ -154,10 +152,14 @@ static NSString *const kHTTPMethodPost = @"POST";
 
 - (FBLPromise<GACAppAttestAttestationResponse *> *)attestKeyWithAttestation:(NSData *)attestation
                                                                       keyID:(NSString *)keyID
-                                                                  challenge:(NSData *)challenge {
+                                                                  challenge:(NSData *)challenge
+                                                                 limitedUse:(BOOL)limitedUse {
   NSURL *URL = [self URLForEndpoint:kExchangeAppAttestAttestationEndpoint];
 
-  return [self HTTPBodyWithAttestation:attestation keyID:keyID challenge:challenge]
+  return [self HTTPBodyWithAttestation:attestation
+                                 keyID:keyID
+                             challenge:challenge
+                            limitedUse:limitedUse]
       .then(^FBLPromise<GULURLSessionDataResponse *> *(NSData *HTTPBody) {
         return [self.APIService sendRequestWithURL:URL
                                         HTTPMethod:kHTTPMethodPost
@@ -181,7 +183,8 @@ static NSString *const kHTTPMethodPost = @"POST";
 
 - (FBLPromise<NSData *> *)HTTPBodyWithArtifact:(NSData *)artifact
                                      challenge:(NSData *)challenge
-                                     assertion:(NSData *)assertion {
+                                     assertion:(NSData *)assertion
+                                    limitedUse:(BOOL)limitedUse {
   if (artifact.length <= 0 || challenge.length <= 0 || assertion.length <= 0) {
     FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
     [rejectedPromise reject:[GACAppCheckErrorUtil
@@ -195,7 +198,7 @@ static NSString *const kHTTPMethodPost = @"POST";
                               kRequestFieldArtifact : [self base64StringWithData:artifact],
                               kRequestFieldChallenge : [self base64StringWithData:challenge],
                               kRequestFieldAssertion : [self base64StringWithData:assertion],
-                              kRequestFieldLimitedUse : @(self.limitedUse)
+                              kRequestFieldLimitedUse : @(limitedUse)
                             };
 
                             return [self HTTPBodyWithJSONObject:JSONObject];
@@ -204,7 +207,8 @@ static NSString *const kHTTPMethodPost = @"POST";
 
 - (FBLPromise<NSData *> *)HTTPBodyWithAttestation:(NSData *)attestation
                                             keyID:(NSString *)keyID
-                                        challenge:(NSData *)challenge {
+                                        challenge:(NSData *)challenge
+                                       limitedUse:(BOOL)limitedUse {
   if (attestation.length <= 0 || keyID.length <= 0 || challenge.length <= 0) {
     FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
     [rejectedPromise reject:[GACAppCheckErrorUtil
@@ -218,7 +222,7 @@ static NSString *const kHTTPMethodPost = @"POST";
                               kRequestFieldKeyID : keyID,
                               kRequestFieldAttestation : [self base64StringWithData:attestation],
                               kRequestFieldChallenge : [self base64StringWithData:challenge],
-                              kRequestFieldLimitedUse : @(self.limitedUse)
+                              kRequestFieldLimitedUse : @(limitedUse)
                             };
 
                             return [self HTTPBodyWithJSONObject:JSONObject];
