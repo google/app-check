@@ -24,7 +24,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @protocol GACAppCheckDebugProviderAPIServiceProtocol <NSObject>
 
-- (FBLPromise<GACAppCheckToken *> *)appCheckTokenWithDebugToken:(NSString *)debugToken;
+- (FBLPromise<GACAppCheckToken *> *)appCheckTokenWithDebugToken:(NSString *)debugToken
+                                                     limitedUse:(BOOL)limitedUse;
 
 @end
 

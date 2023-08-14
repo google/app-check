@@ -104,8 +104,9 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
   GACAppCheckToken *validToken = [[GACAppCheckToken alloc] initWithToken:@"valid_token"
                                                           expirationDate:[NSDate date]
                                                           receivedAtDate:[NSDate date]];
-  OCMExpect([self.fakeAPIService appCheckTokenWithDebugToken:expectedDebugToken])
+  OCMExpect([self.fakeAPIService appCheckTokenWithDebugToken:expectedDebugToken limitedUse:NO])
       .andReturn([FBLPromise resolvedWith:validToken]);
+  OCMReject([self.fakeAPIService appCheckTokenWithDebugToken:OCMOCK_ANY limitedUse:YES]);
 
   // 2. Validate get token.
   [self validateGetToken:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
@@ -125,8 +126,9 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
   NSError *APIError = [NSError errorWithDomain:@"testGetTokenAPIError" code:-1 userInfo:nil];
   FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
   [rejectedPromise reject:APIError];
-  OCMExpect([self.fakeAPIService appCheckTokenWithDebugToken:expectedDebugToken])
+  OCMExpect([self.fakeAPIService appCheckTokenWithDebugToken:expectedDebugToken limitedUse:NO])
       .andReturn(rejectedPromise);
+  OCMReject([self.fakeAPIService appCheckTokenWithDebugToken:OCMOCK_ANY limitedUse:YES]);
 
   // 2. Validate get token.
   [self validateGetToken:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {

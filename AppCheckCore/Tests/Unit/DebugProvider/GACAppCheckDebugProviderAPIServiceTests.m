@@ -90,7 +90,8 @@ static NSString *const kResourceName = @"projects/test_project_id/apps/test_app_
       .andReturn([FBLPromise resolvedWith:expectedResult]);
 
   // 2. Send request.
-  __auto_type tokenPromise = [self.debugAPIService appCheckTokenWithDebugToken:debugToken];
+  __auto_type tokenPromise = [self.debugAPIService appCheckTokenWithDebugToken:debugToken
+                                                                    limitedUse:NO];
 
   // 3. Verify.
   XCTAssert(FBLWaitForPromisesWithTimeout(1));
@@ -139,7 +140,8 @@ static NSString *const kResourceName = @"projects/test_project_id/apps/test_app_
       .andReturn(rejectedPromise);
 
   // 2. Send request.
-  __auto_type tokenPromise = [self.debugAPIService appCheckTokenWithDebugToken:debugToken];
+  __auto_type tokenPromise = [self.debugAPIService appCheckTokenWithDebugToken:debugToken
+                                                                    limitedUse:NO];
 
   // 3. Verify.
   XCTAssert(FBLWaitForPromisesWithTimeout(1));
@@ -169,7 +171,8 @@ static NSString *const kResourceName = @"projects/test_project_id/apps/test_app_
       .andReturn(rejectedPromise);
 
   // 2. Send request.
-  __auto_type tokenPromise = [self.debugAPIService appCheckTokenWithDebugToken:debugToken];
+  __auto_type tokenPromise = [self.debugAPIService appCheckTokenWithDebugToken:debugToken
+                                                                    limitedUse:NO];
 
   // 3. Verify.
   XCTAssert(FBLWaitForPromisesWithTimeout(1));
