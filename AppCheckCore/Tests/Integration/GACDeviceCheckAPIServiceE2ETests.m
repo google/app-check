@@ -67,7 +67,7 @@ static NSString *const kResourceName = @"projects/test-project-id/google-app-id"
 // TODO: Re-enable the test once secret with "GoogleService-Info.plist" is configured.
 - (void)temporaryDisabled_testAppCheckTokenSuccess {
   __auto_type appCheckPromise =
-      [self.deviceCheckAPIService appCheckTokenWithDeviceToken:[NSData data]];
+      [self.deviceCheckAPIService appCheckTokenWithDeviceToken:[NSData data] limitedUse:NO];
 
   XCTAssert(FBLWaitForPromisesWithTimeout(20));
 

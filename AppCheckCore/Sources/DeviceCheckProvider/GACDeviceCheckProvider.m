@@ -91,9 +91,22 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)getTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable token,
                                          NSError *_Nullable error))handler {
+  [self getTokenWithLimitedUse:NO completion:handler];
+}
+
+- (void)getLimitedUseTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable,
+                                                   NSError *_Nullable))handler {
+  [self getTokenWithLimitedUse:YES completion:handler];
+}
+
+#pragma mark - Internal
+
+- (void)getTokenWithLimitedUse:(BOOL)limitedUse
+                    completion:(void (^)(GACAppCheckToken *_Nullable token,
+                                         NSError *_Nullable error))handler {
   [self.backoffWrapper
       applyBackoffToOperation:^FBLPromise *_Nonnull {
-        return [self getTokenPromise];
+        return [self getTokenPromiseWithLimitedUse:limitedUse];
       }
                  errorHandler:[self.backoffWrapper defaultAppCheckProviderErrorHandler]]
       // Call the handler with either token or error.
@@ -106,20 +119,12 @@ NS_ASSUME_NONNULL_BEGIN
       });
 }
 
-- (void)getLimitedUseTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable,
-                                                   NSError *_Nullable))handler {
-  // TODO(andrewheard): Add support for generating limited-use tokens with a 5-minute TTL.
-  [self getTokenWithCompletion:handler];
-}
-
-#pragma mark - Internal
-
-- (FBLPromise<GACAppCheckToken *> *)getTokenPromise {
+- (FBLPromise<GACAppCheckToken *> *)getTokenPromiseWithLimitedUse:(BOOL)limitedUse {
   // Get DeviceCheck token
   return [self deviceToken]
       // Exchange DeviceCheck token for FAC token.
       .then(^FBLPromise<GACAppCheckToken *> *(NSData *deviceToken) {
-        return [self.APIService appCheckTokenWithDeviceToken:deviceToken];
+        return [self.APIService appCheckTokenWithDeviceToken:deviceToken limitedUse:limitedUse];
       });
 }
 

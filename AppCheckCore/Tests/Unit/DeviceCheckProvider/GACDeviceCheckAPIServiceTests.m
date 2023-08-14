@@ -97,7 +97,8 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
       .andReturn([FBLPromise resolvedWith:expectedResult]);
 
   // 2. Send request.
-  __auto_type tokenPromise = [self.APIService appCheckTokenWithDeviceToken:deviceTokenData];
+  __auto_type tokenPromise = [self.APIService appCheckTokenWithDeviceToken:deviceTokenData
+                                                                limitedUse:NO];
 
   // 3. Verify.
   XCTAssert(FBLWaitForPromisesWithTimeout(1));
@@ -150,7 +151,8 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
       .andReturn(rejectedPromise);
 
   // 2. Send request.
-  __auto_type tokenPromise = [self.APIService appCheckTokenWithDeviceToken:deviceTokenData];
+  __auto_type tokenPromise = [self.APIService appCheckTokenWithDeviceToken:deviceTokenData
+                                                                limitedUse:NO];
 
   // 3. Verify.
   XCTAssert(FBLWaitForPromisesWithTimeout(1));
@@ -180,7 +182,8 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
       .andReturn(rejectedPromise);
 
   // 2. Send request.
-  __auto_type tokenPromise = [self.APIService appCheckTokenWithDeviceToken:deviceTokenData];
+  __auto_type tokenPromise = [self.APIService appCheckTokenWithDeviceToken:deviceTokenData
+                                                                limitedUse:NO];
 
   // 3. Verify.
   XCTAssert(FBLWaitForPromisesWithTimeout(1));
@@ -202,7 +205,8 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
                                   additionalHeaders:[OCMArg any]]);
 
   // 2. Send request.
-  __auto_type tokenPromise = [self.APIService appCheckTokenWithDeviceToken:deviceTokenData];
+  __auto_type tokenPromise = [self.APIService appCheckTokenWithDeviceToken:deviceTokenData
+                                                                limitedUse:NO];
 
   // 3. Verify.
   XCTAssert(FBLWaitForPromisesWithTimeout(1));

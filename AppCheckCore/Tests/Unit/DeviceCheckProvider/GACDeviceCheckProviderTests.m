@@ -79,8 +79,9 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
   GACAppCheckToken *validToken = [[GACAppCheckToken alloc] initWithToken:@"valid_token"
                                                           expirationDate:[NSDate distantFuture]
                                                           receivedAtDate:[NSDate date]];
-  OCMExpect([self.fakeAPIService appCheckTokenWithDeviceToken:deviceToken])
+  OCMExpect([self.fakeAPIService appCheckTokenWithDeviceToken:deviceToken limitedUse:NO])
       .andReturn([FBLPromise resolvedWith:validToken]);
+  OCMReject([self.fakeAPIService appCheckTokenWithDeviceToken:OCMOCK_ANY limitedUse:YES]);
 
   // 3. Expect backoff wrapper to be used.
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
@@ -134,7 +135,8 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
   OCMExpect([self.fakeTokenGenerator generateTokenWithCompletionHandler:generateTokenArg]);
 
   // 2. Don't expect FAA token to be requested.
-  OCMReject([self.fakeAPIService appCheckTokenWithDeviceToken:[OCMArg any]]);
+  OCMReject([self.fakeAPIService appCheckTokenWithDeviceToken:OCMOCK_ANY limitedUse:NO])
+      .ignoringNonObjectArgs();
 
   // 3. Call getToken and validate the result.
   XCTestExpectation *completionExpectation =
@@ -184,8 +186,9 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
   // 2. Expect FAA token to be requested.
   FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
   [rejectedPromise reject:APIServiceError];
-  OCMExpect([self.fakeAPIService appCheckTokenWithDeviceToken:deviceToken])
+  OCMExpect([self.fakeAPIService appCheckTokenWithDeviceToken:deviceToken limitedUse:NO])
       .andReturn(rejectedPromise);
+  OCMReject([self.fakeAPIService appCheckTokenWithDeviceToken:OCMOCK_ANY limitedUse:YES]);
 
   // 3. Call getToken and validate the result.
   XCTestExpectation *completionExpectation =
@@ -219,7 +222,8 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
   // 2. Don't expect any operations.
-  OCMReject([self.fakeAPIService appCheckTokenWithDeviceToken:[OCMArg any]]);
+  OCMReject([self.fakeAPIService appCheckTokenWithDeviceToken:OCMOCK_ANY limitedUse:NO])
+      .ignoringNonObjectArgs();
   OCMReject([self.fakeTokenGenerator generateTokenWithCompletionHandler:OCMOCK_ANY]);
 
   // 3. Call getToken and validate the result.

@@ -24,7 +24,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @protocol GACDeviceCheckAPIServiceProtocol <NSObject>
 
-- (FBLPromise<GACAppCheckToken *> *)appCheckTokenWithDeviceToken:(NSData *)deviceToken;
+- (FBLPromise<GACAppCheckToken *> *)appCheckTokenWithDeviceToken:(NSData *)deviceToken
+                                                      limitedUse:(BOOL)limitedUse;
 
 @end
 
