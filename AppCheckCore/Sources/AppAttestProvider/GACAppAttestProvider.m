@@ -110,6 +110,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) id<GACAppCheckBackoffWrapperProtocol> backoffWrapper;
 
 @property(nonatomic, nullable) FBLPromise<GACAppCheckToken *> *ongoingGetTokenOperation;
+@property(nonatomic, assign) BOOL ongoingGetTokenOperationLimitedUse;
 
 @property(nonatomic, readonly) dispatch_queue_t queue;
 
@@ -219,22 +220,38 @@ NS_ASSUME_NONNULL_BEGIN
   return [FBLPromise
       onQueue:self.queue
            do:^id _Nullable {
-             if (self.ongoingGetTokenOperation == nil) {
-               // Kick off a new handshake sequence only when there is not an ongoing
-               // handshake to avoid race conditions.
-               self.ongoingGetTokenOperation =
-                   [self createGetTokenSequenceWithBackoffPromiseWithLimitedUse:limitedUse]
+             // If a get token operation is already in progress.
+             if (self.ongoingGetTokenOperation) {
+               // If a limited-use token is requested, or if the existing get token operation is for
+               // a limited-use token and a standard token is requested, wait until after the
+               // ongoing handshake has completed to kick off a new handshake; this is done to avoid
+               // race conditions and to avoid returning the same limited-use token multiple times.
+               if (limitedUse || self.ongoingGetTokenOperationLimitedUse != limitedUse) {
+                 return self.ongoingGetTokenOperation.thenOn(
+                     self.queue, ^id _Nullable(GACAppCheckToken *_Nullable value) {
+                       return [self getTokenWithLimitedUse:limitedUse];
+                     });
+               }
 
-                       // Release the ongoing operation promise on completion.
-                       .then(^GACAppCheckToken *(GACAppCheckToken *token) {
-                         self.ongoingGetTokenOperation = nil;
-                         return token;
-                       })
-                       .recover(^NSError *(NSError *error) {
-                         self.ongoingGetTokenOperation = nil;
-                         return error;
-                       });
+               // Re-use the existing
+               return self.ongoingGetTokenOperation;
              }
+
+             // Else if there are no get token operations in progress.
+             self.ongoingGetTokenOperationLimitedUse = limitedUse;
+             self.ongoingGetTokenOperation =
+                 [self createGetTokenSequenceWithBackoffPromiseWithLimitedUse:limitedUse]
+                     // Release the ongoing operation promise on completion.
+                     .thenOn(self.queue,
+                             ^GACAppCheckToken *(GACAppCheckToken *token) {
+                               self.ongoingGetTokenOperation = nil;
+                               return token;
+                             })
+                     .recoverOn(self.queue, ^NSError *(NSError *error) {
+                       self.ongoingGetTokenOperation = nil;
+                       return error;
+                     });
+
              return self.ongoingGetTokenOperation;
            }];
 }
