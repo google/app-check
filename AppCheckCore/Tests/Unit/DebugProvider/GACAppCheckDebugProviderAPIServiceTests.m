@@ -59,6 +59,14 @@ static NSString *const kResourceName = @"projects/test_project_id/apps/test_app_
 }
 
 - (void)testAppCheckTokenSuccess {
+  [self testAppCheckTokenSuccessWithLimitedUse:NO];
+}
+
+- (void)testAppCheckTokenSuccessWithLimitedUse {
+  [self testAppCheckTokenSuccessWithLimitedUse:YES];
+}
+
+- (void)testAppCheckTokenSuccessWithLimitedUse:(BOOL)limitedUse {
   NSString *debugToken = [NSUUID UUID].UUIDString;
   GACAppCheckToken *expectedResult = [[GACAppCheckToken alloc] initWithToken:@"app_check_token"
                                                               expirationDate:[NSDate date]];
@@ -73,7 +81,8 @@ static NSString *const kResourceName = @"projects/test_project_id/apps/test_app_
     return YES;
   }];
 
-  id HTTPBodyValidationArg = [self HTTPBodyValidationArgWithDebugToken:debugToken];
+  id HTTPBodyValidationArg = [self HTTPBodyValidationArgWithDebugToken:debugToken
+                                                            limitedUse:limitedUse];
   NSData *fakeResponseData = [@"fake response" dataUsingEncoding:NSUTF8StringEncoding];
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:200];
   GULURLSessionDataResponse *APIResponse =
@@ -91,7 +100,7 @@ static NSString *const kResourceName = @"projects/test_project_id/apps/test_app_
 
   // 2. Send request.
   __auto_type tokenPromise = [self.debugAPIService appCheckTokenWithDebugToken:debugToken
-                                                                    limitedUse:NO];
+                                                                    limitedUse:limitedUse];
 
   // 3. Verify.
   XCTAssert(FBLWaitForPromisesWithTimeout(1));
@@ -121,7 +130,7 @@ static NSString *const kResourceName = @"projects/test_project_id/apps/test_app_
     return YES;
   }];
 
-  id HTTPBodyValidationArg = [self HTTPBodyValidationArgWithDebugToken:debugToken];
+  id HTTPBodyValidationArg = [self HTTPBodyValidationArgWithDebugToken:debugToken limitedUse:NO];
   NSData *fakeResponseData = [@"fake response" dataUsingEncoding:NSUTF8StringEncoding];
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:200];
   GULURLSessionDataResponse *APIResponse =
@@ -163,7 +172,7 @@ static NSString *const kResourceName = @"projects/test_project_id/apps/test_app_
   FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
   [rejectedPromise reject:APIError];
 
-  id HTTPBodyValidationArg = [self HTTPBodyValidationArgWithDebugToken:debugToken];
+  id HTTPBodyValidationArg = [self HTTPBodyValidationArgWithDebugToken:debugToken limitedUse:NO];
   OCMExpect([self.mockAPIService sendRequestWithURL:[OCMArg any]
                                          HTTPMethod:@"POST"
                                                body:HTTPBodyValidationArg
@@ -186,7 +195,7 @@ static NSString *const kResourceName = @"projects/test_project_id/apps/test_app_
 
 #pragma mark - Helpores
 
-- (id)HTTPBodyValidationArgWithDebugToken:(NSString *)debugToken {
+- (id)HTTPBodyValidationArgWithDebugToken:(NSString *)debugToken limitedUse:(BOOL)limitedUse {
   return [OCMArg checkWithBlock:^BOOL(NSData *body) {
     NSDictionary<NSString *, id> *decodedData = [NSJSONSerialization JSONObjectWithData:body
                                                                                 options:0
@@ -196,6 +205,9 @@ static NSString *const kResourceName = @"projects/test_project_id/apps/test_app_
     NSString *decodeDebugToken = decodedData[@"debug_token"];
     XCTAssertNotNil(decodeDebugToken);
     XCTAssertEqualObjects(decodeDebugToken, debugToken);
+    NSNumber *decodedLimitedUse = decodedData[@"limited_use"];
+    XCTAssertNotNil(decodedLimitedUse);
+    XCTAssertEqualObjects(decodedLimitedUse, @(limitedUse));
     return YES;
   }];
 }
