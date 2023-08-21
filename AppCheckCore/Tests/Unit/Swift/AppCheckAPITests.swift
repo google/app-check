@@ -31,15 +31,18 @@ final class AppCheckAPITests {
 
     if #available(iOS 14.0, macOS 11.3, macCatalyst 14.5, tvOS 15.0, watchOS 9.0, *) {
       // TODO(andrewheard): Add `requestHooks` in API tests.
-      if let provider = AppCheckCoreAppAttestProvider(
+      let provider = AppCheckCoreAppAttestProvider(
         serviceName: serviceName,
         resourceName: resourceName,
         baseURL: nil,
         apiKey: apiKey,
         keychainAccessGroup: nil,
         requestHooks: nil
-      ) {
-        provider.getToken { token, error in
+      )
+      provider.getToken { token, error in
+        if let _ /* error */ = error {
+          // ...
+        } else if let _ /* token */ = token {
           // ...
         }
       }
