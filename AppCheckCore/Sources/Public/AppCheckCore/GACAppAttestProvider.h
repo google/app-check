@@ -42,14 +42,13 @@ NS_SWIFT_NAME(AppCheckCoreAppAttestProvider)
 /// @param APIKey The Google Cloud Platform API key, if needed, or nil.
 /// @param accessGroup The Keychain Access Group.
 /// @param requestHooks Hooks that will be invoked on requests through this service.
-/// @return An instance of `AppAttestProvider` if App Attest is supported or `nil`.
-- (nullable instancetype)initWithServiceName:(NSString *)serviceName
-                                resourceName:(NSString *)resourceName
-                                     baseURL:(nullable NSString *)baseURL
-                                      APIKey:(nullable NSString *)APIKey
-                         keychainAccessGroup:(nullable NSString *)accessGroup
-                                requestHooks:
-                                    (nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks;
+/// @return An instance of `AppAttestProvider`.
+- (instancetype)initWithServiceName:(NSString *)serviceName
+                       resourceName:(NSString *)resourceName
+                            baseURL:(nullable NSString *)baseURL
+                             APIKey:(nullable NSString *)APIKey
+                keychainAccessGroup:(nullable NSString *)accessGroup
+                       requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks;
 
 /// Initializer with support for short-lived tokens.
 ///
@@ -66,15 +65,14 @@ NS_SWIFT_NAME(AppCheckCoreAppAttestProvider)
 /// @param accessGroup The Keychain Access Group.
 /// @param limitedUse If YES, forces a short-lived token with a 5 minute TTL.
 /// @param requestHooks Hooks that will be invoked on requests through this service.
-/// @return An instance of `AppAttestProvider` if App Attest is supported or `nil`.
-- (nullable instancetype)initWithServiceName:(NSString *)serviceName
-                                resourceName:(NSString *)resourceName
-                                     baseURL:(nullable NSString *)baseURL
-                                      APIKey:(nullable NSString *)APIKey
-                         keychainAccessGroup:(nullable NSString *)accessGroup
-                                  limitedUse:(BOOL)limitedUse
-                                requestHooks:
-                                    (nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks;
+/// @return An instance of `AppAttestProvider`.
+- (instancetype)initWithServiceName:(NSString *)serviceName
+                       resourceName:(NSString *)resourceName
+                            baseURL:(nullable NSString *)baseURL
+                             APIKey:(nullable NSString *)APIKey
+                keychainAccessGroup:(nullable NSString *)accessGroup
+                         limitedUse:(BOOL)limitedUse
+                       requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks;
 
 @end
 
