@@ -214,6 +214,51 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
   XCTAssertNil(self.fakeBackoffWrapper.operationResult);
 }
 
+- (void)testGetLimitedUseTokenSuccess {
+  // 1. Expect device token to be generated.
+  NSData *deviceToken = [NSData data];
+  id generateTokenArg = [OCMArg invokeBlockWithArgs:deviceToken, [NSNull null], nil];
+  OCMExpect([self.fakeTokenGenerator generateTokenWithCompletionHandler:generateTokenArg]);
+
+  // 2. Expect FAA token to be requested.
+  GACAppCheckToken *validToken = [[GACAppCheckToken alloc] initWithToken:@"valid_token"
+                                                          expirationDate:[NSDate distantFuture]
+                                                          receivedAtDate:[NSDate date]];
+  OCMExpect([self.fakeAPIService appCheckTokenWithDeviceToken:deviceToken limitedUse:YES])
+      .andReturn([FBLPromise resolvedWith:validToken]);
+  OCMReject([self.fakeAPIService appCheckTokenWithDeviceToken:OCMOCK_ANY limitedUse:NO]);
+
+  // 3. Expect backoff wrapper to be used.
+  self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
+
+  // 4. Call getToken and validate the result.
+  XCTestExpectation *completionExpectation =
+      [self expectationWithDescription:@"completionExpectation"];
+  [self.provider getLimitedUseTokenWithCompletion:^(GACAppCheckToken *_Nullable token,
+                                                    NSError *_Nullable error) {
+    [completionExpectation fulfill];
+    XCTAssertEqualObjects(token.token, validToken.token);
+    XCTAssertEqualObjects(token.expirationDate, validToken.expirationDate);
+    XCTAssertEqualObjects(token.receivedAtDate, validToken.receivedAtDate);
+    XCTAssertNil(error);
+  }];
+
+  [self waitForExpectations:@[ self.fakeBackoffWrapper.backoffExpectation, completionExpectation ]
+                    timeout:0.5
+               enforceOrder:YES];
+
+  // 5. Verify.
+  XCTAssertNil(self.fakeBackoffWrapper.operationError);
+  GACAppCheckToken *wrapperResult =
+      [self.fakeBackoffWrapper.operationResult isKindOfClass:[GACAppCheckToken class]]
+          ? self.fakeBackoffWrapper.operationResult
+          : nil;
+  XCTAssertEqualObjects(wrapperResult.token, validToken.token);
+
+  OCMVerifyAll(self.fakeAPIService);
+  OCMVerifyAll(self.fakeTokenGenerator);
+}
+
 #pragma mark - Backoff tests
 
 - (void)testGetTokenBackoff {

@@ -62,6 +62,14 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
 }
 
 - (void)testAppCheckTokenSuccess {
+  [self testAppCheckTokenSuccessWithLimitedUse:NO];
+}
+
+- (void)testAppCheckTokenSuccessWithLimitedUse {
+  [self testAppCheckTokenSuccessWithLimitedUse:YES];
+}
+
+- (void)testAppCheckTokenSuccessWithLimitedUse:(BOOL)limitedUse {
   NSData *deviceTokenData = [@"device_token" dataUsingEncoding:NSUTF8StringEncoding];
   GACAppCheckToken *expectedResult = [[GACAppCheckToken alloc] initWithToken:@"app_check_token"
                                                               expirationDate:[NSDate date]];
@@ -76,7 +84,8 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
     return YES;
   }];
 
-  id HTTPBodyValidationArg = [self HTTPBodyValidationArgWithDeviceToken:deviceTokenData];
+  id HTTPBodyValidationArg = [self HTTPBodyValidationArgWithDeviceToken:deviceTokenData
+                                                             limitedUse:limitedUse];
 
   NSData *responseBody =
       [GACFixtureLoader loadFixtureNamed:@"FACTokenExchangeResponseSuccess.json"];
@@ -98,7 +107,7 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
 
   // 2. Send request.
   __auto_type tokenPromise = [self.APIService appCheckTokenWithDeviceToken:deviceTokenData
-                                                                limitedUse:NO];
+                                                                limitedUse:limitedUse];
 
   // 3. Verify.
   XCTAssert(FBLWaitForPromisesWithTimeout(1));
@@ -128,7 +137,8 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
     return YES;
   }];
 
-  id HTTPBodyValidationArg = [self HTTPBodyValidationArgWithDeviceToken:deviceTokenData];
+  id HTTPBodyValidationArg = [self HTTPBodyValidationArgWithDeviceToken:deviceTokenData
+                                                             limitedUse:NO];
 
   NSData *responseBody =
       [GACFixtureLoader loadFixtureNamed:@"FACTokenExchangeResponseSuccess.json"];
@@ -174,7 +184,8 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
   FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
   [rejectedPromise reject:APIError];
 
-  id HTTPBodyValidationArg = [self HTTPBodyValidationArgWithDeviceToken:deviceTokenData];
+  id HTTPBodyValidationArg = [self HTTPBodyValidationArgWithDeviceToken:deviceTokenData
+                                                             limitedUse:NO];
   OCMExpect([self.mockAPIService sendRequestWithURL:[OCMArg any]
                                          HTTPMethod:@"POST"
                                                body:HTTPBodyValidationArg
@@ -227,7 +238,7 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
 
 #pragma mark - Helpers
 
-- (id)HTTPBodyValidationArgWithDeviceToken:(NSData *)deviceToken {
+- (id)HTTPBodyValidationArgWithDeviceToken:(NSData *)deviceToken limitedUse:(BOOL)limitedUse {
   return [OCMArg checkWithBlock:^BOOL(NSData *body) {
     NSDictionary<NSString *, id> *decodedData = [NSJSONSerialization JSONObjectWithData:body
                                                                                 options:0
@@ -236,6 +247,10 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
 
     NSString *base64EncodedDeviceToken = decodedData[@"device_token"];
     XCTAssertNotNil(base64EncodedDeviceToken);
+
+    NSNumber *decodedLimitedUse = decodedData[@"limited_use"];
+    XCTAssertNotNil(decodedLimitedUse);
+    XCTAssertEqualObjects(decodedLimitedUse, @(limitedUse));
 
     NSData *decodedToken = [[NSData alloc] initWithBase64EncodedString:base64EncodedDeviceToken
                                                                options:0];

@@ -173,8 +173,7 @@ NS_ASSUME_NONNULL_BEGIN
                                            requestHooks:requestHooks];
 
   GACAppAttestAPIService *appAttestAPIService =
-      [[GACAppAttestAPIService alloc] initWithAPIService:APIService
-                                            resourceName:resourceName];
+      [[GACAppAttestAPIService alloc] initWithAPIService:APIService resourceName:resourceName];
 
   GACAppAttestArtifactStorage *artifactStorage =
       [[GACAppAttestArtifactStorage alloc] initWithKeySuffix:storageKeySuffix
