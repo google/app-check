@@ -165,19 +165,21 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
 - (void)testGetLimitedUseTokenAPIError {
   // 1. Stub API service.
   NSString *expectedDebugToken = [self.provider currentDebugToken];
-  NSError *APIError = [NSError errorWithDomain:@"testGetLimitedUseTokenAPIError" code:-1 userInfo:nil];
+  NSError *APIError = [NSError errorWithDomain:@"testGetLimitedUseTokenAPIError"
+                                          code:-1
+                                      userInfo:nil];
   FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
   [rejectedPromise reject:APIError];
   OCMExpect([self.fakeAPIService appCheckTokenWithDebugToken:expectedDebugToken limitedUse:YES])
-    .andReturn(rejectedPromise);
+      .andReturn(rejectedPromise);
   OCMReject([self.fakeAPIService appCheckTokenWithDebugToken:OCMOCK_ANY limitedUse:NO]);
-  
+
   // 2. Validate get limited-use token.
   [self validateGetLimitedUseToken:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
     XCTAssertEqualObjects(error, APIError);
     XCTAssertNil(token);
   }];
-  
+
   // 3. Verify fakes.
   OCMVerifyAll(self.fakeAPIService);
 }
