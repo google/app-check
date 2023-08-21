@@ -202,6 +202,14 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
 #pragma mark - Assertion request
 
 - (void)testGetAppCheckTokenSuccess {
+  [self testGetAppCheckTokenSuccessWithLimitedUse:NO];
+}
+
+- (void)testGetAppCheckTokenSuccessWithLimitedUse {
+  [self testGetAppCheckTokenSuccessWithLimitedUse:YES];
+}
+
+- (void)testGetAppCheckTokenSuccessWithLimitedUse:(BOOL)limitedUse {
   NSData *artifact = [self generateRandomData];
   NSData *challenge = [self generateRandomData];
   NSData *assertion = [self generateRandomData];
@@ -217,6 +225,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   [self expectTokenAPIRequestWithArtifact:artifact
                                 challenge:challenge
                                 assertion:assertion
+                               limitedUse:limitedUse
                                  response:validAPIResponse
                                     error:nil];
   // 2.2. Return token from parsed response.
@@ -229,7 +238,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   __auto_type promise = [self.appAttestAPIService getAppCheckTokenWithArtifact:artifact
                                                                      challenge:challenge
                                                                      assertion:assertion
-                                                                    limitedUse:NO];
+                                                                    limitedUse:limitedUse];
   // 4. Verify.
   XCTAssert(FBLWaitForPromisesWithTimeout(1));
 
@@ -261,6 +270,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   [self expectTokenAPIRequestWithArtifact:artifact
                                 challenge:challenge
                                 assertion:assertion
+                               limitedUse:NO
                                  response:validAPIResponse
                                     error:networkError];
 
@@ -295,6 +305,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   [self expectTokenAPIRequestWithArtifact:artifact
                                 challenge:challenge
                                 assertion:assertion
+                               limitedUse:NO
                                  response:validAPIResponse
                                     error:nil];
   // 2.2. Return token from parsed response.
@@ -318,6 +329,14 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
 #pragma mark - Attestation request
 
 - (void)testAttestKeySuccess {
+  [self testAttestKeySuccessWithLimitedUse:NO];
+}
+
+- (void)testAttestKeySuccessWithLimitedUse {
+  [self testAttestKeySuccessWithLimitedUse:YES];
+}
+
+- (void)testAttestKeySuccessWithLimitedUse:(BOOL)limitedUse {
   NSData *attestation = [self generateRandomData];
   NSData *challenge = [self generateRandomData];
   NSString *keyID = [NSUUID UUID].UUIDString;
@@ -333,6 +352,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   [self expectAttestAPIRequestWithAttestation:attestation
                                         keyID:keyID
                                     challenge:challenge
+                                   limitedUse:limitedUse
                                      response:validAPIResponse
                                         error:nil];
 
@@ -340,7 +360,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   __auto_type promise = [self.appAttestAPIService attestKeyWithAttestation:attestation
                                                                      keyID:keyID
                                                                  challenge:challenge
-                                                                limitedUse:NO];
+                                                                limitedUse:limitedUse];
 
   // 4. Verify.
   XCTAssert(FBLWaitForPromisesWithTimeout(1));
@@ -371,6 +391,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   [self expectAttestAPIRequestWithAttestation:attestation
                                         keyID:keyID
                                     challenge:challenge
+                                   limitedUse:NO
                                      response:nil
                                         error:networkError];
 
@@ -406,6 +427,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   [self expectAttestAPIRequestWithAttestation:attestation
                                         keyID:keyID
                                     challenge:challenge
+                                   limitedUse:NO
                                      response:validAPIResponse
                                         error:nil];
 
@@ -471,6 +493,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
 - (void)expectTokenAPIRequestWithArtifact:(NSData *)attestation
                                 challenge:(NSData *)challenge
                                 assertion:(NSData *)assertion
+                               limitedUse:(BOOL)limitedUse
                                  response:(nullable GULURLSessionDataResponse *)response
                                     error:(nullable NSError *)error {
   id URLValidationArg = [self URLValidationArgumentWithCustomMethod:@"exchangeAppAttestAssertion"];
@@ -501,6 +524,11 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
     // Validate assertion field.
     NSString *base64EncodedAssertion = decodedData[@"assertion"];
     XCTAssert([base64EncodedAssertion isKindOfClass:[NSString class]]);
+
+    // Validate limited-use field.
+    NSNumber *decodedLimitedUse = decodedData[@"limited_use"];
+    XCTAssertNotNil(decodedLimitedUse);
+    XCTAssertEqualObjects(decodedLimitedUse, @(limitedUse));
 
     NSData *decodedAssertion = [[NSData alloc] initWithBase64EncodedString:base64EncodedAssertion
                                                                    options:0];
@@ -537,6 +565,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
 - (void)expectAttestAPIRequestWithAttestation:(NSData *)attestation
                                         keyID:(NSString *)keyID
                                     challenge:(NSData *)challenge
+                                   limitedUse:(BOOL)limitedUse
                                      response:(nullable GULURLSessionDataResponse *)response
                                         error:(nullable NSError *)error {
   id URLValidationArg =
@@ -568,6 +597,11 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
     // Validate key ID field.
     NSString *keyIDField = decodedData[@"key_id"];
     XCTAssert([base64EncodedAttestation isKindOfClass:[NSString class]]);
+
+    // Validate limited-use field.
+    NSNumber *decodedLimitedUse = decodedData[@"limited_use"];
+    XCTAssertNotNil(decodedLimitedUse);
+    XCTAssertEqualObjects(decodedLimitedUse, @(limitedUse));
 
     XCTAssertEqualObjects(keyIDField, keyID);
 
