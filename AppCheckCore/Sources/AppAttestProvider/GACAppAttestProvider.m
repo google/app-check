@@ -158,7 +158,6 @@ NS_ASSUME_NONNULL_BEGIN
                                   limitedUse:(BOOL)limitedUse
                                 requestHooks:
                                     (nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks {
-#if GAC_APP_ATTEST_SUPPORTED_TARGETS
   NSURLSession *URLSession = [NSURLSession
       sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration]];
 
@@ -190,9 +189,6 @@ NS_ASSUME_NONNULL_BEGIN
                            keyIDStorage:keyIDStorage
                         artifactStorage:artifactStorage
                          backoffWrapper:backoffWrapper];
-#else   // GAC_APP_ATTEST_SUPPORTED_TARGETS
-  return nil;
-#endif  // GAC_APP_ATTEST_SUPPORTED_TARGETS
 }
 
 #pragma mark - GACAppCheckProvider

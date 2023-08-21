@@ -18,9 +18,6 @@
 
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAvailability.h"
 
-// Currently DCAppAttestService is available on iOS only.
-#if GAC_APP_ATTEST_SUPPORTED_TARGETS
-
 #import <DeviceCheck/DeviceCheck.h>
 
 #import "AppCheckCore/Sources/AppAttestProvider/GACAppAttestService.h"
@@ -33,5 +30,3 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 @end
 
 NS_ASSUME_NONNULL_END
-
-#endif  // GAC_APP_ATTEST_SUPPORTED_TARGETS

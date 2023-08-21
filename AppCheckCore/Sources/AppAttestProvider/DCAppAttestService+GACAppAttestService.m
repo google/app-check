@@ -16,11 +16,6 @@
 
 #import "AppCheckCore/Sources/AppAttestProvider/DCAppAttestService+GACAppAttestService.h"
 
-// Currently DCAppAttestService is available on iOS only.
-#if GAC_APP_ATTEST_SUPPORTED_TARGETS
-
 @implementation DCAppAttestService (GACAppAttestService)
 
 @end
-
-#endif  // GAC_APP_ATTEST_SUPPORTED_TARGETS

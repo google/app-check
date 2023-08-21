@@ -35,8 +35,6 @@
 
 #import "AppCheckCore/Tests/Utils/AppCheckBackoffWrapperFake/GACAppCheckBackoffWrapperFake.h"
 
-#if GAC_APP_ATTEST_SUPPORTED_TARGETS
-
 GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 @interface GACAppAttestProvider (Tests)
 - (instancetype)initWithAppAttestService:(id<GACAppAttestService>)appAttestService
@@ -1072,5 +1070,3 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 }
 
 @end
-
-#endif  // GAC_APP_ATTEST_SUPPORTED_TARGETS

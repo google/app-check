@@ -27,10 +27,6 @@
 
 #pragma mark - App Attest
 
-// Targets where `DCAppAttestService` is available to be used in preprocessor conditions.
-#define GAC_APP_ATTEST_SUPPORTED_TARGETS \
-  TARGET_OS_IOS || TARGET_OS_OSX || TARGET_OS_TV || TARGET_OS_WATCH
-
 // `AppAttestProvider` availability annotations
 #define GAC_APP_ATTEST_PROVIDER_AVAILABILITY \
   API_AVAILABLE(ios(14.0), macos(11.3), macCatalyst(14.5), tvos(15.0), watchos(9.0))
