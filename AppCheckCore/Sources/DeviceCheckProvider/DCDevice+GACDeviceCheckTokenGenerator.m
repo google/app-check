@@ -16,10 +16,6 @@
 
 #import "AppCheckCore/Sources/DeviceCheckProvider/DCDevice+GACDeviceCheckTokenGenerator.h"
 
-#if GAC_DEVICE_CHECK_SUPPORTED_TARGETS
-
 @implementation DCDevice (GACDeviceCheckTokenGenerator)
 
 @end
-
-#endif  // GAC_DEVICE_CHECK_SUPPORTED_TARGETS

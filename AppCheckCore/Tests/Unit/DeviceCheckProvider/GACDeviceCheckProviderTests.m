@@ -26,8 +26,6 @@
 
 #import "AppCheckCore/Tests/Utils/AppCheckBackoffWrapperFake/GACAppCheckBackoffWrapperFake.h"
 
-#if GAC_DEVICE_CHECK_SUPPORTED_TARGETS
-
 GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
 @interface GACDeviceCheckProvider (Tests)
 
@@ -244,5 +242,3 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
 }
 
 @end
-
-#endif  // GAC_DEVICE_CHECK_SUPPORTED_TARGETS

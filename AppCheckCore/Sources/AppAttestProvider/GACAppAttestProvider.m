@@ -134,13 +134,12 @@ NS_ASSUME_NONNULL_BEGIN
   return self;
 }
 
-- (nullable instancetype)initWithServiceName:(NSString *)serviceName
-                                resourceName:(NSString *)resourceName
-                                     baseURL:(nullable NSString *)baseURL
-                                      APIKey:(nullable NSString *)APIKey
-                         keychainAccessGroup:(nullable NSString *)accessGroup
-                                requestHooks:
-                                    (nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks {
+- (instancetype)initWithServiceName:(NSString *)serviceName
+                       resourceName:(NSString *)resourceName
+                            baseURL:(nullable NSString *)baseURL
+                             APIKey:(nullable NSString *)APIKey
+                keychainAccessGroup:(nullable NSString *)accessGroup
+                       requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks {
   return [self initWithServiceName:serviceName
                       resourceName:resourceName
                            baseURL:baseURL
@@ -150,15 +149,13 @@ NS_ASSUME_NONNULL_BEGIN
                       requestHooks:requestHooks];
 }
 
-- (nullable instancetype)initWithServiceName:(NSString *)serviceName
-                                resourceName:(NSString *)resourceName
-                                     baseURL:(nullable NSString *)baseURL
-                                      APIKey:(nullable NSString *)APIKey
-                         keychainAccessGroup:(nullable NSString *)accessGroup
-                                  limitedUse:(BOOL)limitedUse
-                                requestHooks:
-                                    (nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks {
-#if GAC_APP_ATTEST_SUPPORTED_TARGETS
+- (instancetype)initWithServiceName:(NSString *)serviceName
+                       resourceName:(NSString *)resourceName
+                            baseURL:(nullable NSString *)baseURL
+                             APIKey:(nullable NSString *)APIKey
+                keychainAccessGroup:(nullable NSString *)accessGroup
+                         limitedUse:(BOOL)limitedUse
+                       requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks {
   NSURLSession *URLSession = [NSURLSession
       sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration]];
 
@@ -190,9 +187,6 @@ NS_ASSUME_NONNULL_BEGIN
                            keyIDStorage:keyIDStorage
                         artifactStorage:artifactStorage
                          backoffWrapper:backoffWrapper];
-#else   // GAC_APP_ATTEST_SUPPORTED_TARGETS
-  return nil;
-#endif  // GAC_APP_ATTEST_SUPPORTED_TARGETS
 }
 
 #pragma mark - GACAppCheckProvider
