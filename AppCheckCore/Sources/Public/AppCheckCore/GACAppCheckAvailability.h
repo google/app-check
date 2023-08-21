@@ -21,10 +21,6 @@
 
 #pragma mark - DeviceCheck
 
-// Targets where DeviceCheck framework is available to be used in preprocessor conditions.
-#define GAC_DEVICE_CHECK_SUPPORTED_TARGETS \
-  TARGET_OS_IOS || TARGET_OS_OSX || TARGET_OS_TV || TARGET_OS_WATCH
-
 // `DeviceCheckProvider` availability.
 #define GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY \
   API_AVAILABLE(ios(11.0), macos(10.15), macCatalyst(13.0), tvos(11.0), watchos(9.0))

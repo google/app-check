@@ -16,18 +16,15 @@
 
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAvailability.h"
 
-#if GAC_DEVICE_CHECK_SUPPORTED_TARGETS
-
 #import <DeviceCheck/DeviceCheck.h>
 
 #import "AppCheckCore/Sources/DeviceCheckProvider/GACDeviceCheckTokenGenerator.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
+GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
 @interface DCDevice (GACDeviceCheckTokenGenerator) <GACDeviceCheckTokenGenerator>
 
 @end
 
 NS_ASSUME_NONNULL_END
-
-#endif  // GAC_DEVICE_CHECK_SUPPORTED_TARGETS

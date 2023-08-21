@@ -19,8 +19,6 @@
 #import "GACAppCheckAvailability.h"
 #import "GACAppCheckProvider.h"
 
-#if GAC_DEVICE_CHECK_SUPPORTED_TARGETS
-
 @protocol GACDeviceCheckAPIServiceProtocol;
 @protocol GACDeviceCheckTokenGenerator;
 
@@ -52,5 +50,3 @@ NS_SWIFT_NAME(AppCheckCoreDeviceCheckProvider)
 @end
 
 NS_ASSUME_NONNULL_END
-
-#endif  // GAC_DEVICE_CHECK_SUPPORTED_TARGETS
