@@ -19,6 +19,7 @@
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
+#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h"
 #import "AppCheckCore/Sources/DeviceCheckProvider/GACDeviceCheckTokenGenerator.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
@@ -70,12 +71,15 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
 }
 
 - (void)testGetTokenSuccess {
-  // 1. Expect device token to be generated.
+  // 1. Expect GACDeviceCheckTokenGenerator.isSupported.
+  OCMExpect([self.fakeTokenGenerator isSupported]).andReturn(YES);
+
+  // 2. Expect device token to be generated.
   NSData *deviceToken = [NSData data];
   id generateTokenArg = [OCMArg invokeBlockWithArgs:deviceToken, [NSNull null], nil];
   OCMExpect([self.fakeTokenGenerator generateTokenWithCompletionHandler:generateTokenArg]);
 
-  // 2. Expect FAA token to be requested.
+  // 3. Expect FAA token to be requested.
   GACAppCheckToken *validToken = [[GACAppCheckToken alloc] initWithToken:@"valid_token"
                                                           expirationDate:[NSDate distantFuture]
                                                           receivedAtDate:[NSDate date]];
@@ -83,10 +87,10 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
       .andReturn([FBLPromise resolvedWith:validToken]);
   OCMReject([self.fakeAPIService appCheckTokenWithDeviceToken:OCMOCK_ANY limitedUse:YES]);
 
-  // 3. Expect backoff wrapper to be used.
+  // 4. Expect backoff wrapper to be used.
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
-  // 4. Call getToken and validate the result.
+  // 5. Call getToken and validate the result.
   XCTestExpectation *completionExpectation =
       [self expectationWithDescription:@"completionExpectation"];
   [self.provider
@@ -102,7 +106,7 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
                     timeout:0.5
                enforceOrder:YES];
 
-  // 5. Verify.
+  // 6. Verify.
   XCTAssertNil(self.fakeBackoffWrapper.operationError);
   GACAppCheckToken *wrapperResult =
       [self.fakeBackoffWrapper.operationResult isKindOfClass:[GACAppCheckToken class]]
@@ -112,6 +116,52 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
 
   OCMVerifyAll(self.fakeAPIService);
   OCMVerifyAll(self.fakeTokenGenerator);
+}
+
+- (void)testGetTokenWhenDeviceCheckIsNotSupported {
+  NSError *expectedError =
+      [GACAppCheckErrorUtil unsupportedAttestationProvider:@"DeviceCheckProvider"];
+
+  // 0.1. Expect backoff wrapper to be used.
+  self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
+
+  // 0.2. Expect default error handler to be used.
+  XCTestExpectation *errorHandlerExpectation = [self expectationWithDescription:@"Error handler"];
+  self.fakeBackoffWrapper.defaultErrorHandler = ^GACAppCheckBackoffType(NSError *_Nonnull error) {
+    XCTAssertEqualObjects(error, expectedError);
+    [errorHandlerExpectation fulfill];
+    return GACAppCheckBackoffType1Day;
+  };
+
+  // 1. Expect GACDeviceCheckTokenGenerator.isSupported.
+  OCMExpect([self.fakeTokenGenerator isSupported]).andReturn(NO);
+
+  // 2. Don't expect DeviceCheck token to be generated or FAA token to be requested.
+  OCMReject([self.fakeTokenGenerator generateTokenWithCompletionHandler:OCMOCK_ANY]);
+  OCMReject([self.fakeAPIService appCheckTokenWithDeviceToken:OCMOCK_ANY]);
+
+  // 3. Call getToken and validate the result.
+  XCTestExpectation *completionExpectation =
+      [self expectationWithDescription:@"completionExpectation"];
+  [self.provider
+      getTokenWithCompletion:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
+        [completionExpectation fulfill];
+        XCTAssertNil(token);
+        XCTAssertEqualObjects(error, expectedError);
+      }];
+
+  [self waitForExpectations:@[
+    self.fakeBackoffWrapper.backoffExpectation, errorHandlerExpectation, completionExpectation
+  ]
+                    timeout:0.5
+               enforceOrder:YES];
+
+  // 4. Verify.
+  OCMVerifyAll(self.fakeAPIService);
+  OCMVerifyAll(self.fakeTokenGenerator);
+
+  XCTAssertEqualObjects(self.fakeBackoffWrapper.operationError, expectedError);
+  XCTAssertNil(self.fakeBackoffWrapper.operationResult);
 }
 
 - (void)testGetTokenWhenDeviceTokenFails {
@@ -130,15 +180,18 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
     return GACAppCheckBackoffType1Day;
   };
 
-  // 1. Expect device token to be generated.
+  // 1. Expect GACDeviceCheckTokenGenerator.isSupported.
+  OCMExpect([self.fakeTokenGenerator isSupported]).andReturn(YES);
+
+  // 2. Expect device token to be generated.
   id generateTokenArg = [OCMArg invokeBlockWithArgs:[NSNull null], deviceTokenError, nil];
   OCMExpect([self.fakeTokenGenerator generateTokenWithCompletionHandler:generateTokenArg]);
 
-  // 2. Don't expect FAA token to be requested.
+  // 3. Don't expect FAA token to be requested.
   OCMReject([self.fakeAPIService appCheckTokenWithDeviceToken:OCMOCK_ANY limitedUse:NO])
       .ignoringNonObjectArgs();
 
-  // 3. Call getToken and validate the result.
+  // 4. Call getToken and validate the result.
   XCTestExpectation *completionExpectation =
       [self expectationWithDescription:@"completionExpectation"];
   [self.provider
@@ -154,7 +207,7 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
                     timeout:0.5
                enforceOrder:YES];
 
-  // 4. Verify.
+  // 5. Verify.
   OCMVerifyAll(self.fakeAPIService);
   OCMVerifyAll(self.fakeTokenGenerator);
 
@@ -178,19 +231,22 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
     return GACAppCheckBackoffType1Day;
   };
 
-  // 1. Expect device token to be generated.
+  // 1. Expect GACDeviceCheckTokenGenerator.isSupported.
+  OCMExpect([self.fakeTokenGenerator isSupported]).andReturn(YES);
+
+  // 2. Expect device token to be generated.
   NSData *deviceToken = [NSData data];
   id generateTokenArg = [OCMArg invokeBlockWithArgs:deviceToken, [NSNull null], nil];
   OCMExpect([self.fakeTokenGenerator generateTokenWithCompletionHandler:generateTokenArg]);
 
-  // 2. Expect FAA token to be requested.
+  // 3. Expect FAA token to be requested.
   FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
   [rejectedPromise reject:APIServiceError];
   OCMExpect([self.fakeAPIService appCheckTokenWithDeviceToken:deviceToken limitedUse:NO])
       .andReturn(rejectedPromise);
   OCMReject([self.fakeAPIService appCheckTokenWithDeviceToken:OCMOCK_ANY limitedUse:YES]);
 
-  // 3. Call getToken and validate the result.
+  // 4. Call getToken and validate the result.
   XCTestExpectation *completionExpectation =
       [self expectationWithDescription:@"completionExpectation"];
   [self.provider
@@ -206,7 +262,7 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
                     timeout:0.5
                enforceOrder:YES];
 
-  // 4. Verify.
+  // 5. Verify.
   OCMVerifyAll(self.fakeAPIService);
   OCMVerifyAll(self.fakeTokenGenerator);
 

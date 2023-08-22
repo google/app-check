@@ -28,6 +28,7 @@
 
 #import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
 #import "AppCheckCore/Sources/Core/Backoff/GACAppCheckBackoffWrapper.h"
+#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Core/GACAppCheckLogger+Internal.h"
 #import "AppCheckCore/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h"
 #import "AppCheckCore/Sources/DeviceCheckProvider/DCDevice+GACDeviceCheckTokenGenerator.h"
@@ -131,10 +132,26 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark - DeviceCheck
 
 - (FBLPromise<NSData *> *)deviceToken {
-  return [FBLPromise
-      wrapObjectOrErrorCompletion:^(FBLPromiseObjectOrErrorCompletion _Nonnull handler) {
-        [self.deviceTokenGenerator generateTokenWithCompletionHandler:handler];
-      }];
+  return [self isDeviceCheckSupported].then(^FBLPromise<NSData *> *(NSNull *ignored) {
+    return [FBLPromise
+        wrapObjectOrErrorCompletion:^(FBLPromiseObjectOrErrorCompletion _Nonnull handler) {
+          [self.deviceTokenGenerator generateTokenWithCompletionHandler:handler];
+        }];
+  });
+}
+
+#pragma mark - Helpers
+
+/// Returns a resolved promise if DeviceCheck is supported and a rejected promise if it is not.
+- (FBLPromise<NSNull *> *)isDeviceCheckSupported {
+  if (self.deviceTokenGenerator.isSupported) {
+    return [FBLPromise resolvedWith:[NSNull null]];
+  } else {
+    NSError *error = [GACAppCheckErrorUtil unsupportedAttestationProvider:@"DeviceCheckProvider"];
+    FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
+    [rejectedPromise reject:error];
+    return rejectedPromise;
+  }
 }
 
 @end
