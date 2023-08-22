@@ -111,9 +111,7 @@ typedef void (^GACAppCheckTokenHandler)(id<GACAppCheckTokenProtocol> _Nullable t
                      tokenDelegate:tokenDelegate];
 }
 
-#pragma mark - GACAppCheckInterop
-
-- (void)getTokenForcingRefresh:(BOOL)forcingRefresh completion:(GACAppCheckTokenHandler)handler {
+- (void)tokenForcingRefresh:(BOOL)forcingRefresh completion:(GACAppCheckTokenHandler)handler {
   [self retrieveOrRefreshTokenForcingRefresh:forcingRefresh]
       .then(^id _Nullable(id<GACAppCheckTokenProtocol> token) {
         handler(token, nil);
@@ -124,7 +122,7 @@ typedef void (^GACAppCheckTokenHandler)(id<GACAppCheckTokenProtocol> _Nullable t
       });
 }
 
-- (void)getLimitedUseTokenWithCompletion:(GACAppCheckTokenHandler)handler {
+- (void)limitedUseTokenWithCompletion:(GACAppCheckTokenHandler)handler {
   [self limitedUseToken]
       .then(^id _Nullable(id<GACAppCheckTokenProtocol> token) {
         handler(token, nil);
