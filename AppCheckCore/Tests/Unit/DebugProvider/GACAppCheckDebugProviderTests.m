@@ -104,8 +104,9 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
   GACAppCheckToken *validToken = [[GACAppCheckToken alloc] initWithToken:@"valid_token"
                                                           expirationDate:[NSDate date]
                                                           receivedAtDate:[NSDate date]];
-  OCMExpect([self.fakeAPIService appCheckTokenWithDebugToken:expectedDebugToken])
+  OCMExpect([self.fakeAPIService appCheckTokenWithDebugToken:expectedDebugToken limitedUse:NO])
       .andReturn([FBLPromise resolvedWith:validToken]);
+  OCMReject([self.fakeAPIService appCheckTokenWithDebugToken:OCMOCK_ANY limitedUse:YES]);
 
   // 2. Validate get token.
   [self validateGetToken:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
@@ -125,11 +126,56 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
   NSError *APIError = [NSError errorWithDomain:@"testGetTokenAPIError" code:-1 userInfo:nil];
   FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
   [rejectedPromise reject:APIError];
-  OCMExpect([self.fakeAPIService appCheckTokenWithDebugToken:expectedDebugToken])
+  OCMExpect([self.fakeAPIService appCheckTokenWithDebugToken:expectedDebugToken limitedUse:NO])
       .andReturn(rejectedPromise);
+  OCMReject([self.fakeAPIService appCheckTokenWithDebugToken:OCMOCK_ANY limitedUse:YES]);
 
   // 2. Validate get token.
   [self validateGetToken:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
+    XCTAssertEqualObjects(error, APIError);
+    XCTAssertNil(token);
+  }];
+
+  // 3. Verify fakes.
+  OCMVerifyAll(self.fakeAPIService);
+}
+
+- (void)testGetLimitedUseTokenSuccess {
+  // 1. Stub API service.
+  NSString *expectedDebugToken = [self.provider currentDebugToken];
+  GACAppCheckToken *validToken = [[GACAppCheckToken alloc] initWithToken:@"valid_token"
+                                                          expirationDate:[NSDate date]
+                                                          receivedAtDate:[NSDate date]];
+  OCMExpect([self.fakeAPIService appCheckTokenWithDebugToken:expectedDebugToken limitedUse:YES])
+      .andReturn([FBLPromise resolvedWith:validToken]);
+  OCMReject([self.fakeAPIService appCheckTokenWithDebugToken:OCMOCK_ANY limitedUse:NO]);
+
+  // 2. Validate get limited-use token.
+  [self validateGetLimitedUseToken:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
+    XCTAssertNil(error);
+    XCTAssertEqualObjects(token.token, validToken.token);
+    XCTAssertEqualObjects(token.expirationDate, validToken.expirationDate);
+    XCTAssertEqualObjects(token.receivedAtDate, validToken.receivedAtDate);
+  }];
+
+  // 3. Verify fakes.
+  OCMVerifyAll(self.fakeAPIService);
+}
+
+- (void)testGetLimitedUseTokenAPIError {
+  // 1. Stub API service.
+  NSString *expectedDebugToken = [self.provider currentDebugToken];
+  NSError *APIError = [NSError errorWithDomain:@"testGetLimitedUseTokenAPIError"
+                                          code:-1
+                                      userInfo:nil];
+  FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
+  [rejectedPromise reject:APIError];
+  OCMExpect([self.fakeAPIService appCheckTokenWithDebugToken:expectedDebugToken limitedUse:YES])
+      .andReturn(rejectedPromise);
+  OCMReject([self.fakeAPIService appCheckTokenWithDebugToken:OCMOCK_ANY limitedUse:NO]);
+
+  // 2. Validate get limited-use token.
+  [self validateGetLimitedUseToken:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
     XCTAssertEqualObjects(error, APIError);
     XCTAssertNil(token);
   }];
@@ -147,6 +193,17 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
         validationBlock(token, error);
         [expectation fulfill];
       }];
+
+  [self waitForExpectations:@[ expectation ] timeout:0.5];
+}
+
+- (void)validateGetLimitedUseToken:(GACAppCheckTokenValidationBlock)validationBlock {
+  XCTestExpectation *expectation = [self expectationWithDescription:@"getLimitedUseToken"];
+  [self.provider getLimitedUseTokenWithCompletion:^(GACAppCheckToken *_Nullable token,
+                                                    NSError *_Nullable error) {
+    validationBlock(token, error);
+    [expectation fulfill];
+  }];
 
   [self waitForExpectations:@[ expectation ] timeout:0.5];
 }

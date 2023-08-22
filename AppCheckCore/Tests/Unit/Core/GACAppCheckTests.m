@@ -344,7 +344,7 @@ static NSString *const kAppGroupID = @"app_group_id";
   // 2. Expect token requested from app check provider.
   GACAppCheckToken *expectedToken = [self validToken];
   id completionArg = [OCMArg invokeBlockWithArgs:expectedToken, [NSNull null], nil];
-  OCMExpect([self.mockAppCheckProvider getTokenWithCompletion:completionArg]);
+  OCMExpect([self.mockAppCheckProvider getLimitedUseTokenWithCompletion:completionArg]);
 
   // 3. Don't expect token requested from storage.
   OCMReject([self.mockStorage setToken:expectedToken]);
@@ -373,7 +373,7 @@ static NSString *const kAppGroupID = @"app_group_id";
   // 2. Expect error when requesting token from app check provider.
   NSError *providerError = [GACAppCheckErrorUtil keychainErrorWithError:[self internalError]];
   id completionArg = [OCMArg invokeBlockWithArgs:[NSNull null], providerError, nil];
-  OCMExpect([self.mockAppCheckProvider getTokenWithCompletion:completionArg]);
+  OCMExpect([self.mockAppCheckProvider getLimitedUseTokenWithCompletion:completionArg]);
 
   // 3. Don't expect token requested from app check provider.
   OCMReject([self.mockAppCheckProvider getTokenWithCompletion:[OCMArg any]]);

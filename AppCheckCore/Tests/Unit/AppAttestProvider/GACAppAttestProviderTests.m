@@ -127,7 +127,9 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                                completionHandler:OCMOCK_ANY]);
   OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
                                                     keyID:OCMOCK_ANY
-                                                challenge:OCMOCK_ANY]);
+                                                challenge:OCMOCK_ANY
+                                               limitedUse:NO])
+      .ignoringNonObjectArgs();
 
   // 3. Call get token.
   XCTestExpectation *completionExpectation =
@@ -193,8 +195,13 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
       [[GACAppAttestAttestationResponse alloc] initWithArtifact:artifactData token:FACToken];
   OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData
                                                     keyID:generatedKeyID
-                                                challenge:self.randomChallenge])
+                                                challenge:self.randomChallenge
+                                               limitedUse:NO])
       .andReturn([FBLPromise resolvedWith:attestKeyResponse]);
+  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
+                                                    keyID:OCMOCK_ANY
+                                                challenge:OCMOCK_ANY
+                                               limitedUse:YES]);
 
   // 8. Expect the artifact received from Firebase backend to be saved.
   OCMExpect([self.mockArtifactStorage setArtifact:artifactData forKey:generatedKeyID])
@@ -267,8 +274,13 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
       [[GACAppAttestAttestationResponse alloc] initWithArtifact:artifactData token:FACToken];
   OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData
                                                     keyID:existingKeyID
-                                                challenge:self.randomChallenge])
+                                                challenge:self.randomChallenge
+                                               limitedUse:NO])
       .andReturn([FBLPromise resolvedWith:attestKeyResponse]);
+  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
+                                                    keyID:OCMOCK_ANY
+                                                challenge:OCMOCK_ANY
+                                               limitedUse:YES]);
 
   // 9. Expect the artifact received from Firebase backend to be saved.
   OCMExpect([self.mockArtifactStorage setArtifact:artifactData forKey:existingKeyID])
@@ -326,7 +338,9 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                                completionHandler:OCMOCK_ANY]);
   OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
                                                     keyID:OCMOCK_ANY
-                                                challenge:OCMOCK_ANY]);
+                                                challenge:OCMOCK_ANY
+                                               limitedUse:NO])
+      .ignoringNonObjectArgs();
 
   // 6. Call get token.
   XCTestExpectation *completionExpectation =
@@ -384,7 +398,9 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   // 6. Don't exchange API request.
   OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
                                                     keyID:OCMOCK_ANY
-                                                challenge:OCMOCK_ANY]);
+                                                challenge:OCMOCK_ANY
+                                               limitedUse:NO])
+      .ignoringNonObjectArgs();
 
   // 7. Call get token.
   XCTestExpectation *completionExpectation =
@@ -443,8 +459,13 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                                            userInfo:nil];
   OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData
                                                     keyID:existingKeyID
-                                                challenge:self.randomChallenge])
+                                                challenge:self.randomChallenge
+                                               limitedUse:NO])
       .andReturn([self rejectedPromiseWithError:exchangeError]);
+  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
+                                                    keyID:OCMOCK_ANY
+                                                challenge:OCMOCK_ANY
+                                               limitedUse:YES]);
 
   // 7. Call get token.
   XCTestExpectation *completionExpectation =
@@ -483,8 +504,13 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   GACAppCheckHTTPError *APIError = [self attestationRejectionHTTPError];
   OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData1
                                                     keyID:keyID1
-                                                challenge:self.randomChallenge])
+                                                challenge:self.randomChallenge
+                                               limitedUse:NO])
       .andReturn([self rejectedPromiseWithError:APIError]);
+  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
+                                                    keyID:OCMOCK_ANY
+                                                challenge:OCMOCK_ANY
+                                               limitedUse:YES]);
 
   // 4. Stored attestation to be reset.
   [self expectAttestationReset];
@@ -502,8 +528,13 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
       [[GACAppAttestAttestationResponse alloc] initWithArtifact:artifactData token:FACToken];
   OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData2
                                                     keyID:keyID2
-                                                challenge:self.randomChallenge])
+                                                challenge:self.randomChallenge
+                                               limitedUse:NO])
       .andReturn([FBLPromise resolvedWith:attestKeyResponse]);
+  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
+                                                    keyID:OCMOCK_ANY
+                                                challenge:OCMOCK_ANY
+                                               limitedUse:YES]);
 
   // 7. Expect the artifact received from Firebase backend to be saved.
   OCMExpect([self.mockArtifactStorage setArtifact:artifactData forKey:keyID2])
@@ -540,8 +571,13 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   GACAppCheckHTTPError *APIError = [self attestationRejectionHTTPError];
   OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData1
                                                     keyID:keyID1
-                                                challenge:self.randomChallenge])
+                                                challenge:self.randomChallenge
+                                               limitedUse:NO])
       .andReturn([self rejectedPromiseWithError:APIError]);
+  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
+                                                    keyID:OCMOCK_ANY
+                                                challenge:OCMOCK_ANY
+                                               limitedUse:YES]);
 
   // 4. Stored attestation to be reset.
   [self expectAttestationReset];
@@ -554,8 +590,13 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   // 6. Expect exchange request to be sent.
   OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData2
                                                     keyID:keyID2
-                                                challenge:self.randomChallenge])
+                                                challenge:self.randomChallenge
+                                               limitedUse:NO])
       .andReturn([self rejectedPromiseWithError:APIError]);
+  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
+                                                    keyID:OCMOCK_ANY
+                                                challenge:OCMOCK_ANY
+                                               limitedUse:YES]);
 
   // 7. Stored attestation to be reset.
   [self expectAttestationReset];
@@ -612,7 +653,9 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   // 6. Don't expect assertion request to be sent.
   OCMReject([self.mockAPIService getAppCheckTokenWithArtifact:OCMOCK_ANY
                                                     challenge:OCMOCK_ANY
-                                                    assertion:OCMOCK_ANY]);
+                                                    assertion:OCMOCK_ANY
+                                                   limitedUse:NO])
+      .ignoringNonObjectArgs();
 
   // 7. Call get token.
   XCTestExpectation *completionExpectation =
@@ -663,7 +706,9 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   // 6. Don't expect assertion request to be sent.
   OCMReject([self.mockAPIService getAppCheckTokenWithArtifact:OCMOCK_ANY
                                                     challenge:OCMOCK_ANY
-                                                    assertion:OCMOCK_ANY]);
+                                                    assertion:OCMOCK_ANY
+                                                   limitedUse:NO])
+      .ignoringNonObjectArgs();
 
   // 7. Call get token.
   XCTestExpectation *completionExpectation =
@@ -715,8 +760,13 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                       userInfo:nil];
   OCMExpect([self.mockAPIService getAppCheckTokenWithArtifact:storedArtifact
                                                     challenge:self.randomChallenge
-                                                    assertion:assertion])
+                                                    assertion:assertion
+                                                   limitedUse:NO])
       .andReturn([self rejectedPromiseWithError:tokenExchangeError]);
+  OCMReject([self.mockAPIService getAppCheckTokenWithArtifact:OCMOCK_ANY
+                                                    challenge:OCMOCK_ANY
+                                                    assertion:OCMOCK_ANY
+                                                   limitedUse:YES]);
 
   // 7. Call get token.
   XCTestExpectation *completionExpectation =
@@ -773,8 +823,13 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                                                         expirationDate:[NSDate date]];
   OCMExpect([self.mockAPIService getAppCheckTokenWithArtifact:storedArtifact
                                                     challenge:self.randomChallenge
-                                                    assertion:assertion])
+                                                    assertion:assertion
+                                                   limitedUse:NO])
       .andReturn([FBLPromise resolvedWith:FACToken]);
+  OCMReject([self.mockAPIService getAppCheckTokenWithArtifact:OCMOCK_ANY
+                                                    challenge:OCMOCK_ANY
+                                                    assertion:OCMOCK_ANY
+                                                   limitedUse:YES]);
 
   // 7. Call get token several times.
   NSInteger callsCount = 10;
@@ -847,8 +902,13 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   // 6.2. Stub assertion request.
   OCMExpect([self.mockAPIService getAppCheckTokenWithArtifact:storedArtifact
                                                     challenge:self.randomChallenge
-                                                    assertion:assertion])
+                                                    assertion:assertion
+                                                   limitedUse:NO])
       .andReturn(assertionRequestPromise);
+  OCMReject([self.mockAPIService getAppCheckTokenWithArtifact:OCMOCK_ANY
+                                                    challenge:OCMOCK_ANY
+                                                    assertion:OCMOCK_ANY
+                                                   limitedUse:YES]);
   // 6.3. Create an expected error to be rejected with later.
   NSError *assertionRequestError = [NSError errorWithDomain:self.name code:0 userInfo:nil];
 
@@ -906,7 +966,9 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                                completionHandler:OCMOCK_ANY]);
   OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
                                                     keyID:OCMOCK_ANY
-                                                challenge:OCMOCK_ANY]);
+                                                challenge:OCMOCK_ANY
+                                               limitedUse:NO])
+      .ignoringNonObjectArgs();
 
   // 3. Call get token.
   XCTestExpectation *completionExpectation =
@@ -1001,8 +1063,13 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                                                         expirationDate:[NSDate date]];
   OCMExpect([self.mockAPIService getAppCheckTokenWithArtifact:storedArtifact
                                                     challenge:self.randomChallenge
-                                                    assertion:assertion])
+                                                    assertion:assertion
+                                                   limitedUse:NO])
       .andReturn([FBLPromise resolvedWith:FACToken]);
+  OCMReject([self.mockAPIService getAppCheckTokenWithArtifact:OCMOCK_ANY
+                                                    challenge:OCMOCK_ANY
+                                                    assertion:OCMOCK_ANY
+                                                   limitedUse:YES]);
 
   // 7. Call get token.
   XCTestExpectation *completionExpectation =

@@ -101,11 +101,24 @@ static NSString *const kDebugTokenUserDefaultsKey = @"FIRAAppCheckDebugToken";
 
 - (void)getTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable token,
                                          NSError *_Nullable error))handler {
+  [self getTokenWithLimitedUse:NO completion:handler];
+}
+
+- (void)getLimitedUseTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable,
+                                                   NSError *_Nullable))handler {
+  [self getTokenWithLimitedUse:YES completion:handler];
+}
+
+#pragma mark - Internal
+
+- (void)getTokenWithLimitedUse:(BOOL)limitedUse
+                    completion:(void (^)(GACAppCheckToken *_Nullable token,
+                                         NSError *_Nullable error))handler {
   [FBLPromise do:^NSString * {
     return [self currentDebugToken];
   }]
       .then(^FBLPromise<GACAppCheckToken *> *(NSString *debugToken) {
-        return [self.APIService appCheckTokenWithDebugToken:debugToken];
+        return [self.APIService appCheckTokenWithDebugToken:debugToken limitedUse:limitedUse];
       })
       .then(^id(GACAppCheckToken *appCheckToken) {
         handler(appCheckToken, nil);

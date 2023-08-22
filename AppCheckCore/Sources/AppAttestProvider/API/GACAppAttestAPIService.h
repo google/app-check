@@ -39,12 +39,14 @@ NS_ASSUME_NONNULL_BEGIN
 /// artifact and an App Check token or rejected with an error.
 - (FBLPromise<GACAppAttestAttestationResponse *> *)attestKeyWithAttestation:(NSData *)attestation
                                                                       keyID:(NSString *)keyID
-                                                                  challenge:(NSData *)challenge;
+                                                                  challenge:(NSData *)challenge
+                                                                 limitedUse:(BOOL)limitedUse;
 
 /// Exchanges attestation data (artifact & assertion) and a challenge for a FAC token.
 - (FBLPromise<GACAppCheckToken *> *)getAppCheckTokenWithArtifact:(NSData *)artifact
                                                        challenge:(NSData *)challenge
-                                                       assertion:(NSData *)assertion;
+                                                       assertion:(NSData *)assertion
+                                                      limitedUse:(BOOL)limitedUse;
 
 @end
 
@@ -53,17 +55,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 /// Default initializer.
 ///
-/// TODO(andrewheard): Remove or refactor the `limitedUse` parameter from this constructor when the
-/// short-lived (limited-use) token feature is fully implemented.
-///
 /// @param APIService An instance implementing `GACAppCheckAPIServiceProtocol` to be used to send
 /// network requests to the App Check backend.
 /// @param resourceName The name of the resource protected by App Check; for a Firebase App this is
 /// "projects/{project_id}/apps/{app_id}".
-/// @param limitedUse If YES, forces a short-lived token with a 5 minute TTL.
 - (instancetype)initWithAPIService:(id<GACAppCheckAPIServiceProtocol>)APIService
-                      resourceName:(NSString *)resourceName
-                        limitedUse:(BOOL)limitedUse NS_DESIGNATED_INITIALIZER;
+                      resourceName:(NSString *)resourceName NS_DESIGNATED_INITIALIZER;
 
 - (instancetype)init NS_UNAVAILABLE;
 

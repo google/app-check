@@ -215,7 +215,7 @@ typedef void (^GACAppCheckTokenHandler)(id<GACAppCheckTokenProtocol> _Nullable t
   return
       [FBLPromise wrapObjectOrErrorCompletion:^(
                       FBLPromiseObjectOrErrorCompletion _Nonnull handler) {
-        [self.appCheckProvider getTokenWithCompletion:handler];
+        [self.appCheckProvider getLimitedUseTokenWithCompletion:handler];
       }].then(^id _Nullable(GACAppCheckToken *_Nullable token) {
         return token;
       });

@@ -24,17 +24,23 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param request The request that is about to be sent.
 typedef void (^GACAppCheckAPIRequestHook)(NSMutableURLRequest *request);
 
-/// Defines the methods required to be implemented by a specific Firebase App Check
-/// provider.
+/// Defines the methods required to be implemented by a specific App Check provider.
 NS_SWIFT_NAME(AppCheckCoreProvider)
 @protocol GACAppCheckProvider <NSObject>
 
-/// Returns a new Firebase App Check token.
+/// Returns a new App Check token.
 /// @param handler The completion handler. Make sure to call the handler with either a token
 /// or an error.
 - (void)getTokenWithCompletion:
     (void (^)(GACAppCheckToken *_Nullable token, NSError *_Nullable error))handler
     NS_SWIFT_NAME(getToken(completion:));
+
+/// Returns a new App Check token suitable for consumption in a limited-use scenario.
+/// @param handler The completion handler. Make sure to call the handler with either a token
+/// or an error.
+- (void)getLimitedUseTokenWithCompletion:
+    (void (^)(GACAppCheckToken *_Nullable token, NSError *_Nullable error))handler
+    NS_SWIFT_NAME(getLimitedUseToken(completion:));
 
 @end
 
