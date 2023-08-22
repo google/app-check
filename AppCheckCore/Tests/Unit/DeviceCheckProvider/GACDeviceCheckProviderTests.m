@@ -138,7 +138,8 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
 
   // 2. Don't expect DeviceCheck token to be generated or FAA token to be requested.
   OCMReject([self.fakeTokenGenerator generateTokenWithCompletionHandler:OCMOCK_ANY]);
-  OCMReject([self.fakeAPIService appCheckTokenWithDeviceToken:OCMOCK_ANY]);
+  OCMReject([self.fakeAPIService appCheckTokenWithDeviceToken:OCMOCK_ANY limitedUse:NO])
+      .ignoringNonObjectArgs();
 
   // 3. Call getToken and validate the result.
   XCTestExpectation *completionExpectation =
@@ -271,12 +272,15 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
 }
 
 - (void)testGetLimitedUseTokenSuccess {
-  // 1. Expect device token to be generated.
+  // 1. Expect GACDeviceCheckTokenGenerator.isSupported.
+  OCMExpect([self.fakeTokenGenerator isSupported]).andReturn(YES);
+
+  // 2. Expect device token to be generated.
   NSData *deviceToken = [NSData data];
   id generateTokenArg = [OCMArg invokeBlockWithArgs:deviceToken, [NSNull null], nil];
   OCMExpect([self.fakeTokenGenerator generateTokenWithCompletionHandler:generateTokenArg]);
 
-  // 2. Expect FAA token to be requested.
+  // 3. Expect FAA token to be requested.
   GACAppCheckToken *validToken = [[GACAppCheckToken alloc] initWithToken:@"valid_token"
                                                           expirationDate:[NSDate distantFuture]
                                                           receivedAtDate:[NSDate date]];
@@ -284,10 +288,10 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
       .andReturn([FBLPromise resolvedWith:validToken]);
   OCMReject([self.fakeAPIService appCheckTokenWithDeviceToken:OCMOCK_ANY limitedUse:NO]);
 
-  // 3. Expect backoff wrapper to be used.
+  // 4. Expect backoff wrapper to be used.
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
-  // 4. Call getToken and validate the result.
+  // 5. Call getToken and validate the result.
   XCTestExpectation *completionExpectation =
       [self expectationWithDescription:@"completionExpectation"];
   [self.provider getLimitedUseTokenWithCompletion:^(GACAppCheckToken *_Nullable token,
@@ -303,7 +307,7 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
                     timeout:0.5
                enforceOrder:YES];
 
-  // 5. Verify.
+  // 6. Verify.
   XCTAssertNil(self.fakeBackoffWrapper.operationError);
   GACAppCheckToken *wrapperResult =
       [self.fakeBackoffWrapper.operationResult isKindOfClass:[GACAppCheckToken class]]
