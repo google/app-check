@@ -16,7 +16,6 @@
 
 #import <Foundation/Foundation.h>
 
-@class GACAppCheckToken;
 @protocol GACAppCheckProvider;
 @protocol GACAppCheckSettingsProtocol;
 @protocol GACAppCheckTokenDelegate;

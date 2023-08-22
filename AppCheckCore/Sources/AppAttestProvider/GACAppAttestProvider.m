@@ -33,6 +33,7 @@
 #import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
 #import "AppCheckCore/Sources/Core/Backoff/GACAppCheckBackoffWrapper.h"
 #import "AppCheckCore/Sources/Core/GACAppCheckLogger+Internal.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
 #import "AppCheckCore/Sources/Core/Utils/GACAppCheckCryptoUtils.h"
 
@@ -190,11 +191,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 #pragma mark - GACAppCheckProvider
 
-- (void)getTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable, NSError *_Nullable))handler {
+- (void)getTokenWithCompletion:(void (^)(id<GACAppCheckTokenProtocol> _Nullable,
+                                         NSError *_Nullable))handler {
   [self getTokenWithLimitedUse:NO completion:handler];
 }
 
-- (void)getLimitedUseTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable,
+- (void)getLimitedUseTokenWithCompletion:(void (^)(id<GACAppCheckTokenProtocol> _Nullable,
                                                    NSError *_Nullable))handler {
   [self getTokenWithLimitedUse:YES completion:handler];
 }
@@ -202,7 +204,8 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark - Internal
 
 - (void)getTokenWithLimitedUse:(BOOL)limitedUse
-                    completion:(void (^)(GACAppCheckToken *_Nullable, NSError *_Nullable))handler {
+                    completion:(void (^)(id<GACAppCheckTokenProtocol> _Nullable,
+                                         NSError *_Nullable))handler {
   [self getTokenWithLimitedUse:limitedUse]
       // Call the handler with the result.
       .then(^FBLPromise *(GACAppCheckToken *token) {

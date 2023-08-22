@@ -16,7 +16,7 @@
 
 #import <Foundation/Foundation.h>
 
-@class GACAppCheckToken;
+@protocol GACAppCheckTokenProtocol;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -32,14 +32,14 @@ NS_SWIFT_NAME(AppCheckCoreProvider)
 /// @param handler The completion handler. Make sure to call the handler with either a token
 /// or an error.
 - (void)getTokenWithCompletion:
-    (void (^)(GACAppCheckToken *_Nullable token, NSError *_Nullable error))handler
+    (void (^)(id<GACAppCheckTokenProtocol> _Nullable token, NSError *_Nullable error))handler
     NS_SWIFT_NAME(getToken(completion:));
 
 /// Returns a new App Check token suitable for consumption in a limited-use scenario.
 /// @param handler The completion handler. Make sure to call the handler with either a token
 /// or an error.
 - (void)getLimitedUseTokenWithCompletion:
-    (void (^)(GACAppCheckToken *_Nullable token, NSError *_Nullable error))handler
+    (void (^)(id<GACAppCheckTokenProtocol> _Nullable token, NSError *_Nullable error))handler
     NS_SWIFT_NAME(getLimitedUseToken(completion:));
 
 @end
