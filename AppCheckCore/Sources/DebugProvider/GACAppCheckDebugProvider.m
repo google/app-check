@@ -99,12 +99,12 @@ static NSString *const kDebugTokenUserDefaultsKey = @"FIRAAppCheckDebugToken";
 
 #pragma mark - GACAppCheckProvider
 
-- (void)getTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable token,
-                                         NSError *_Nullable error))handler {
+- (void)getTokenWithCompletion:(void (^)(id<GACAppCheckTokenProtocol> _Nullable,
+                                         NSError *_Nullable))handler {
   [self getTokenWithLimitedUse:NO completion:handler];
 }
 
-- (void)getLimitedUseTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable,
+- (void)getLimitedUseTokenWithCompletion:(void (^)(id<GACAppCheckTokenProtocol> _Nullable,
                                                    NSError *_Nullable))handler {
   [self getTokenWithLimitedUse:YES completion:handler];
 }

@@ -26,7 +26,7 @@ NS_SWIFT_NAME(AppCheckCoreTokenDelegate)
 /// @param token The updated App Check token.
 /// @param serviceName A unique identifier for the App Check instance, may be a Firebase App Name
 /// or an SDK name.
-- (void)tokenDidUpdate:(GACAppCheckToken *)token serviceName:(NSString *)serviceName;
+- (void)tokenDidUpdate:(id<GACAppCheckTokenProtocol>)token serviceName:(NSString *)serviceName;
 
 @end
 
