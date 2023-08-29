@@ -142,22 +142,6 @@ NS_ASSUME_NONNULL_BEGIN
                              APIKey:(nullable NSString *)APIKey
                 keychainAccessGroup:(nullable NSString *)accessGroup
                        requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks {
-  return [self initWithServiceName:serviceName
-                      resourceName:resourceName
-                           baseURL:baseURL
-                            APIKey:APIKey
-               keychainAccessGroup:accessGroup
-                        limitedUse:NO
-                      requestHooks:requestHooks];
-}
-
-- (instancetype)initWithServiceName:(NSString *)serviceName
-                       resourceName:(NSString *)resourceName
-                            baseURL:(nullable NSString *)baseURL
-                             APIKey:(nullable NSString *)APIKey
-                keychainAccessGroup:(nullable NSString *)accessGroup
-                         limitedUse:(BOOL)limitedUse
-                       requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks {
   NSURLSession *URLSession = [NSURLSession
       sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration]];
 
