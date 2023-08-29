@@ -21,6 +21,7 @@
 #import "GACAppCheckSettings.h"
 #import "GACAppCheckToken.h"
 #import "GACAppCheckTokenDelegate.h"
+#import "GACAppCheckTokenResult.h"
 
 // Debug provider
 #import "GACAppCheckDebugProvider.h"

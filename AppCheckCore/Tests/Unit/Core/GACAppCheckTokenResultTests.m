@@ -24,7 +24,7 @@ static NSString *const kPlaceholderTokenValue = @"eyJlcnJvciI6IlVOS05PV05fRVJST1
 static NSString *const kTestErrorDomain = @"TestErrorDomain";
 static NSInteger const kTestErrorCode = 42;
 
-@interface GACAppCheckTokenResult (Testing)
+@interface GACAppCheckTokenResult (Tests)
 
 + (GACAppCheckToken *)placeholderToken;
 
