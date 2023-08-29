@@ -19,7 +19,7 @@
 @protocol GACAppCheckProvider;
 @protocol GACAppCheckSettingsProtocol;
 @protocol GACAppCheckTokenDelegate;
-@protocol GACAppCheckTokenProtocol;
+@class GACAppCheckToken;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -34,15 +34,15 @@ NS_SWIFT_NAME(AppCheckCoreProtocol) @protocol GACAppCheckProtocol
 /// @param handler The completion handler. Includes the app check token if the request succeeds,
 /// or an error if the request fails.
 - (void)tokenForcingRefresh:(BOOL)forcingRefresh
-                 completion:(void (^)(id<GACAppCheckTokenProtocol> _Nullable token,
-                                      NSError *_Nullable error))handler
+                 completion:
+                     (void (^)(GACAppCheckToken *_Nullable token, NSError *_Nullable error))handler
     NS_SWIFT_NAME(token(forcingRefresh:completion:));
 
 /// Retrieve a new limited-use App Check token
 ///
 /// This method does not affect the token generation behavior of the
 /// ``tokenForcingRefresh()`` method.
-- (void)limitedUseTokenWithCompletion:(void (^)(id<GACAppCheckTokenProtocol> _Nullable token,
+- (void)limitedUseTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable token,
                                                 NSError *_Nullable error))handler;
 
 @end

@@ -38,7 +38,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 static const NSTimeInterval kTokenExpirationThreshold = 5 * 60;  // 5 min.
 
-typedef void (^GACAppCheckTokenHandler)(id<GACAppCheckTokenProtocol> _Nullable token,
+typedef void (^GACAppCheckTokenHandler)(GACAppCheckToken *_Nullable token,
                                         NSError *_Nullable error);
 
 @interface GACAppCheck ()
@@ -111,7 +111,7 @@ typedef void (^GACAppCheckTokenHandler)(id<GACAppCheckTokenProtocol> _Nullable t
 
 - (void)tokenForcingRefresh:(BOOL)forcingRefresh completion:(GACAppCheckTokenHandler)handler {
   [self retrieveOrRefreshTokenForcingRefresh:forcingRefresh]
-      .then(^id _Nullable(id<GACAppCheckTokenProtocol> token) {
+      .then(^id _Nullable(GACAppCheckToken *token) {
         handler(token, nil);
         return token;
       })
@@ -122,7 +122,7 @@ typedef void (^GACAppCheckTokenHandler)(id<GACAppCheckTokenProtocol> _Nullable t
 
 - (void)limitedUseTokenWithCompletion:(GACAppCheckTokenHandler)handler {
   [self limitedUseToken]
-      .then(^id _Nullable(id<GACAppCheckTokenProtocol> token) {
+      .then(^id _Nullable(GACAppCheckToken *token) {
         handler(token, nil);
         return token;
       })

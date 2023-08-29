@@ -90,12 +90,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 #pragma mark - GACAppCheckProvider
 
-- (void)getTokenWithCompletion:(void (^)(id<GACAppCheckTokenProtocol> _Nullable,
-                                         NSError *_Nullable))handler {
+- (void)getTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable, NSError *_Nullable))handler {
   [self getTokenWithLimitedUse:NO completion:handler];
 }
 
-- (void)getLimitedUseTokenWithCompletion:(void (^)(id<GACAppCheckTokenProtocol> _Nullable,
+- (void)getLimitedUseTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable,
                                                    NSError *_Nullable))handler {
   [self getTokenWithLimitedUse:YES completion:handler];
 }
