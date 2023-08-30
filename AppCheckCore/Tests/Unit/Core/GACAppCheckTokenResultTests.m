@@ -20,6 +20,7 @@
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckTokenResult.h"
 
 static NSString *const kTestTokenValue = @"test-token";
+/// Placeholder value that indicates failure: `{"error":"UNKNOWN_ERROR"}` encoded as base64
 static NSString *const kPlaceholderTokenValue = @"eyJlcnJvciI6IlVOS05PV05fRVJST1IifQ==";
 static NSString *const kTestErrorDomain = @"TestErrorDomain";
 static NSInteger const kTestErrorCode = 42;
