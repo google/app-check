@@ -61,10 +61,12 @@ final class AppCheckAPITests {
     )
 
     // Get token
-    appCheck.token(forcingRefresh: false) { token, error in
-      if let _ /* error */ = error {
+    appCheck.token(forcingRefresh: false) { result in
+      if let _ /* error */ = result.error {
+        _ /* placeholder token */ = result.token
         // ...
-      } else if let _ /* token */ = token {
+      } else {
+        _ /* token */ = result.token
         // ...
       }
     }
@@ -73,9 +75,12 @@ final class AppCheckAPITests {
     if #available(iOS 13.0, macOS 10.15, macCatalyst 13.0, tvOS 13.0, watchOS 7.0, *) {
       // async/await is only available on iOS 13+
       Task {
-        do {
-          try await appCheck.token(forcingRefresh: false)
-        } catch {
+        let result = await appCheck.token(forcingRefresh: false)
+        if let _ /* error */ = result.error {
+          _ /* placeholder token */ = result.token
+          // ...
+        } else {
+          _ /* token */ = result.token
           // ...
         }
       }
@@ -123,8 +128,8 @@ final class AppCheckAPITests {
 
     // MARK: - AppCheckErrors
 
-    appCheck.token(forcingRefresh: false) { _, error in
-      if let error = error {
+    appCheck.token(forcingRefresh: false) { result in
+      if let error = result.error {
         switch error {
         case AppCheckCoreErrorCode.unknown:
           break
