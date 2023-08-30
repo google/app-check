@@ -27,6 +27,7 @@
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckSettings.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckTokenDelegate.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckTokenResult.h"
 
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Core/GACAppCheckLogger+Internal.h"
@@ -109,14 +110,15 @@ typedef void (^GACAppCheckTokenHandler)(GACAppCheckToken *_Nullable token,
                      tokenDelegate:tokenDelegate];
 }
 
-- (void)tokenForcingRefresh:(BOOL)forcingRefresh completion:(GACAppCheckTokenHandler)handler {
+- (void)tokenForcingRefresh:(BOOL)forcingRefresh
+                 completion:(void (^)(GACAppCheckTokenResult *result))handler {
   [self retrieveOrRefreshTokenForcingRefresh:forcingRefresh]
       .then(^id _Nullable(GACAppCheckToken *token) {
-        handler(token, nil);
+        handler([[GACAppCheckTokenResult alloc] initWithToken:token]);
         return token;
       })
       .catch(^(NSError *_Nonnull error) {
-        handler(nil, error);
+        handler([[GACAppCheckTokenResult alloc] initWithError:error]);
       });
 }
 
