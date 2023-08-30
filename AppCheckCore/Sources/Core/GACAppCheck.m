@@ -27,6 +27,7 @@
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckSettings.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckTokenDelegate.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckTokenResult.h"
 
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Core/GACAppCheckLogger+Internal.h"
@@ -38,7 +39,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 static const NSTimeInterval kTokenExpirationThreshold = 5 * 60;  // 5 min.
 
-typedef void (^GACAppCheckTokenHandler)(id<GACAppCheckTokenProtocol> _Nullable token,
+typedef void (^GACAppCheckTokenHandler)(GACAppCheckToken *_Nullable token,
                                         NSError *_Nullable error);
 
 @interface GACAppCheck ()
@@ -109,20 +110,21 @@ typedef void (^GACAppCheckTokenHandler)(id<GACAppCheckTokenProtocol> _Nullable t
                      tokenDelegate:tokenDelegate];
 }
 
-- (void)tokenForcingRefresh:(BOOL)forcingRefresh completion:(GACAppCheckTokenHandler)handler {
+- (void)tokenForcingRefresh:(BOOL)forcingRefresh
+                 completion:(void (^)(GACAppCheckTokenResult *result))handler {
   [self retrieveOrRefreshTokenForcingRefresh:forcingRefresh]
-      .then(^id _Nullable(id<GACAppCheckTokenProtocol> token) {
-        handler(token, nil);
+      .then(^id _Nullable(GACAppCheckToken *token) {
+        handler([[GACAppCheckTokenResult alloc] initWithToken:token]);
         return token;
       })
       .catch(^(NSError *_Nonnull error) {
-        handler(nil, error);
+        handler([[GACAppCheckTokenResult alloc] initWithError:error]);
       });
 }
 
 - (void)limitedUseTokenWithCompletion:(GACAppCheckTokenHandler)handler {
   [self limitedUseToken]
-      .then(^id _Nullable(id<GACAppCheckTokenProtocol> token) {
+      .then(^id _Nullable(GACAppCheckToken *token) {
         handler(token, nil);
         return token;
       })

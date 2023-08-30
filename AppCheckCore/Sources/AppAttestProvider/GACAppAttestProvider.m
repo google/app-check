@@ -175,12 +175,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 #pragma mark - GACAppCheckProvider
 
-- (void)getTokenWithCompletion:(void (^)(id<GACAppCheckTokenProtocol> _Nullable,
-                                         NSError *_Nullable))handler {
+- (void)getTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable, NSError *_Nullable))handler {
   [self getTokenWithLimitedUse:NO completion:handler];
 }
 
-- (void)getLimitedUseTokenWithCompletion:(void (^)(id<GACAppCheckTokenProtocol> _Nullable,
+- (void)getLimitedUseTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable,
                                                    NSError *_Nullable))handler {
   [self getTokenWithLimitedUse:YES completion:handler];
 }
@@ -188,8 +187,7 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark - Internal
 
 - (void)getTokenWithLimitedUse:(BOOL)limitedUse
-                    completion:(void (^)(id<GACAppCheckTokenProtocol> _Nullable,
-                                         NSError *_Nullable))handler {
+                    completion:(void (^)(GACAppCheckToken *_Nullable, NSError *_Nullable))handler {
   [self getTokenWithLimitedUse:limitedUse]
       // Call the handler with the result.
       .then(^FBLPromise *(GACAppCheckToken *token) {

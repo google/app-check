@@ -18,10 +18,11 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-NS_SWIFT_NAME(AppCheckCoreTokenProtocol)
-@protocol GACAppCheckTokenProtocol <NSObject>
+/// An object representing an App Check token.
+NS_SWIFT_NAME(AppCheckCoreToken)
+@interface GACAppCheckToken : NSObject
 
-/// A Firebase App Check token.
+/// The App Check token.
 @property(nonatomic, readonly) NSString *token;
 
 /// The App Check token's expiration date in the device's local time.
@@ -29,12 +30,6 @@ NS_SWIFT_NAME(AppCheckCoreTokenProtocol)
 
 /// The date when the App Check token was received in the device's local time.
 @property(nonatomic, readonly) NSDate *receivedAtDate;
-
-@end
-
-/// An object representing a Firebase App Check token.
-NS_SWIFT_NAME(AppCheckCoreToken)
-@interface GACAppCheckToken : NSObject <GACAppCheckTokenProtocol>
 
 - (instancetype)init NS_UNAVAILABLE;
 
