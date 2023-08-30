@@ -33,7 +33,7 @@ NS_SWIFT_NAME(AppCheckCoreProtocol) @protocol GACAppCheckProtocol
 /// most cases, `NO` should be used. `YES` should only be used if the server explicitly returns an
 /// error, indicating a revoked token.
 /// @param handler The completion handler to call when the token fetch request completes. The
-/// `result` parameter Includes the App Check token if the request succeeds, or a placeholder token
+/// `result` parameter includes the App Check token if the request succeeds, or a placeholder token
 /// and an error if the request fails.
 - (void)tokenForcingRefresh:(BOOL)forcingRefresh
                  completion:(void (^)(GACAppCheckTokenResult *result))handler
@@ -45,7 +45,7 @@ NS_SWIFT_NAME(AppCheckCoreProtocol) @protocol GACAppCheckProtocol
 /// ``tokenForcingRefresh()`` method.
 ///
 /// @param handler The completion handler to call when the token fetch request completes. The
-/// `result` parameter Includes the App Check token if the request succeeds, or a placeholder token
+/// `result` parameter includes the App Check token if the request succeeds, or a placeholder token
 /// and an error if the request fails.
 - (void)limitedUseTokenWithCompletion:(void (^)(GACAppCheckTokenResult *result))handler;
 
