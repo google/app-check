@@ -43,8 +43,11 @@ NS_SWIFT_NAME(AppCheckCoreProtocol) @protocol GACAppCheckProtocol
 ///
 /// This method does not affect the token generation behavior of the
 /// ``tokenForcingRefresh()`` method.
-- (void)limitedUseTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable token,
-                                                NSError *_Nullable error))handler;
+///
+/// @param handler The completion handler to call when the token fetch request completes. The
+/// `result` parameter Includes the App Check token if the request succeeds, or a placeholder token
+/// and an error if the request fails.
+- (void)limitedUseTokenWithCompletion:(void (^)(GACAppCheckTokenResult *result))handler;
 
 @end
 

@@ -345,13 +345,11 @@ static NSString *const kAppGroupID = @"app_group_id";
   // 5. Expect token request to be completed.
   XCTestExpectation *getTokenExpectation = [self expectationWithDescription:@"getToken"];
 
-  [self.appCheck
-      limitedUseTokenWithCompletion:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
-        [getTokenExpectation fulfill];
-        XCTAssertNotNil(token);
-        XCTAssertEqualObjects(token.token, expectedToken.token);
-        XCTAssertNil(error);
-      }];
+  [self.appCheck limitedUseTokenWithCompletion:^(GACAppCheckTokenResult *result) {
+    [getTokenExpectation fulfill];
+    XCTAssertEqualObjects(result.token, expectedToken);
+    XCTAssertNil(result.error);
+  }];
   [self waitForExpectations:@[ getTokenExpectation ] timeout:0.5];
   [self verifyAllMocks];
 }
@@ -374,14 +372,13 @@ static NSString *const kAppGroupID = @"app_group_id";
   // 5. Expect token request to be completed.
   XCTestExpectation *getTokenExpectation = [self expectationWithDescription:@"getToken"];
 
-  [self.appCheck
-      limitedUseTokenWithCompletion:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
-        [getTokenExpectation fulfill];
-        XCTAssertNotNil(error);
-        XCTAssertNil(token.token);
-        XCTAssertEqualObjects(error, providerError);
-        XCTAssertEqualObjects(error.domain, GACAppCheckErrorDomain);
-      }];
+  [self.appCheck limitedUseTokenWithCompletion:^(GACAppCheckTokenResult *result) {
+    [getTokenExpectation fulfill];
+    XCTAssertEqualObjects(result.token.token, kPlaceholderTokenValue);
+    XCTAssertNotNil(result.error);
+    XCTAssertEqualObjects(result.error, providerError);
+    XCTAssertEqualObjects(result.error.domain, GACAppCheckErrorDomain);
+  }];
 
   [self waitForExpectations:@[ getTokenExpectation ] timeout:0.5];
   [self verifyAllMocks];
