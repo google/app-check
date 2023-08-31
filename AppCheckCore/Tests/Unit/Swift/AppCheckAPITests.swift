@@ -86,6 +86,32 @@ final class AppCheckAPITests {
       }
     }
 
+    // Get limited-use token
+    appCheck.limitedUseToken { result in
+      if let _ /* error */ = result.error {
+        _ /* placeholder token */ = result.token
+        // ...
+      } else {
+        _ /* token */ = result.token
+        // ...
+      }
+    }
+
+    // Get limited-use token (async/await)
+    if #available(iOS 13.0, macOS 10.15, macCatalyst 13.0, tvOS 13.0, watchOS 7.0, *) {
+      // async/await is only available on iOS 13+
+      Task {
+        let result = await appCheck.limitedUseToken()
+        if let _ /* error */ = result.error {
+          _ /* placeholder token */ = result.token
+          // ...
+        } else {
+          _ /* token */ = result.token
+          // ...
+        }
+      }
+    }
+
     // MARK: - `AppCheckDebugProvider`
 
     // `AppCheckDebugProvider` initializer
