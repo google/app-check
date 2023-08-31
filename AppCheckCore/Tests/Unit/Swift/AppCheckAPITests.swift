@@ -119,6 +119,7 @@ final class AppCheckAPITests {
     let debugProvider = AppCheckCoreDebugProvider(
       serviceName: serviceName,
       resourceName: resourceName,
+      baseURL: nil,
       apiKey: apiKey,
       requestHooks: nil
     )
