@@ -68,11 +68,14 @@ NS_SWIFT_NAME(AppCheckCoreDebugProvider)
 /// `resourceName`; may be a Firebase App Name or an SDK name.
 /// @param resourceName The name of the resource protected by App Check; for a Firebase App this is
 /// "projects/{project_id}/apps/{app_id}".
+/// @param baseURL The base URL for the App Check service; defaults to
+/// `https://firebaseappcheck.googleapis.com/v1` if nil.
 /// @param APIKey The Google Cloud Platform API key, if needed, or nil.
 /// @param requestHooks Hooks that will be invoked on requests through this service.
 /// @return An instance of `AppCheckDebugProvider` .
 - (instancetype)initWithServiceName:(NSString *)serviceName
                        resourceName:(NSString *)resourceName
+                            baseURL:(nullable NSString *)baseURL
                              APIKey:(nullable NSString *)APIKey
                        requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks;
 
