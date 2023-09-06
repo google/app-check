@@ -27,14 +27,13 @@ NS_ASSUME_NONNULL_BEGIN
 // Note: Declared as volatile to make getting and setting atomic.
 static volatile GACAppCheckLogLevel _logLevel;
 
++ (void)load {
+  // Set the default log level (warning).
+  _logLevel = GACAppCheckLogLevelWarning;
+  NSLog(@"Set default log level");
+}
+
 + (GACAppCheckLogLevel)logLevel {
-  static dispatch_once_t once;
-  dispatch_once(&once, ^{
-    if (!_logLevel) {
-      // Set the default log level (warning) if not yet set.
-      _logLevel = GACAppCheckLogLevelWarning;
-    }
-  });
   return _logLevel;
 }
 
