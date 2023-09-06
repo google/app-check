@@ -30,14 +30,13 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-// TODO(andrewheard): Parameterize the following Firebase-specific keys.
-// FIREBASE_APP_CHECK_ONLY_BEGIN
-static NSString *const kDebugTokenEnvKey = @"FIRAAppCheckDebugToken";
-static NSString *const kDebugTokenUserDefaultsKey = @"FIRAAppCheckDebugToken";
-// FIREBASE_APP_CHECK_ONLY_END
+static NSString *const kDebugTokenEnvKey = @"AppCheckDebugToken";
+static NSString *const kFirebaseDebugTokenEnvKey = @"FIRAAppCheckDebugToken";
+static NSString *const kDebugTokenUserDefaultsKey = @"GACAppCheckDebugToken";
 
 @interface GACAppCheckDebugProvider ()
 @property(nonatomic, readonly) id<GACAppCheckDebugProviderAPIServiceProtocol> APIService;
+@property(nonatomic, readonly, nullable, copy) NSString *debugTokenEnvValue;
 @end
 
 @implementation GACAppCheckDebugProvider
@@ -46,6 +45,7 @@ static NSString *const kDebugTokenUserDefaultsKey = @"FIRAAppCheckDebugToken";
   self = [super init];
   if (self) {
     _APIService = APIService;
+    _debugTokenEnvValue = EnvironmentVariableDebugToken();
   }
   return self;
 }
@@ -72,30 +72,15 @@ static NSString *const kDebugTokenUserDefaultsKey = @"FIRAAppCheckDebugToken";
 }
 
 - (NSString *)currentDebugToken {
-  NSString *envVariableValue = [[NSProcessInfo processInfo] environment][kDebugTokenEnvKey];
-  if (envVariableValue.length > 0) {
-    return envVariableValue;
+  if (self.debugTokenEnvValue) {
+    return self.debugTokenEnvValue;
   } else {
     return [self localDebugToken];
   }
 }
 
 - (NSString *)localDebugToken {
-  return [self storedDebugToken] ?: [self generateAndStoreDebugToken];
-}
-
-- (nullable NSString *)storedDebugToken {
-  return [[NSUserDefaults standardUserDefaults] stringForKey:kDebugTokenUserDefaultsKey];
-}
-
-- (void)storeDebugToken:(nullable NSString *)token {
-  [[NSUserDefaults standardUserDefaults] setObject:token forKey:kDebugTokenUserDefaultsKey];
-}
-
-- (NSString *)generateAndStoreDebugToken {
-  NSString *token = [NSUUID UUID].UUIDString;
-  [self storeDebugToken:token];
-  return token;
+  return LocalDebugToken();
 }
 
 #pragma mark - GACAppCheckProvider
@@ -130,6 +115,70 @@ static NSString *const kDebugTokenUserDefaultsKey = @"FIRAAppCheckDebugToken";
         GACAppCheckLogDebug(GACLoggerAppCheckMessageDebugProviderFailedExchange, logMessage);
         handler(nil, error);
       });
+}
+
+static NSString *LocalDebugToken() {
+  return StoredDebugToken() ?: GenerateAndStoreDebugToken();
+}
+
+static NSString *_Nullable StoredDebugToken() {
+  return [[NSUserDefaults standardUserDefaults] stringForKey:kDebugTokenUserDefaultsKey];
+}
+
+static NSString *_Nullable GenerateAndStoreDebugToken() {
+  NSString *token = [NSUUID UUID].UUIDString;
+  [[NSUserDefaults standardUserDefaults] setObject:token forKey:kDebugTokenUserDefaultsKey];
+  return token;
+}
+
+static NSString *_Nullable EnvironmentVariableDebugToken() {
+  NSDictionary<NSString *, NSString *> *environment = [[NSProcessInfo processInfo] environment];
+  NSString *envVariableValue = environment[kDebugTokenEnvKey];
+  NSString *firebaseEnvVariableValue = environment[kFirebaseDebugTokenEnvKey];
+  if (envVariableValue.length == 0) {
+    envVariableValue = nil;
+  }
+  if (firebaseEnvVariableValue == 0) {
+    firebaseEnvVariableValue = nil;
+  }
+
+  if (envVariableValue && firebaseEnvVariableValue) {
+    GACAppCheckLog(
+        GACLoggerAppCheckMessageDebugProviderFirebaseEnvironmentVariable,
+        GACAppCheckLogLevelWarning,
+        [NSString stringWithFormat:@"The environment variables %@ and %@ are both set; using the "
+                                   @"debug token specified in %@ and ignoring the value of %@.",
+                                   kDebugTokenEnvKey, kFirebaseDebugTokenEnvKey, kDebugTokenEnvKey,
+                                   kFirebaseDebugTokenEnvKey]);
+
+    return envVariableValue;
+  } else if (envVariableValue) {
+    GACAppCheckLog(
+        GACLoggerAppCheckMessageEnvironmentVariableDebugToken, GACAppCheckLogLevelDebug,
+        [NSString
+            stringWithFormat:@"Using the debug token specified in the environment variable %@.",
+                             kDebugTokenEnvKey]);
+
+    return envVariableValue;
+  } else if (firebaseEnvVariableValue) {
+    // TODO(andrewheard): Update the message to warn that "FIRAAppCheckDebugToken"
+    // (kFirebaseDebugTokenEnvKey) is deprecated after Firebase App Check supports
+    // "AppCheckDebugToken" (kDebugTokenEnvKey) and increase the severity to
+    // GACAppCheckLogLevelWarning.
+    GACAppCheckLog(
+        GACLoggerAppCheckMessageDebugProviderFirebaseEnvironmentVariable, GACAppCheckLogLevelDebug,
+        [NSString
+            stringWithFormat:@"Using the debug token specified in the environment variable %@.",
+                             kFirebaseDebugTokenEnvKey]);
+
+    return firebaseEnvVariableValue;
+  } else {
+    // Print only a locally generated token to avoid a valid token leak on CI.
+    GACAppCheckLog(GACLoggerAppCheckMessageLocalDebugToken, GACAppCheckLogLevelWarning,
+                   [NSString stringWithFormat:@"App Check debug token: '%@'.", LocalDebugToken()]);
+
+    return nil;
+  }
 }
 
 @end
