@@ -30,7 +30,6 @@ static volatile GACAppCheckLogLevel _logLevel;
 + (void)load {
   // Set the default log level (warning).
   _logLevel = GACAppCheckLogLevelWarning;
-  NSLog(@"Set default log level");
 }
 
 + (GACAppCheckLogLevel)logLevel {
