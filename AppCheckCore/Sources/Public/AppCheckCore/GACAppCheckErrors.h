@@ -48,7 +48,10 @@ typedef NS_ENUM(NSInteger, GACAppCheckMessageCode) {
   GACLoggerAppCheckMessageCodeUnexpectedHTTPCode = 3001,
 
   // Debug Provider
-  GACLoggerAppCheckMessageDebugProviderFailedExchange = 4002,
+  GACLoggerAppCheckMessageLocalDebugToken = 4001,
+  GACLoggerAppCheckMessageEnvironmentVariableDebugToken = 4002,
+  GACLoggerAppCheckMessageDebugProviderFirebaseEnvironmentVariable = 4003,
+  GACLoggerAppCheckMessageDebugProviderFailedExchange = 4004,
 
   // App Attest Provider
   GACLoggerAppCheckMessageCodeAppAttestNotSupported = 7001,

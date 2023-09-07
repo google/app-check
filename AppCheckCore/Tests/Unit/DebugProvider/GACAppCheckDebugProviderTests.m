@@ -23,8 +23,9 @@
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckDebugProvider.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
-static NSString *const kDebugTokenEnvKey = @"FIRAAppCheckDebugToken";
-static NSString *const kDebugTokenUserDefaultsKey = @"FIRAAppCheckDebugToken";
+static NSString *const kDebugTokenEnvKey = @"AppCheckDebugToken";
+static NSString *const kFirebaseDebugTokenEnvKey = @"FIRAAppCheckDebugToken";
+static NSString *const kDebugTokenUserDefaultsKey = @"GACAppCheckDebugToken";
 
 @interface GACAppCheckDebugProvider (Tests)
 
@@ -65,8 +66,46 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
   [[NSUserDefaults standardUserDefaults] setObject:@"stored token"
                                             forKey:kDebugTokenUserDefaultsKey];
   NSString *envToken = @"env token";
-  OCMStub([self.processInfoMock processInfo]).andReturn(self.processInfoMock);
+  OCMExpect([self.processInfoMock processInfo]).andReturn(self.processInfoMock);
   OCMExpect([self.processInfoMock environment]).andReturn(@{kDebugTokenEnvKey : envToken});
+  self.provider = [[GACAppCheckDebugProvider alloc] initWithAPIService:self.fakeAPIService];
+
+  XCTAssertEqualObjects([self.provider currentDebugToken], envToken);
+}
+
+- (void)testCurrentTokenWhenFirebaseAndCoreEnvironmentVariablesSetAndTokenStored {
+  [[NSUserDefaults standardUserDefaults] setObject:@"stored token"
+                                            forKey:kDebugTokenUserDefaultsKey];
+  NSString *envToken = @"env token";
+  OCMExpect([self.processInfoMock processInfo]).andReturn(self.processInfoMock);
+  OCMExpect([self.processInfoMock environment])
+      .andReturn(
+          (@{kDebugTokenEnvKey : envToken, kFirebaseDebugTokenEnvKey : @"firebase env token"}));
+  self.provider = [[GACAppCheckDebugProvider alloc] initWithAPIService:self.fakeAPIService];
+
+  XCTAssertEqualObjects([self.provider currentDebugToken], envToken);
+}
+
+- (void)testCurrentTokenWhenFirebaseEnvironmentVariableSetAndTokenStored {
+  [[NSUserDefaults standardUserDefaults] setObject:@"stored token"
+                                            forKey:kDebugTokenUserDefaultsKey];
+  NSString *envToken = @"env token";
+  OCMExpect([self.processInfoMock processInfo]).andReturn(self.processInfoMock);
+  OCMExpect([self.processInfoMock environment]).andReturn((@{
+    kFirebaseDebugTokenEnvKey : envToken
+  }));
+  self.provider = [[GACAppCheckDebugProvider alloc] initWithAPIService:self.fakeAPIService];
+
+  XCTAssertEqualObjects([self.provider currentDebugToken], envToken);
+}
+
+- (void)testCurrentTokenWhenFirebaseAndCoreEnvironmentVariablesSet {
+  NSString *envToken = @"env token";
+  OCMExpect([self.processInfoMock processInfo]).andReturn(self.processInfoMock);
+  OCMExpect([self.processInfoMock environment])
+      .andReturn(
+          (@{kDebugTokenEnvKey : envToken, kFirebaseDebugTokenEnvKey : @"firebase env token"}));
+  self.provider = [[GACAppCheckDebugProvider alloc] initWithAPIService:self.fakeAPIService];
 
   XCTAssertEqualObjects([self.provider currentDebugToken], envToken);
 }
@@ -81,6 +120,7 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
 }
 
 - (void)testCurrentTokenWhenNoEnvironmentVariableAndNoTokenStored {
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:kDebugTokenUserDefaultsKey];
   XCTAssertNil(NSProcessInfo.processInfo.environment[kDebugTokenEnvKey]);
   XCTAssertNil([[NSUserDefaults standardUserDefaults] stringForKey:kDebugTokenUserDefaultsKey]);
 
