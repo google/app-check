@@ -71,7 +71,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype)initWithServiceName:(NSString *)serviceName
                        resourceName:(NSString *)resourceName
-                             APIKey:(nullable NSString *)APIKey
+                             APIKey:(NSString *)APIKey
                        requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks {
   NSURLSession *URLSession = [NSURLSession
       sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration]];

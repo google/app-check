@@ -60,13 +60,13 @@ NS_SWIFT_NAME(AppCheckCoreDebugProvider)
 /// "projects/{project_id}/apps/{app_id}".
 /// @param baseURL The base URL for the App Check service; defaults to
 /// `https://firebaseappcheck.googleapis.com/v1` if nil.
-/// @param APIKey The Google Cloud Platform API key, if needed, or nil.
+/// @param APIKey The Google Cloud Platform API key.
 /// @param requestHooks Hooks that will be invoked on requests through this service.
-/// @return An instance of `AppCheckCoreDebugProvider` .
+/// @return An instance of `AppCheckCoreDebugProvider`.
 - (instancetype)initWithServiceName:(NSString *)serviceName
                        resourceName:(NSString *)resourceName
                             baseURL:(nullable NSString *)baseURL
-                             APIKey:(nullable NSString *)APIKey
+                             APIKey:(NSString *)APIKey
                        requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks;
 
 /// Returns the locally generated token.
