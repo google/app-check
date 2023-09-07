@@ -39,12 +39,12 @@ NS_SWIFT_NAME(AppCheckCoreDeviceCheckProvider)
 /// `resourceName`; may be a Firebase App Name or an SDK name.
 /// @param resourceName The name of the resource protected by App Check; for a Firebase App this is
 /// "projects/{project_id}/apps/{app_id}".
-/// @param APIKey The Google Cloud Platform API key, if needed, or nil.
+/// @param APIKey The Google Cloud Platform API key.
 /// @param requestHooks Hooks that will be invoked on requests through this service.
-/// @return An instance of `DeviceCheckProvider` .
+/// @return An instance of `AppCheckCoreDeviceCheckProvider`.
 - (instancetype)initWithServiceName:(NSString *)serviceName
                        resourceName:(NSString *)resourceName
-                             APIKey:(nullable NSString *)APIKey
+                             APIKey:(NSString *)APIKey
                        requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks;
 
 @end
