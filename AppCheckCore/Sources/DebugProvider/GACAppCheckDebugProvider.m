@@ -125,7 +125,7 @@ static NSString *_Nullable StoredDebugToken() {
   return [[NSUserDefaults standardUserDefaults] stringForKey:kDebugTokenUserDefaultsKey];
 }
 
-static NSString *_Nullable GenerateAndStoreDebugToken() {
+static NSString *GenerateAndStoreDebugToken() {
   NSString *token = [NSUUID UUID].UUIDString;
   [[NSUserDefaults standardUserDefaults] setObject:token forKey:kDebugTokenUserDefaultsKey];
   return token;
