@@ -48,7 +48,7 @@ static NSString *MessageCodeEnumToString(GACAppCheckMessageCode code) {
   return [[NSString alloc] initWithFormat:@"I-GAC%06ld", (long)code];
 }
 
-NSString *LoggerLevelEnumToString(GACAppCheckLogLevel logLevel) {
+static NSString *LoggerLevelEnumToString(GACAppCheckLogLevel logLevel) {
   switch (logLevel) {
     case GACAppCheckLogLevelFault:
       return @"Fault";
