@@ -117,21 +117,21 @@ static NSString *const kDebugTokenUserDefaultsKey = @"GACAppCheckDebugToken";
       });
 }
 
-static NSString *LocalDebugToken() {
+static NSString *LocalDebugToken(void) {
   return StoredDebugToken() ?: GenerateAndStoreDebugToken();
 }
 
-static NSString *_Nullable StoredDebugToken() {
+static NSString *_Nullable StoredDebugToken(void) {
   return [[NSUserDefaults standardUserDefaults] stringForKey:kDebugTokenUserDefaultsKey];
 }
 
-static NSString *GenerateAndStoreDebugToken() {
+static NSString *GenerateAndStoreDebugToken(void) {
   NSString *token = [NSUUID UUID].UUIDString;
   [[NSUserDefaults standardUserDefaults] setObject:token forKey:kDebugTokenUserDefaultsKey];
   return token;
 }
 
-static NSString *_Nullable EnvironmentVariableDebugToken() {
+static NSString *_Nullable EnvironmentVariableDebugToken(void) {
   NSDictionary<NSString *, NSString *> *environment = [[NSProcessInfo processInfo] environment];
   NSString *envVariableValue = environment[kDebugTokenEnvKey];
   NSString *firebaseEnvVariableValue = environment[kFirebaseDebugTokenEnvKey];

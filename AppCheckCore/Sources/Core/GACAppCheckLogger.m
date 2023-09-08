@@ -44,11 +44,11 @@ static volatile GACAppCheckLogLevel _logLevel;
 
 #pragma mark - Helpers
 
-NSString *GACAppCheckMessageCodeEnumToString(GACAppCheckMessageCode code) {
+static NSString *MessageCodeEnumToString(GACAppCheckMessageCode code) {
   return [[NSString alloc] initWithFormat:@"I-GAC%06ld", (long)code];
 }
 
-NSString *GACAppCheckLoggerLevelEnumToString(GACAppCheckLogLevel logLevel) {
+NSString *LoggerLevelEnumToString(GACAppCheckLogLevel logLevel) {
   switch (logLevel) {
     case GACAppCheckLogLevelFault:
       return @"Fault";
@@ -78,8 +78,8 @@ void GACAppCheckLog(GACAppCheckMessageCode code, GACAppCheckLogLevel logLevel, N
   // Don't log anything in not debug builds.
 #if !NDEBUG
   if (logLevel >= GACAppCheckLogger.logLevel) {
-    NSLog(@"<%@> [AppCheckCore][%@] %@", GACAppCheckLoggerLevelEnumToString(logLevel),
-          GACAppCheckMessageCodeEnumToString(code), message);
+    NSLog(@"<%@> [AppCheckCore][%@] %@", LoggerLevelEnumToString(logLevel),
+          MessageCodeEnumToString(code), message);
   }
 #endif  // !NDEBUG
 }
