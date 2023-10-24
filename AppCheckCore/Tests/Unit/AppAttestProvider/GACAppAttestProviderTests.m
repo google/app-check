@@ -390,6 +390,10 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   NSError *attestationError = [NSError errorWithDomain:@"testGetTokenWhenKeyAttestationError"
                                                   code:0
                                               userInfo:nil];
+  NSError *expectedError =
+      [GACAppCheckErrorUtil appAttestAttestKeyFailedWithError:attestationError
+                                                        keyId:existingKeyID
+                                               clientDataHash:self.randomChallengeHash];
   id attestCompletionArg = [OCMArg invokeBlockWithArgs:[NSNull null], attestationError, nil];
   OCMExpect([self.mockAppAttestService attestKey:existingKeyID
                                   clientDataHash:self.randomChallengeHash
@@ -410,7 +414,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
         [completionExpectation fulfill];
 
         XCTAssertNil(token);
-        XCTAssertEqualObjects(error, attestationError);
+        XCTAssertEqualObjects(error, expectedError);
       }];
 
   [self waitForExpectations:@[ self.fakeBackoffWrapper.backoffExpectation, completionExpectation ]
@@ -421,7 +425,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   [self verifyAllMocks];
 
   // 9. Verify backoff error.
-  XCTAssertEqualObjects(self.fakeBackoffWrapper.operationError, attestationError);
+  XCTAssertEqualObjects(self.fakeBackoffWrapper.operationError, expectedError);
 }
 
 - (void)testGetToken_WhenUnregisteredKeyAndKeyAttestationExchangeError {
@@ -697,6 +701,10 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
       [NSError errorWithDomain:@"testGetToken_WhenKeyRegisteredAndGenerateAssertionError"
                           code:0
                       userInfo:nil];
+  NSError *expectedError =
+      [GACAppCheckErrorUtil appAttestGenerateAssertionFailedWithError:generateAssertionError
+                                                                keyId:existingKeyID
+                                                       clientDataHash:self.randomChallengeHash];
   id completionBlockArg = [OCMArg invokeBlockWithArgs:[NSNull null], generateAssertionError, nil];
   OCMExpect([self.mockAppAttestService
       generateAssertion:existingKeyID
@@ -718,7 +726,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
         [completionExpectation fulfill];
 
         XCTAssertNil(token);
-        XCTAssertEqualObjects(error, generateAssertionError);
+        XCTAssertEqualObjects(error, expectedError);
       }];
 
   [self waitForExpectations:@[ completionExpectation ] timeout:0.5];

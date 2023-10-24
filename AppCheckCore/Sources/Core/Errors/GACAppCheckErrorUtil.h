@@ -49,7 +49,19 @@ void GACAppCheckSetErrorToPointer(NSError *error, NSError **pointer);
 
 + (NSError *)unsupportedAttestationProvider:(NSString *)providerName;
 
+// MARK: - App Attest Errors
+
 + (NSError *)appAttestKeyIDNotFound;
+
++ (NSError *)appAttestGenerateKeyFailedWithError:(NSError *)error;
+
++ (NSError *)appAttestAttestKeyFailedWithError:(NSError *)error
+                                         keyId:(NSString *)keyId
+                                clientDataHash:(NSData *)clientDataHash;
+
++ (NSError *)appAttestGenerateAssertionFailedWithError:(NSError *)error
+                                                 keyId:(NSString *)keyId
+                                        clientDataHash:(NSData *)clientDataHash;
 
 @end
 
