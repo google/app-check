@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@import XCTest;
+#import <XCTest/XCTest.h>
 
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckTokenResult.h"
