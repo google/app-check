@@ -12,10 +12,16 @@ concurrency:
 
 jobs:
   pod_lib_lint:
-    runs-on: macos-latest
     strategy:
       matrix:
         target: [ios, tvos, macos, watchos]
+        os: [macos-12, macos-13]
+        include:
+          - os: macos-12
+            xcode: Xcode_14.2
+          - os: macos-13
+            xcode: Xcode_15.0.1
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
     - uses: ruby/setup-ruby@v1
@@ -23,6 +29,8 @@ jobs:
       run: ./setup-scripts.sh
     - name: Setup Bundler
       run: ./scripts/setup_bundler.sh
+    - name: Select Xcode version
+      run: sudo xcode-select -s /Applications/${{ matrix.xcode }}.app/Contents/Developer
     - name: Build and test
       run: |
         scripts/third_party/travis/retry.sh scripts/pod_lib_lint.rb AppCheckCore.podspec \
