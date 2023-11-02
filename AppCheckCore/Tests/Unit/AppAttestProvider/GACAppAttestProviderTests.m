@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppAttestProvider.h"
+
 #import <XCTest/XCTest.h>
 
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
-
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppAttestProvider.h"
 
 #import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAPIService.h"
 #import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
