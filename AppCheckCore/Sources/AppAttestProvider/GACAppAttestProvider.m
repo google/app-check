@@ -361,6 +361,27 @@ NS_ASSUME_NONNULL_BEGIN
 
                 return [self attestKey:keyID challenge:challenge];
               })
+      .recoverOn(self.queue,
+                 ^id(NSError *error) {
+                   // If Apple rejected the key (DCErrorInvalidKey) then reset the attestation and
+                   // throw a specific error to signal retry (GACAppAttestRejectionError).
+                   NSError *underlyingError = error.userInfo[NSUnderlyingErrorKey];
+                   if (underlyingError && [underlyingError.domain isEqualToString:DCErrorDomain] &&
+                       underlyingError.code == DCErrorInvalidKey) {
+                     GACAppCheckLog(
+                         GACLoggerAppCheckMessageCodeAttestationRejected, GACAppCheckLogLevelDebug,
+                         @"App Attest invalid key; the existing attestation will be reset.");
+
+                     // Reset the attestation.
+                     return [self resetAttestation].thenOn(self.queue, ^NSError *(id result) {
+                       // Throw the rejection error.
+                       return [[GACAppAttestRejectionError alloc] init];
+                     });
+                   }
+
+                   // Otherwise just re-throw the error.
+                   return error;
+                 })
       .thenOn(self.queue,
               ^FBLPromise<NSArray *> *(GACAppAttestKeyAttestationResult *result) {
                 // 3. Exchange the attestation to FAC token and pass the results to the next step.
