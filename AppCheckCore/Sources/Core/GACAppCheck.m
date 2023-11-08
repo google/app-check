@@ -135,6 +135,7 @@ typedef void (^GACAppCheckTokenHandler)(GACAppCheckTokenResult *result);
 
 - (FBLPromise<GACAppCheckToken *> *)retrieveOrRefreshTokenForcingRefresh:(BOOL)forcingRefresh {
   return [FBLPromise do:^id _Nullable {
+    // TODO(#42): Don't re-use ongoing promise if forcingRefresh is YES.
     if (self.ongoingRetrieveOrRefreshTokenPromise == nil) {
       // Kick off a new operation only when there is not an ongoing one.
       self.ongoingRetrieveOrRefreshTokenPromise =
