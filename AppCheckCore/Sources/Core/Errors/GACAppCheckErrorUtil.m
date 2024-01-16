@@ -16,6 +16,8 @@
 
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 
+#import <DeviceCheck/DeviceCheck.h>
+
 #import <GoogleUtilities/GULKeychainUtils.h>
 
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
@@ -121,8 +123,10 @@
 }
 
 + (NSError *)appAttestGenerateKeyFailedWithError:(NSError *)error {
-  NSString *failureReason = @"Failed to generate a new cryptographic key for use with the App "
-                            @"Attest service (`generateKeyWithCompletionHandler:`).";
+  NSString *failureReason =
+      [NSString stringWithFormat:@"Failed to generate a new cryptographic key for use with the App "
+                                 @"Attest service (`generateKeyWithCompletionHandler:`); %@.",
+                                 [self errorDescriptionWithDeviceCheckError:error]];
   // TODO(#31): Add a new error code for this case (e.g., GACAppCheckAppAttestGenerateKeyFailed).
   return [self appCheckErrorWithCode:GACAppCheckErrorCodeUnknown
                        failureReason:failureReason
@@ -135,8 +139,9 @@
   NSString *failureReason =
       [NSString stringWithFormat:@"Failed to attest the validity of the generated cryptographic "
                                  @"key (`attestKey:clientDataHash:completionHandler:`); "
-                                 @"keyId.length = %lu, clientDataHash.length = %lu",
-                                 (unsigned long)keyId.length, (unsigned long)clientDataHash.length];
+                                 @"keyId.length = %lu, clientDataHash.length = %lu; %@.",
+                                 (unsigned long)keyId.length, (unsigned long)clientDataHash.length,
+                                 [self errorDescriptionWithDeviceCheckError:error]];
   // TODO(#31): Add a new error code for this case (e.g., GACAppCheckAppAttestAttestKeyFailed).
   return [self appCheckErrorWithCode:GACAppCheckErrorCodeUnknown
                        failureReason:failureReason
@@ -149,8 +154,9 @@
   NSString *failureReason = [NSString
       stringWithFormat:@"Failed to create a block of data that demonstrates the legitimacy of the "
                        @"app instance (`generateAssertion:clientDataHash:completionHandler:`); "
-                       @"keyId.length = %lu, clientDataHash.length = %lu.",
-                       (unsigned long)keyId.length, (unsigned long)clientDataHash.length];
+                       @"keyId.length = %lu, clientDataHash.length = %lu; %@.",
+                       (unsigned long)keyId.length, (unsigned long)clientDataHash.length,
+                       [self errorDescriptionWithDeviceCheckError:error]];
   // TODO(#31): Add error code for this case (e.g., GACAppCheckAppAttestGenerateAssertionFailed).
   return [self appCheckErrorWithCode:GACAppCheckErrorCodeUnknown
                        failureReason:failureReason
@@ -174,6 +180,39 @@
   userInfo[NSLocalizedFailureReasonErrorKey] = failureReason;
 
   return [NSError errorWithDomain:GACAppCheckErrorDomain code:code userInfo:userInfo];
+}
+
++ (NSString *)errorDescriptionWithDeviceCheckError:(NSError *)error {
+  // DCError is only available on iOS 11.0+, macOS 10.15+, Mac Catalyst 13.1+, tvOS 11.0+ and
+  // watchOS 9.0+.
+  if (@available(macOS 10.15, macCatalyst 13.1, watchOS 9.0, *)) {
+    if ([error.domain isEqualToString:DCErrorDomain]) {
+      DCError errorCode = error.code;
+      switch (errorCode) {
+        case DCErrorFeatureUnsupported:
+          return @"DCErrorFeatureUnsupported - DeviceCheck is unavailable on this device";
+        case DCErrorInvalidInput:
+          return @"DCErrorInvalidInput - An error code that indicates when your app provides data "
+                 @"that isn’t formatted correctly";
+        case DCErrorInvalidKey:
+          return @"DCErrorInvalidKey - An error caused by a failed attempt to use the App Attest "
+                 @"key";
+        case DCErrorServerUnavailable:
+          return @"DCErrorServerUnavailable - An error that indicates a failed attempt to contact "
+                 @"the App Attest service during an attestation";
+        case DCErrorUnknownSystemFailure:
+          return @"DCErrorUnknownSystemFailure - A failure has occurred, such as the failure to "
+                 @"generate a token";
+        default:
+          return [NSString stringWithFormat:@"Unknown DCError(%ld) - %@", (long)errorCode,
+                                            error.localizedDescription];
+      }
+    }
+  }
+
+  // Not a DeviceCheck error or DCError is not available on the platform.
+  return [NSString stringWithFormat:@"Unknown Error { domain: %@, code: %ld } - %@", error.domain,
+                                    (long)error.code, error.localizedDescription];
 }
 
 @end
