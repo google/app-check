@@ -183,31 +183,36 @@
 }
 
 + (NSString *)errorDescriptionWithDeviceCheckError:(NSError *)error {
-  if ([error.domain isEqualToString:DCErrorDomain]) {
-    DCError errorCode = error.code;
-    switch (errorCode) {
-      case DCErrorFeatureUnsupported:
-        return @"DCErrorFeatureUnsupported - DeviceCheck is unavailable on this device";
-      case DCErrorInvalidInput:
-        return @"DCErrorInvalidInput - An error code that indicates when your app provides data "
-               @"that isn’t formatted correctly";
-      case DCErrorInvalidKey:
-        return @"DCErrorInvalidKey - An error caused by a failed attempt to use the App Attest key";
-      case DCErrorServerUnavailable:
-        return @"DCErrorServerUnavailable - An error that indicates a failed attempt to contact "
-               @"the App Attest service during an attestation";
-      case DCErrorUnknownSystemFailure:
-        return @"DCErrorUnknownSystemFailure - A failure has occurred, such as the failure to "
-               @"generate a token";
-      default:
-        return [NSString stringWithFormat:@"Unknown DCError(%ld) - %@", (long)errorCode,
-                                          error.localizedDescription];
+  // DCError is only available on iOS 11.0+, macOS 10.15+, Mac Catalyst 13.1+, tvOS 11.0+ and
+  // watchOS 9.0+.
+  if (@available(macOS 10.15, macCatalyst 13.1, watchOS 9.0, *)) {
+    if ([error.domain isEqualToString:DCErrorDomain]) {
+      DCError errorCode = error.code;
+      switch (errorCode) {
+        case DCErrorFeatureUnsupported:
+          return @"DCErrorFeatureUnsupported - DeviceCheck is unavailable on this device";
+        case DCErrorInvalidInput:
+          return @"DCErrorInvalidInput - An error code that indicates when your app provides data "
+                 @"that isn’t formatted correctly";
+        case DCErrorInvalidKey:
+          return @"DCErrorInvalidKey - An error caused by a failed attempt to use the App Attest "
+                 @"key";
+        case DCErrorServerUnavailable:
+          return @"DCErrorServerUnavailable - An error that indicates a failed attempt to contact "
+                 @"the App Attest service during an attestation";
+        case DCErrorUnknownSystemFailure:
+          return @"DCErrorUnknownSystemFailure - A failure has occurred, such as the failure to "
+                 @"generate a token";
+        default:
+          return [NSString stringWithFormat:@"Unknown DCError(%ld) - %@", (long)errorCode,
+                                            error.localizedDescription];
+      }
     }
-  } else {
-    // Not a DeviceCheck error
-    return [NSString stringWithFormat:@"Unknown Error { domain: %@, code: %ld } - %@", error.domain,
-                                      (long)error.code, error.localizedDescription];
   }
+
+  // Not a DeviceCheck error or DCError is not available on the platform.
+  return [NSString stringWithFormat:@"Unknown Error { domain: %@, code: %ld } - %@", error.domain,
+                                    (long)error.code, error.localizedDescription];
 }
 
 @end
