@@ -1,3 +1,6 @@
+# 10.18.1
+- [changed] Added underlying `DCError` descriptions to App Attest error messages. (#47)
+
 # 10.18.0
 - Initial release.
 - Core functionality extracted from
