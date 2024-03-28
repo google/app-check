@@ -1,3 +1,6 @@
+# 10.18.2
+- [changed] Added data hashes and system version to App Attest error messages. (#50)
+
 # 10.18.1
 - [changed] Added underlying `DCError` descriptions to App Attest error messages. (#47)
 
