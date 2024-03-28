@@ -18,6 +18,7 @@
 
 #import <DeviceCheck/DeviceCheck.h>
 
+#import <GoogleUtilities/GULAppEnvironmentUtil.h>
 #import <GoogleUtilities/GULKeychainUtils.h>
 
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
@@ -139,8 +140,11 @@
   NSString *failureReason =
       [NSString stringWithFormat:@"Failed to attest the validity of the generated cryptographic "
                                  @"key (`attestKey:clientDataHash:completionHandler:`); "
-                                 @"keyId.length = %lu, clientDataHash.length = %lu; %@.",
-                                 (unsigned long)keyId.length, (unsigned long)clientDataHash.length,
+                                 @"keyId.length = %lu, clientDataHash = %@, systemVersion = %@; "
+                                 @"%@.",
+                                 (unsigned long)keyId.length,
+                                 [clientDataHash base64EncodedStringWithOptions:0],
+                                 [GULAppEnvironmentUtil systemVersion],
                                  [self errorDescriptionWithDeviceCheckError:error]];
   // TODO(#31): Add a new error code for this case (e.g., GACAppCheckAppAttestAttestKeyFailed).
   return [self appCheckErrorWithCode:GACAppCheckErrorCodeUnknown
@@ -154,8 +158,10 @@
   NSString *failureReason = [NSString
       stringWithFormat:@"Failed to create a block of data that demonstrates the legitimacy of the "
                        @"app instance (`generateAssertion:clientDataHash:completionHandler:`); "
-                       @"keyId.length = %lu, clientDataHash.length = %lu; %@.",
-                       (unsigned long)keyId.length, (unsigned long)clientDataHash.length,
+                       @"keyId.length = %lu, clientDataHash = %@, systemVersion = %@; %@.",
+                       (unsigned long)keyId.length,
+                       [clientDataHash base64EncodedStringWithOptions:0],
+                       [GULAppEnvironmentUtil systemVersion],
                        [self errorDescriptionWithDeviceCheckError:error]];
   // TODO(#31): Add error code for this case (e.g., GACAppCheckAppAttestGenerateAssertionFailed).
   return [self appCheckErrorWithCode:GACAppCheckErrorCodeUnknown
