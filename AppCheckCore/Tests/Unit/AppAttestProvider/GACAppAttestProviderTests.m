@@ -772,10 +772,14 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
       [NSError errorWithDomain:@"testGetToken_WhenKeyRegisteredAndGenerateAssertionError"
                           code:0
                       userInfo:nil];
+
+  NSMutableData *statementForAssertion = [storedArtifact mutableCopy];
+  [statementForAssertion appendData:self.randomChallenge];
+  NSData *clientDataHash = [GACAppCheckCryptoUtils sha256HashFromData:[statementForAssertion copy]];
   NSError *expectedError =
       [GACAppCheckErrorUtil appAttestGenerateAssertionFailedWithError:generateAssertionError
                                                                 keyId:existingKeyID
-                                                       clientDataHash:self.randomChallengeHash];
+                                                       clientDataHash:clientDataHash];
   id completionBlockArg = [OCMArg invokeBlockWithArgs:[NSNull null], generateAssertionError, nil];
   OCMExpect([self.mockAppAttestService
       generateAssertion:existingKeyID
