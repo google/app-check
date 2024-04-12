@@ -45,6 +45,7 @@ let package = Package(
             dependencies: [
               .product(name: "FBLPromises", package: "Promises"),
               .product(name: "GULEnvironment", package: "GoogleUtilities"),
+              .product(name: "GULUserDefaults", package: "GoogleUtilities"),
             ],
             path: "AppCheckCore/Sources",
             publicHeadersPath: "Public",

@@ -16,6 +16,7 @@
 
 #import <XCTest/XCTest.h>
 
+#import <GoogleUtilities/GULUserDefaults.h>
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
@@ -57,14 +58,14 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
   self.provider = nil;
   [self.processInfoMock stopMocking];
   self.processInfoMock = nil;
-  [[NSUserDefaults standardUserDefaults] removeObjectForKey:kDebugTokenUserDefaultsKey];
+  [[GULUserDefaults standardUserDefaults] removeObjectForKey:kDebugTokenUserDefaultsKey];
 }
 
 #pragma mark - Debug token generating/storing
 
 - (void)testCurrentTokenWhenEnvironmentVariableSetAndTokenStored {
-  [[NSUserDefaults standardUserDefaults] setObject:@"stored token"
-                                            forKey:kDebugTokenUserDefaultsKey];
+  [[GULUserDefaults standardUserDefaults] setObject:@"stored token"
+                                             forKey:kDebugTokenUserDefaultsKey];
   NSString *envToken = @"env token";
   OCMExpect([self.processInfoMock processInfo]).andReturn(self.processInfoMock);
   OCMExpect([self.processInfoMock environment]).andReturn(@{kDebugTokenEnvKey : envToken});
@@ -74,8 +75,8 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
 }
 
 - (void)testCurrentTokenWhenFirebaseAndCoreEnvironmentVariablesSetAndTokenStored {
-  [[NSUserDefaults standardUserDefaults] setObject:@"stored token"
-                                            forKey:kDebugTokenUserDefaultsKey];
+  [[GULUserDefaults standardUserDefaults] setObject:@"stored token"
+                                             forKey:kDebugTokenUserDefaultsKey];
   NSString *envToken = @"env token";
   OCMExpect([self.processInfoMock processInfo]).andReturn(self.processInfoMock);
   OCMExpect([self.processInfoMock environment])
@@ -87,8 +88,8 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
 }
 
 - (void)testCurrentTokenWhenFirebaseEnvironmentVariableSetAndTokenStored {
-  [[NSUserDefaults standardUserDefaults] setObject:@"stored token"
-                                            forKey:kDebugTokenUserDefaultsKey];
+  [[GULUserDefaults standardUserDefaults] setObject:@"stored token"
+                                             forKey:kDebugTokenUserDefaultsKey];
   NSString *envToken = @"env token";
   OCMExpect([self.processInfoMock processInfo]).andReturn(self.processInfoMock);
   OCMExpect([self.processInfoMock environment]).andReturn((@{
@@ -112,7 +113,7 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
 
 - (void)testCurrentTokenWhenNoEnvironmentVariableAndTokenStored {
   NSString *storedToken = @"stored token";
-  [[NSUserDefaults standardUserDefaults] setObject:storedToken forKey:kDebugTokenUserDefaultsKey];
+  [[GULUserDefaults standardUserDefaults] setObject:storedToken forKey:kDebugTokenUserDefaultsKey];
 
   XCTAssertNil(NSProcessInfo.processInfo.environment[kDebugTokenEnvKey]);
 
@@ -120,16 +121,16 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
 }
 
 - (void)testCurrentTokenWhenNoEnvironmentVariableAndNoTokenStored {
-  [[NSUserDefaults standardUserDefaults] removeObjectForKey:kDebugTokenUserDefaultsKey];
+  [[GULUserDefaults standardUserDefaults] removeObjectForKey:kDebugTokenUserDefaultsKey];
   XCTAssertNil(NSProcessInfo.processInfo.environment[kDebugTokenEnvKey]);
-  XCTAssertNil([[NSUserDefaults standardUserDefaults] stringForKey:kDebugTokenUserDefaultsKey]);
+  XCTAssertNil([[GULUserDefaults standardUserDefaults] stringForKey:kDebugTokenUserDefaultsKey]);
 
   NSString *generatedToken = [self.provider currentDebugToken];
   XCTAssertNotNil(generatedToken);
 
   // Check if the generated token is stored to the user defaults.
   XCTAssertEqualObjects(
-      [[NSUserDefaults standardUserDefaults] stringForKey:kDebugTokenUserDefaultsKey],
+      [[GULUserDefaults standardUserDefaults] stringForKey:kDebugTokenUserDefaultsKey],
       generatedToken);
 
   // Check if the same token is used once generated.
