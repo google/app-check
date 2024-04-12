@@ -16,8 +16,8 @@
 
 #import <XCTest/XCTest.h>
 
-#import <OCMock/OCMock.h>
 #import <GoogleUtilities/GULUserDefaults.h>
+#import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
 #import "AppCheckCore/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h"
@@ -65,7 +65,7 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
 
 - (void)testCurrentTokenWhenEnvironmentVariableSetAndTokenStored {
   [[GULUserDefaults standardUserDefaults] setObject:@"stored token"
-                                            forKey:kDebugTokenUserDefaultsKey];
+                                             forKey:kDebugTokenUserDefaultsKey];
   NSString *envToken = @"env token";
   OCMExpect([self.processInfoMock processInfo]).andReturn(self.processInfoMock);
   OCMExpect([self.processInfoMock environment]).andReturn(@{kDebugTokenEnvKey : envToken});
@@ -76,7 +76,7 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
 
 - (void)testCurrentTokenWhenFirebaseAndCoreEnvironmentVariablesSetAndTokenStored {
   [[GULUserDefaults standardUserDefaults] setObject:@"stored token"
-                                            forKey:kDebugTokenUserDefaultsKey];
+                                             forKey:kDebugTokenUserDefaultsKey];
   NSString *envToken = @"env token";
   OCMExpect([self.processInfoMock processInfo]).andReturn(self.processInfoMock);
   OCMExpect([self.processInfoMock environment])
@@ -89,7 +89,7 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
 
 - (void)testCurrentTokenWhenFirebaseEnvironmentVariableSetAndTokenStored {
   [[GULUserDefaults standardUserDefaults] setObject:@"stored token"
-                                            forKey:kDebugTokenUserDefaultsKey];
+                                             forKey:kDebugTokenUserDefaultsKey];
   NSString *envToken = @"env token";
   OCMExpect([self.processInfoMock processInfo]).andReturn(self.processInfoMock);
   OCMExpect([self.processInfoMock environment]).andReturn((@{
