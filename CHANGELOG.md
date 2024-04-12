@@ -1,3 +1,6 @@
+# 10.19.0
+- [changed] Removed usages of user defaults API to eliminate required reason impact.
+
 # 10.18.2
 - [changed] Added data hashes and system version to App Attest error messages. (#50)
 
