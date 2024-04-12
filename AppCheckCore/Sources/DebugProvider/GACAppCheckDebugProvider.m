@@ -22,6 +22,8 @@
 #import "FBLPromises.h"
 #endif
 
+#import <GoogleUtilities/GULUserDefaults.h>
+
 #import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
 #import "AppCheckCore/Sources/Core/GACAppCheckLogger+Internal.h"
 #import "AppCheckCore/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h"
@@ -122,12 +124,12 @@ static NSString *LocalDebugToken(void) {
 }
 
 static NSString *_Nullable StoredDebugToken(void) {
-  return [[NSUserDefaults standardUserDefaults] stringForKey:kDebugTokenUserDefaultsKey];
+  return [[GULUserDefaults standardUserDefaults] stringForKey:kDebugTokenUserDefaultsKey];
 }
 
 static NSString *GenerateAndStoreDebugToken(void) {
   NSString *token = [NSUUID UUID].UUIDString;
-  [[NSUserDefaults standardUserDefaults] setObject:token forKey:kDebugTokenUserDefaultsKey];
+  [[GULUserDefaults standardUserDefaults] setObject:token forKey:kDebugTokenUserDefaultsKey];
   return token;
 }
 

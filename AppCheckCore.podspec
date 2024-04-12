@@ -44,7 +44,8 @@ Pod::Spec.new do |s|
   s.tvos.weak_framework = 'DeviceCheck'
 
   s.dependency 'PromisesObjC', '~> 2.3'
-  s.dependency 'GoogleUtilities/Environment', '~> 7.11'
+  s.dependency 'GoogleUtilities/Environment', '~> 7.13'
+  s.dependency 'GoogleUtilities/UserDefaults', '~> 7.13'
 
   s.pod_target_xcconfig = {
     'GCC_C_LANGUAGE_STANDARD' => 'c99',

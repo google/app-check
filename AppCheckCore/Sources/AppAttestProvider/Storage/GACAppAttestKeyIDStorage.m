@@ -22,17 +22,19 @@
 #import "FBLPromises.h"
 #endif
 
+#import <GoogleUtilities/GULUserDefaults.h>
+
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 
-/// The `NSUserDefaults` suite name for the storage location of the app attest key ID.
+/// The `GULUserDefaults` suite name for the storage location of the app attest key ID.
 static NSString *const kKeyIDStorageDefaultsSuiteName = @"com.firebase.GACAppAttestKeyIDStorage";
 
 @interface GACAppAttestKeyIDStorage ()
 
 @property(nonatomic, readonly) NSString *keySuffix;
 
-/// The app attest key ID is stored using `NSUserDefaults` .
-@property(nonatomic, readonly) NSUserDefaults *userDefaults;
+/// The app attest key ID is stored using `GULUserDefaults` .
+@property(nonatomic, readonly) GULUserDefaults *userDefaults;
 
 @end
 
@@ -42,7 +44,7 @@ static NSString *const kKeyIDStorageDefaultsSuiteName = @"com.firebase.GACAppAtt
   self = [super init];
   if (self) {
     _keySuffix = [keySuffix copy];
-    _userDefaults = [[NSUserDefaults alloc] initWithSuiteName:kKeyIDStorageDefaultsSuiteName];
+    _userDefaults = [[GULUserDefaults alloc] initWithSuiteName:kKeyIDStorageDefaultsSuiteName];
   }
   return self;
 }
