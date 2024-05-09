@@ -1,3 +1,6 @@
+# 10.19.1
+- [fixed] Added invalid input error handling in App Attest key attestation. (#54)
+
 # 10.19.0
 - [changed] Removed usages of user defaults API to eliminate required reason impact.
 
