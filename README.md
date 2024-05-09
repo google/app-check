@@ -1,6 +1,5 @@
 # App Check Core
 
-
 This library is for internal Google use only. It contains core components of `FirebaseAppCheck`,
 from the [`firebase-ios-sdk`](https://github.com/firebase/firebase-ios-sdk) project, for use in
 other Google SDKs. External developers should integrate directly with the
