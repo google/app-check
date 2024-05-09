@@ -628,73 +628,16 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 }
 
 - (void)testGetToken_WhenExistingKeyIsRejectedByApple_ThenAttestationIsResetAndRetriedOnce_Success {
-  // 1. Expect GACAppAttestService.isSupported.
-  [OCMExpect([self.mockAppAttestService isSupported]) andReturnValue:@(YES)];
-
-  // 2. Expect storage getAppAttestKeyID.
-  NSString *existingKeyID = @"existingKeyID";
-  OCMExpect([self.mockStorage getAppAttestKeyID])
-      .andReturn([FBLPromise resolvedWith:existingKeyID]);
-
-  // 3. Expect a stored artifact to be requested.
-  __auto_type rejectedPromise = [self rejectedPromiseWithError:[NSError errorWithDomain:self.name
-                                                                                   code:NSNotFound
-                                                                               userInfo:nil]];
-  OCMExpect([self.mockArtifactStorage getArtifactForKey:existingKeyID]).andReturn(rejectedPromise);
-
-  // 4. Expect random challenge to be requested.
-  OCMExpect([self.mockAPIService getRandomChallenge])
-      .andReturn([FBLPromise resolvedWith:self.randomChallenge]);
-
-  // 5. Expect the key to be attested with the challenge.
-  NSError *attestationError = [NSError errorWithDomain:DCErrorDomain
-                                                  code:DCErrorInvalidKey
-                                              userInfo:nil];
-  id attestCompletionArg = [OCMArg invokeBlockWithArgs:[NSNull null], attestationError, nil];
-  OCMExpect([self.mockAppAttestService attestKey:existingKeyID
-                                  clientDataHash:self.randomChallengeHash
-                               completionHandler:attestCompletionArg]);
-
-  // 6. Stored attestation to be reset.
-  [self expectAttestationReset];
-
-  // 7. Expect the App Attest key pair to be generated and attested.
-  NSString *newKeyID = @"newKeyID";
-  NSData *attestationData = [[NSUUID UUID].UUIDString dataUsingEncoding:NSUTF8StringEncoding];
-  [self expectAppAttestKeyGeneratedAndAttestedWithKeyID:newKeyID attestationData:attestationData];
-
-  // 8. Expect exchange request to be sent.
-  GACAppCheckToken *appCheckToken = [[GACAppCheckToken alloc] initWithToken:@"App Check Token"
-                                                             expirationDate:[NSDate date]];
-  NSData *artifactData = [@"attestation artifact" dataUsingEncoding:NSUTF8StringEncoding];
-  __auto_type attestKeyResponse =
-      [[GACAppAttestAttestationResponse alloc] initWithArtifact:artifactData token:appCheckToken];
-  OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData
-                                                    keyID:newKeyID
-                                                challenge:self.randomChallenge
-                                               limitedUse:NO])
-      .andReturn([FBLPromise resolvedWith:attestKeyResponse]);
-
-  // 9. Expect the artifact received from Firebase backend to be saved.
-  OCMExpect([self.mockArtifactStorage setArtifact:artifactData forKey:newKeyID])
-      .andReturn([FBLPromise resolvedWith:artifactData]);
-
-  // 10. Call get token.
-  XCTestExpectation *completionExpectation =
-      [self expectationWithDescription:@"completionExpectation"];
-  [self.provider
-      getTokenWithCompletion:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
-        [completionExpectation fulfill];
-
-        XCTAssertEqualObjects(token.token, appCheckToken.token);
-        XCTAssertEqualObjects(token.expirationDate, appCheckToken.expirationDate);
-        XCTAssertNil(error);
-      }];
-
-  [self waitForExpectations:@[ completionExpectation ] timeout:0.5 enforceOrder:YES];
-
-  // 11. Verify mocks.
-  [self verifyAllMocks];
+  NSError *invalidKeyError = [NSError errorWithDomain:DCErrorDomain
+                                                 code:DCErrorInvalidKey
+                                             userInfo:nil];
+  [self assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAttestationError:
+            invalidKeyError];
+  NSError *invalidInputError = [NSError errorWithDomain:DCErrorDomain
+                                                   code:DCErrorInvalidInput
+                                               userInfo:nil];
+  [self assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAttestationError:
+            invalidInputError];
 }
 
 #pragma mark - FAC token refresh (assertion)
@@ -1175,6 +1118,74 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   // 9. Verify backoff result.
   XCTAssertEqualObjects(((GACAppCheckToken *)self.fakeBackoffWrapper.operationResult).token,
                         FACToken.token);
+}
+
+- (void)assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAttestationError:
+    (NSError *)error {
+  // 1. Expect GACAppAttestService.isSupported.
+  [OCMExpect([self.mockAppAttestService isSupported]) andReturnValue:@(YES)];
+
+  // 2. Expect storage getAppAttestKeyID.
+  NSString *existingKeyID = @"existingKeyID";
+  OCMExpect([self.mockStorage getAppAttestKeyID])
+      .andReturn([FBLPromise resolvedWith:existingKeyID]);
+
+  // 3. Expect a stored artifact to be requested.
+  __auto_type rejectedPromise = [self rejectedPromiseWithError:[NSError errorWithDomain:self.name
+                                                                                   code:NSNotFound
+                                                                               userInfo:nil]];
+  OCMExpect([self.mockArtifactStorage getArtifactForKey:existingKeyID]).andReturn(rejectedPromise);
+
+  // 4. Expect random challenge to be requested.
+  OCMExpect([self.mockAPIService getRandomChallenge])
+      .andReturn([FBLPromise resolvedWith:self.randomChallenge]);
+
+  // 5. Expect the key to be attested with the challenge.
+  id attestCompletionArg = [OCMArg invokeBlockWithArgs:[NSNull null], error, nil];
+  OCMExpect([self.mockAppAttestService attestKey:existingKeyID
+                                  clientDataHash:self.randomChallengeHash
+                               completionHandler:attestCompletionArg]);
+
+  // 6. Stored attestation to be reset.
+  [self expectAttestationReset];
+
+  // 7. Expect the App Attest key pair to be generated and attested.
+  NSString *newKeyID = @"newKeyID";
+  NSData *attestationData = [[NSUUID UUID].UUIDString dataUsingEncoding:NSUTF8StringEncoding];
+  [self expectAppAttestKeyGeneratedAndAttestedWithKeyID:newKeyID attestationData:attestationData];
+
+  // 8. Expect exchange request to be sent.
+  GACAppCheckToken *appCheckToken = [[GACAppCheckToken alloc] initWithToken:@"App Check Token"
+                                                             expirationDate:[NSDate date]];
+  NSData *artifactData = [@"attestation artifact" dataUsingEncoding:NSUTF8StringEncoding];
+  __auto_type attestKeyResponse =
+      [[GACAppAttestAttestationResponse alloc] initWithArtifact:artifactData token:appCheckToken];
+  OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData
+                                                    keyID:newKeyID
+                                                challenge:self.randomChallenge
+                                               limitedUse:NO])
+      .andReturn([FBLPromise resolvedWith:attestKeyResponse]);
+
+  // 9. Expect the artifact received from Firebase backend to be saved.
+  OCMExpect([self.mockArtifactStorage setArtifact:artifactData forKey:newKeyID])
+      .andReturn([FBLPromise resolvedWith:artifactData]);
+
+  // 10. Call get token.
+  XCTestExpectation *completionExpectation =
+      [self expectationWithDescription:@"completionExpectation"];
+  [self.provider
+      getTokenWithCompletion:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
+        [completionExpectation fulfill];
+
+        XCTAssertEqualObjects(token.token, appCheckToken.token);
+        XCTAssertEqualObjects(token.expirationDate, appCheckToken.expirationDate);
+        XCTAssertNil(error);
+      }];
+
+  [self waitForExpectations:@[ completionExpectation ] timeout:0.5 enforceOrder:YES];
+
+  // 11. Verify mocks.
+  [self verifyAllMocks];
 }
 
 - (void)expectAppAttestAvailabilityToBeCheckedAndNotExistingStoredKeyRequested {
