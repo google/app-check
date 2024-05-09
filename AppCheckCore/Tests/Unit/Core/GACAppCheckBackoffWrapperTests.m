@@ -194,8 +194,8 @@
                                       errorHandler:self.errorHandler];
 
   // 1.4. Wait for operation to complete.
-  [self waitForExpectationsWithTimeout:20.0 handler:NULL];
-  XCTAssert(FBLWaitForPromisesWithTimeout(20.0));
+  [self waitForExpectationsWithTimeout:0.5 handler:NULL];
+  XCTAssert(FBLWaitForPromisesWithTimeout(0.5));
 
   // 1.5. Expect the promise to be rejected with the operation error.
   XCTAssertEqualObjects(operationWithBackoff.error, self.operationResult);
@@ -228,8 +228,8 @@
                                                          errorHandler:self.errorHandler];
 
   // 3.4. Wait for operation to complete.
-  [self waitForExpectationsWithTimeout:20.0 handler:NULL];
-  XCTAssert(FBLWaitForPromisesWithTimeout(20.0));
+  [self waitForExpectationsWithTimeout:0.5 handler:NULL];
+  XCTAssert(FBLWaitForPromisesWithTimeout(0.5));
 
   // 3.5. Expect the promise to be rejected with the operation error.
   XCTAssertEqualObjects(operationWithBackoff.value, self.operationResult);
@@ -244,8 +244,8 @@
                                                          errorHandler:self.errorHandler];
 
   // 3.8. Wait for operation to complete.
-  [self waitForExpectationsWithTimeout:20.0 handler:NULL];
-  XCTAssert(FBLWaitForPromisesWithTimeout(20.0));
+  [self waitForExpectationsWithTimeout:0.5 handler:NULL];
+  XCTAssert(FBLWaitForPromisesWithTimeout(0.5));
 
   // 3.9. Expect the promise to be rejected with the operation error.
   XCTAssertEqualObjects(operationWithBackoff.error, self.operationResult);
