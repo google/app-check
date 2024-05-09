@@ -381,8 +381,8 @@
                                                          errorHandler:self.errorHandler];
 
   // 2.4 Wait for operation to complete.
-  [self waitForExpectationsWithTimeout:10.0 handler:NULL];
-  XCTAssert(FBLWaitForPromisesWithTimeout(10.0));
+  [self waitForExpectationsWithTimeout:1.0 handler:NULL];
+  XCTAssert(FBLWaitForPromisesWithTimeout(1.0));
 
   // 2.5 Expect the promise to be rejected with a backoff error.
   XCTAssertTrue(operationWithBackoff.isRejected);
