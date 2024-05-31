@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'AppCheckCore'
-  s.version          = '10.19.1'
+  s.version          = '11.0.0'
   s.summary          = 'App Check Core SDK.'
 
   s.description      = <<-DESC
@@ -44,8 +44,8 @@ Pod::Spec.new do |s|
   s.tvos.weak_framework = 'DeviceCheck'
 
   s.dependency 'PromisesObjC', '~> 2.3'
-  s.dependency 'GoogleUtilities/Environment', '~> 7.13'
-  s.dependency 'GoogleUtilities/UserDefaults', '~> 7.13'
+  s.dependency 'GoogleUtilities/Environment', '~> 8.0'
+  s.dependency 'GoogleUtilities/UserDefaults', '~> 8.0'
 
   s.pod_target_xcconfig = {
     'GCC_C_LANGUAGE_STANDARD' => 'c99',
