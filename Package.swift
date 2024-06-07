@@ -19,7 +19,7 @@ import PackageDescription
 
 let package = Package(
   name: "AppCheck",
-  platforms: [.iOS(.v11), .macCatalyst(.v13), .macOS(.v10_13), .tvOS(.v12), .watchOS(.v7)],
+  platforms: [.iOS(.v12), .macCatalyst(.v15), .macOS(.v10_15), .tvOS(.v13), .watchOS(.v7)],
   products: [
     .library(
       name: "AppCheckCore",
@@ -29,7 +29,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/google/promises.git",
-      "2.3.1" ..< "3.0.0"
+      "2.4.0" ..< "3.0.0"
     ),
     .package(
       url: "https://github.com/google/GoogleUtilities.git",
