@@ -20,8 +20,6 @@
 #import "AppCheckCore/Sources/Core/Storage/GACAppCheckStoredToken.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
-#import <GoogleUtilities/GULSecureCoding.h>
-
 @interface GACAppCheckStoredTokenTests : XCTestCase
 
 @end
@@ -35,14 +33,16 @@
   tokenToArchive.receivedAtDate = [tokenToArchive.expirationDate dateByAddingTimeInterval:-10];
 
   NSError *error;
-  NSData *archivedToken = [GULSecureCoding archivedDataWithRootObject:tokenToArchive error:&error];
+  NSData *archivedToken = [NSKeyedArchiver archivedDataWithRootObject:tokenToArchive
+                                                requiringSecureCoding:YES
+                                                                error:&error];
   XCTAssertNotNil(archivedToken);
   XCTAssertNil(error);
 
   GACAppCheckStoredToken *unarchivedToken =
-      [GULSecureCoding unarchivedObjectOfClass:[GACAppCheckStoredToken class]
-                                      fromData:archivedToken
-                                         error:&error];
+      [NSKeyedUnarchiver unarchivedObjectOfClass:[GACAppCheckStoredToken class]
+                                        fromData:archivedToken
+                                           error:&error];
   XCTAssertNotNil(unarchivedToken);
   XCTAssertNil(error);
   XCTAssertEqualObjects(unarchivedToken.token, tokenToArchive.token);
