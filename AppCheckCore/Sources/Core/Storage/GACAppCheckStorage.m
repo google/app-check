@@ -85,18 +85,17 @@ static NSString *const kKeychainService = @"com.google.app_check_core.token_stor
       return [GACAppCheckErrorUtil keychainErrorWithError:error];
     });
   } else {
-    return
-        [FBLPromise wrapErrorCompletion:^(FBLPromiseErrorCompletion _Nonnull handler) {
-          [self.keychainStorage removeObjectForKey:[self tokenKey]
-                                       accessGroup:self.accessGroup
-                                 completionHandler:handler];
-        }]
-            .then(^id _Nullable(id _Nullable __unused _) {
-              return token;
-            })
-            .recover(^NSError *(NSError *error) {
-              return [GACAppCheckErrorUtil keychainErrorWithError:error];
-            });
+    return [FBLPromise wrapErrorCompletion:^(FBLPromiseErrorCompletion _Nonnull handler) {
+             [self.keychainStorage removeObjectForKey:[self tokenKey]
+                                          accessGroup:self.accessGroup
+                                    completionHandler:handler];
+           }]
+        .then(^id _Nullable(id _Nullable __unused _) {
+          return token;
+        })
+        .recover(^NSError *(NSError *error) {
+          return [GACAppCheckErrorUtil keychainErrorWithError:error];
+        });
   }
 }
 
