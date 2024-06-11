@@ -19,7 +19,7 @@
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
-#import <GoogleUtilities/GULURLSessionDataResponse.h>
+#import <GoogleUtilities/GACURLSessionDataResponse.h>
 #import <GoogleUtilities/NSURLSession+GULPromises.h>
 
 #import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
@@ -333,8 +333,8 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
       [GACFixtureLoader loadFixtureNamed:@"FACTokenExchangeResponseSuccess.json"];
   XCTAssertNotNil(responseBody);
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:200];
-  GULURLSessionDataResponse *APIResponse =
-      [[GULURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
+  GACURLSessionDataResponse *APIResponse =
+      [[GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
 
   // 2. Expected result.
   NSString *expectedFACToken = @"valid_app_check_token";
@@ -359,8 +359,8 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   NSString *responseBodyString = @"Token verification failed.";
   NSData *responseBody = [responseBodyString dataUsingEncoding:NSUTF8StringEncoding];
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:200];
-  GULURLSessionDataResponse *APIResponse =
-      [[GULURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
+  GACURLSessionDataResponse *APIResponse =
+      [[GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
 
   // 2. Parse API response.
   __auto_type tokenPromise = [self.APIService appCheckTokenWithAPIResponse:APIResponse];
@@ -394,8 +394,8 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   XCTAssertNotNil(missingFiledBody);
 
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:200];
-  GULURLSessionDataResponse *APIResponse =
-      [[GULURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:missingFiledBody];
+  GACURLSessionDataResponse *APIResponse =
+      [[GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:missingFiledBody];
 
   // 2. Parse API response.
   __auto_type tokenPromise = [self.APIService appCheckTokenWithAPIResponse:APIResponse];
@@ -435,17 +435,17 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   id URLRequestValidationArg = [OCMArg checkWithBlock:nonOptionalRequestValidationBlock];
 
   // Result promise.
-  FBLPromise<GULURLSessionDataResponse *> *result = [FBLPromise pendingPromise];
+  FBLPromise<GACURLSessionDataResponse *> *result = [FBLPromise pendingPromise];
   if (error == nil) {
-    GULURLSessionDataResponse *response =
-        [[GULURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:body];
+    GACURLSessionDataResponse *response =
+        [[GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:body];
     [result fulfill:response];
   } else {
     [result reject:error];
   }
 
   // Stub the method.
-  OCMExpect([URLSessionMock gul_dataTaskPromiseWithRequest:URLRequestValidationArg])
+  OCMExpect([URLSessionMock gac_dataTaskPromiseWithRequest:URLRequestValidationArg])
       .andReturn(result);
 }
 

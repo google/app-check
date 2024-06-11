@@ -22,13 +22,12 @@
 #endif
 
 #import "AppCheckCore/Sources/Core/APIService/GACAppCheckToken+APIResponse.h"
+#import "AppCheckCore/Sources/Core/APIService/NSURLSession+GACPromises.h"
+#import "AppCheckCore/Sources/Core/APIService/GACURLSessionDataResponse.h"
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Core/GACAppCheckLogger+Internal.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckLogger.h"
-
-#import <GoogleUtilities/GULURLSessionDataResponse.h>
-#import <GoogleUtilities/NSURLSession+GULPromises.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -64,7 +63,7 @@ static NSString *const kDefaultBaseURL = @"https://firebaseappcheck.googleapis.c
   return self;
 }
 
-- (FBLPromise<GULURLSessionDataResponse *> *)
+- (FBLPromise<GACURLSessionDataResponse *> *)
     sendRequestWithURL:(NSURL *)requestURL
             HTTPMethod:(NSString *)HTTPMethod
                   body:(nullable NSData *)body
@@ -76,7 +75,7 @@ static NSString *const kDefaultBaseURL = @"https://firebaseappcheck.googleapis.c
       .then(^id _Nullable(NSURLRequest *_Nullable request) {
         return [self sendURLRequest:request];
       })
-      .then(^id _Nullable(GULURLSessionDataResponse *_Nullable response) {
+      .then(^id _Nullable(GACURLSessionDataResponse *_Nullable response) {
         return [self validateHTTPResponseStatusCode:response];
       });
 }
@@ -114,19 +113,19 @@ static NSString *const kDefaultBaseURL = @"https://firebaseappcheck.googleapis.c
            }];
 }
 
-- (FBLPromise<GULURLSessionDataResponse *> *)sendURLRequest:(NSURLRequest *)request {
-  return [self.URLSession gul_dataTaskPromiseWithRequest:request]
+- (FBLPromise<GACURLSessionDataResponse *> *)sendURLRequest:(NSURLRequest *)request {
+  return [self.URLSession gac_dataTaskPromiseWithRequest:request]
       .recover(^id(NSError *networkError) {
         // Wrap raw network error into App Check domain error.
         return [GACAppCheckErrorUtil APIErrorWithNetworkError:networkError];
       })
-      .then(^id _Nullable(GULURLSessionDataResponse *response) {
+      .then(^id _Nullable(GACURLSessionDataResponse *response) {
         return [self validateHTTPResponseStatusCode:response];
       });
 }
 
-- (FBLPromise<GULURLSessionDataResponse *> *)validateHTTPResponseStatusCode:
-    (GULURLSessionDataResponse *)response {
+- (FBLPromise<GACURLSessionDataResponse *> *)validateHTTPResponseStatusCode:
+    (GACURLSessionDataResponse *)response {
   NSInteger statusCode = response.HTTPResponse.statusCode;
   return [FBLPromise do:^id _Nullable {
     if (statusCode < 200 || statusCode >= 300) {
@@ -143,7 +142,7 @@ static NSString *const kDefaultBaseURL = @"https://firebaseappcheck.googleapis.c
 }
 
 - (FBLPromise<GACAppCheckToken *> *)appCheckTokenWithAPIResponse:
-    (GULURLSessionDataResponse *)response {
+    (GACURLSessionDataResponse *)response {
   return [FBLPromise onQueue:[self defaultQueue]
                           do:^id _Nullable {
                             NSError *error;

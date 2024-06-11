@@ -22,8 +22,6 @@
 #import "FBLPromises.h"
 #endif
 
-#import <GoogleUtilities/GULURLSessionDataResponse.h>
-
 #import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
 #import "AppCheckCore/Sources/Core/APIService/GACAppCheckToken+APIResponse.h"
 
@@ -66,13 +64,13 @@ static NSString *const kLimitedUseField = @"limited_use";
   NSURL *URL = [NSURL URLWithString:URLString];
 
   return [self HTTPBodyWithDeviceToken:deviceToken limitedUse:limitedUse]
-      .then(^FBLPromise<GULURLSessionDataResponse *> *(NSData *HTTPBody) {
+      .then(^FBLPromise<GACURLSessionDataResponse *> *(NSData *HTTPBody) {
         return [self.APIService sendRequestWithURL:URL
                                         HTTPMethod:@"POST"
                                               body:HTTPBody
                                  additionalHeaders:@{kContentTypeKey : kJSONContentType}];
       })
-      .then(^id _Nullable(GULURLSessionDataResponse *_Nullable response) {
+      .then(^id _Nullable(GACURLSessionDataResponse *_Nullable response) {
         return [self.APIService appCheckTokenWithAPIResponse:response];
       });
 }

@@ -19,7 +19,7 @@
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppAttestProvider.h"
 
 @class FBLPromise<Result>;
-@class GULURLSessionDataResponse;
+@class GACURLSessionDataResponse;
 @class GACAppCheckToken;
 
 NS_ASSUME_NONNULL_BEGIN
@@ -28,14 +28,14 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property(nonatomic, readonly) NSString *baseURL;
 
-- (FBLPromise<GULURLSessionDataResponse *> *)
+- (FBLPromise<GACURLSessionDataResponse *> *)
     sendRequestWithURL:(NSURL *)requestURL
             HTTPMethod:(NSString *)HTTPMethod
                   body:(nullable NSData *)body
      additionalHeaders:(nullable NSDictionary<NSString *, NSString *> *)additionalHeaders;
 
 - (FBLPromise<GACAppCheckToken *> *)appCheckTokenWithAPIResponse:
-    (GULURLSessionDataResponse *)response;
+    (GACURLSessionDataResponse *)response;
 
 @end
 

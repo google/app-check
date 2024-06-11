@@ -24,9 +24,8 @@
 
 #import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
 #import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
+#import "AppCheckCore/Sources/Core/APIService/GACURLSessionDataResponse.h"
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
-
-#import <GoogleUtilities/GULURLSessionDataResponse.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -77,13 +76,13 @@ static NSString *const kHTTPMethodPost = @"POST";
                           challenge:challenge
                           assertion:assertion
                          limitedUse:limitedUse]
-      .then(^FBLPromise<GULURLSessionDataResponse *> *(NSData *HTTPBody) {
+      .then(^FBLPromise<GACURLSessionDataResponse *> *(NSData *HTTPBody) {
         return [self.APIService sendRequestWithURL:URL
                                         HTTPMethod:kHTTPMethodPost
                                               body:HTTPBody
                                  additionalHeaders:@{kContentTypeKey : kJSONContentType}];
       })
-      .then(^id _Nullable(GULURLSessionDataResponse *_Nullable response) {
+      .then(^id _Nullable(GACURLSessionDataResponse *_Nullable response) {
         return [self.APIService appCheckTokenWithAPIResponse:response];
       });
 }
@@ -100,14 +99,14 @@ static NSString *const kHTTPMethodPost = @"POST";
                                                                   body:nil
                                                      additionalHeaders:nil];
                           }]
-      .then(^id _Nullable(GULURLSessionDataResponse *_Nullable response) {
+      .then(^id _Nullable(GACURLSessionDataResponse *_Nullable response) {
         return [self randomChallengeWithAPIResponse:response];
       });
 }
 
 #pragma mark - Challenge response parsing
 
-- (FBLPromise<NSData *> *)randomChallengeWithAPIResponse:(GULURLSessionDataResponse *)response {
+- (FBLPromise<NSData *> *)randomChallengeWithAPIResponse:(GACURLSessionDataResponse *)response {
   return [FBLPromise onQueue:[self backgroundQueue]
                           do:^id _Nullable {
                             NSError *error;
@@ -160,14 +159,14 @@ static NSString *const kHTTPMethodPost = @"POST";
                                  keyID:keyID
                              challenge:challenge
                             limitedUse:limitedUse]
-      .then(^FBLPromise<GULURLSessionDataResponse *> *(NSData *HTTPBody) {
+      .then(^FBLPromise<GACURLSessionDataResponse *> *(NSData *HTTPBody) {
         return [self.APIService sendRequestWithURL:URL
                                         HTTPMethod:kHTTPMethodPost
                                               body:HTTPBody
                                  additionalHeaders:@{kContentTypeKey : kJSONContentType}];
       })
       .thenOn(
-          [self backgroundQueue], ^id _Nullable(GULURLSessionDataResponse *_Nullable URLResponse) {
+          [self backgroundQueue], ^id _Nullable(GACURLSessionDataResponse *_Nullable URLResponse) {
             NSError *error;
 
             __auto_type response =

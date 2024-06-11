@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
+#import <Foundation/Foundation.h>
 
-@class FBLPromise<Result>;
+@class FBLPromise<Value>;
 @class GACURLSessionDataResponse;
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface GACAppCheckToken (APIResponse)
+/** Promise based API for `NSURLSession`. */
+@interface NSURLSession (GACPromises)
 
-- (nullable instancetype)initWithTokenExchangeResponse:(NSData *)response
-                                           requestDate:(NSDate *)requestDate
-                                                 error:(NSError **)outError;
-
-- (nullable instancetype)initWithResponseDict:(NSDictionary<NSString *, id> *)responseDict
-                                  requestDate:(NSDate *)requestDate
-                                        error:(NSError **)outError;
+/** Creates a promise wrapping `-[NSURLSession dataTaskWithRequest:completionHandler:]` method.
+ * @param URLRequest The request to create a data task with.
+ * @return A promise that is fulfilled when an HTTP response is received (with any response code),
+ * or is rejected with the error passed to the task completion.
+ */
+- (FBLPromise<GACURLSessionDataResponse *> *)gac_dataTaskPromiseWithRequest:
+    (NSURLRequest *)URLRequest;
 
 @end
 

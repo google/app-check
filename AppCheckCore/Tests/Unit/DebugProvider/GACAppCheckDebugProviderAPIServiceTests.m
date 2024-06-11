@@ -22,9 +22,8 @@
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheck.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
-#import <GoogleUtilities/GULURLSessionDataResponse.h>
-
 #import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
+#import "AppCheckCore/Sources/Core/APIService/GACURLSessionDataResponse.h"
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h"
 
@@ -85,8 +84,8 @@ static NSString *const kResourceName = @"projects/test_project_id/apps/test_app_
                                                             limitedUse:limitedUse];
   NSData *fakeResponseData = [@"fake response" dataUsingEncoding:NSUTF8StringEncoding];
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:200];
-  GULURLSessionDataResponse *APIResponse =
-      [[GULURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:fakeResponseData];
+  GACURLSessionDataResponse *APIResponse =
+      [[GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:fakeResponseData];
 
   OCMExpect([self.mockAPIService sendRequestWithURL:URLValidationArg
                                          HTTPMethod:@"POST"
@@ -133,8 +132,8 @@ static NSString *const kResourceName = @"projects/test_project_id/apps/test_app_
   id HTTPBodyValidationArg = [self HTTPBodyValidationArgWithDebugToken:debugToken limitedUse:NO];
   NSData *fakeResponseData = [@"fake response" dataUsingEncoding:NSUTF8StringEncoding];
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:200];
-  GULURLSessionDataResponse *APIResponse =
-      [[GULURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:fakeResponseData];
+  GACURLSessionDataResponse *APIResponse =
+      [[GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:fakeResponseData];
 
   OCMExpect([self.mockAPIService sendRequestWithURL:URLValidationArg
                                          HTTPMethod:@"POST"
