@@ -98,10 +98,11 @@ static NSString *const kGoogleAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaa
                                                                  accessGroup:nil];
   // 2. Create and expect keychain error.
   NSError *gulsKeychainError = [NSError errorWithDomain:@"com.guls.keychain" code:-1 userInfo:nil];
+  id completionArg = [OCMArg invokeBlockWithArgs:[NSNull null], gulsKeychainError, nil];
   OCMExpect([mockKeychainStorage getObjectForKey:[OCMArg any]
                                      objectClass:[OCMArg any]
-                                     accessGroup:[OCMArg any]])
-      .andReturn([FBLPromise resolvedWith:gulsKeychainError]);
+                                     accessGroup:[OCMArg any]
+                               completionHandler:completionArg]);
 
   // 3. Get token and verify results.
   __auto_type getPromise = [storage getToken];
@@ -123,10 +124,11 @@ static NSString *const kGoogleAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaa
 
   // 2. Create and expect keychain error.
   NSError *gulsKeychainError = [NSError errorWithDomain:@"com.guls.keychain" code:-1 userInfo:nil];
+  id completionArg = [OCMArg invokeBlockWithArgs:[NSNull null], gulsKeychainError, nil];
   OCMExpect([mockKeychainStorage setObject:[OCMArg any]
                                     forKey:[OCMArg any]
-                               accessGroup:[OCMArg any]])
-      .andReturn([FBLPromise resolvedWith:gulsKeychainError]);
+                               accessGroup:[OCMArg any]
+                         completionHandler:completionArg]);
 
   // 3. Set token and verify results.
   GACAppCheckToken *tokenToStore = [[GACAppCheckToken alloc] initWithToken:@"token"
@@ -148,11 +150,12 @@ static NSString *const kGoogleAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaa
   GACAppCheckStorage *storage = [[GACAppCheckStorage alloc] initWithTokenKey:self.tokenKey
                                                              keychainStorage:mockKeychainStorage
                                                                  accessGroup:nil];
-
   // 2. Create and expect keychain error.
   NSError *gulsKeychainError = [NSError errorWithDomain:@"com.guls.keychain" code:-1 userInfo:nil];
-  OCMExpect([mockKeychainStorage removeObjectForKey:[OCMArg any] accessGroup:[OCMArg any]])
-      .andReturn([FBLPromise resolvedWith:gulsKeychainError]);
+  id completionArg = [OCMArg invokeBlockWithArgs:@NO, gulsKeychainError, nil];
+  OCMExpect([mockKeychainStorage removeObjectForKey:[OCMArg any]
+                                        accessGroup:[OCMArg any]
+                                  completionHandler:completionArg]);
 
   // 3. Remove token and verify results.
   __auto_type getPromise = [storage setToken:nil];

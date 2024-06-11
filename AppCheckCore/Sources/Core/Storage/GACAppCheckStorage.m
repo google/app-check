@@ -60,10 +60,12 @@ static NSString *const kKeychainService = @"com.google.app_check_core.token_stor
 }
 
 - (FBLPromise<GACAppCheckToken *> *)getToken {
-  return [self.keychainStorage getObjectForKey:[self tokenKey]
-                                   objectClass:[GACAppCheckStoredToken class]
-                                   accessGroup:self.accessGroup]
-      .then(^GACAppCheckToken *(id<NSSecureCoding> storedToken) {
+  return [FBLPromise wrapObjectOrErrorCompletion:^(FBLPromiseObjectOrErrorCompletion  _Nonnull handler) {
+    [self.keychainStorage getObjectForKey:[self tokenKey]
+                            	objectClass:[GACAppCheckStoredToken class]
+                              accessGroup:self.accessGroup
+                        completionHandler:handler];
+  }].then(^GACAppCheckToken *(id<NSSecureCoding> storedToken) {
         if ([(NSObject *)storedToken isKindOfClass:[GACAppCheckStoredToken class]]) {
           return [(GACAppCheckStoredToken *)storedToken appCheckToken];
         } else {
@@ -81,13 +83,15 @@ static NSString *const kKeychainService = @"com.google.app_check_core.token_stor
       return [GACAppCheckErrorUtil keychainErrorWithError:error];
     });
   } else {
-    return [self.keychainStorage removeObjectForKey:[self tokenKey] accessGroup:self.accessGroup]
-        .then(^id _Nullable(NSNull *_Nullable value) {
-          return token;
-        })
-        .recover(^NSError *(NSError *error) {
-          return [GACAppCheckErrorUtil keychainErrorWithError:error];
-        });
+    return [FBLPromise wrapBoolOrErrorCompletion:^(FBLPromiseBoolOrErrorCompletion  _Nonnull handler) {
+      [self.keychainStorage removeObjectForKey:[self tokenKey] accessGroup:self.accessGroup completionHandler:handler];
+    }]
+      .then(^id _Nullable(NSNumber *__unused removeResult) {
+        return token;
+      })
+      .recover(^NSError *(NSError *error) {
+        return [GACAppCheckErrorUtil keychainErrorWithError:error];
+      });
   }
 }
 
@@ -96,12 +100,14 @@ static NSString *const kKeychainService = @"com.google.app_check_core.token_stor
 - (FBLPromise<NSNull *> *)storeToken:(nullable GACAppCheckToken *)token {
   GACAppCheckStoredToken *storedToken = [[GACAppCheckStoredToken alloc] init];
   [storedToken updateWithToken:token];
-  return [self.keychainStorage setObject:storedToken
-                                  forKey:[self tokenKey]
-                             accessGroup:self.accessGroup]
-      .then(^id _Nullable(NSNull *_Nullable value) {
-        return token;
-      });
+  return [FBLPromise wrapObjectOrErrorCompletion:^(FBLPromiseObjectOrErrorCompletion  _Nonnull handler) {
+    [self.keychainStorage setObject:storedToken
+                             forKey:[self tokenKey]
+                        accessGroup:self.accessGroup completionHandler:handler];
+  }]
+    .then(^id _Nullable(id<NSSecureCoding> _Nullable value) {
+      return token;
+    });
 }
 
 @end

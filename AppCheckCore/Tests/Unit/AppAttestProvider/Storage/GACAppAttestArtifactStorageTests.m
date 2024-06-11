@@ -141,10 +141,11 @@ static NSString *const kAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa";
 
   // 2. Create and expect keychain error.
   NSError *gulsKeychainError = [NSError errorWithDomain:@"com.guls.keychain" code:-1 userInfo:nil];
+  id completionArg = [OCMArg invokeBlockWithArgs:[NSNull null], gulsKeychainError, nil];
   OCMExpect([mockKeychainStorage getObjectForKey:[OCMArg any]
                                      objectClass:[OCMArg any]
-                                     accessGroup:[OCMArg any]])
-      .andReturn([FBLPromise resolvedWith:gulsKeychainError]);
+                                     accessGroup:[OCMArg any]
+            									 completionHandler:completionArg]);
 
   // 3. Get artifact and verify results.
   __auto_type getPromise = [artifactStorage getArtifactForKey:@"key"];
@@ -166,11 +167,12 @@ static NSString *const kAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa";
                                                  accessGroup:nil];
   // 2. Create and expect keychain error.
   NSError *gulsKeychainError = [NSError errorWithDomain:@"com.guls.keychain" code:-1 userInfo:nil];
+  id completionArg = [OCMArg invokeBlockWithArgs:[NSNull null], gulsKeychainError, nil];
   OCMExpect([mockKeychainStorage setObject:[OCMArg any]
                                     forKey:[OCMArg any]
-                               accessGroup:[OCMArg any]])
-      .andReturn([FBLPromise resolvedWith:gulsKeychainError]);
-
+                               accessGroup:[OCMArg any]
+                         completionHandler:completionArg]);
+  
   // 3. Set artifact and verify results.
   NSData *artifact = [@"artifact" dataUsingEncoding:NSUTF8StringEncoding];
   __auto_type setPromise = [artifactStorage setArtifact:artifact forKey:@"key"];
@@ -193,8 +195,8 @@ static NSString *const kAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa";
 
   // 2. Create and expect keychain error.
   NSError *gulsKeychainError = [NSError errorWithDomain:@"com.guls.keychain" code:-1 userInfo:nil];
-  OCMExpect([mockKeychainStorage removeObjectForKey:[OCMArg any] accessGroup:[OCMArg any]])
-      .andReturn([FBLPromise resolvedWith:gulsKeychainError]);
+  id completionArg = [OCMArg invokeBlockWithArgs:@NO, gulsKeychainError, nil];
+  OCMExpect([mockKeychainStorage removeObjectForKey:[OCMArg any] accessGroup:[OCMArg any] completionHandler:completionArg]);
 
   // 3. Remove artifact and verify results.
   __auto_type setPromise = [artifactStorage setArtifact:nil forKey:@"key"];
