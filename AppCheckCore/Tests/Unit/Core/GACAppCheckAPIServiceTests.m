@@ -20,8 +20,8 @@
 #import "FBLPromise+Testing.h"
 
 #import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
-#import "AppCheckCore/Sources/Core/APIService/NSURLSession+GACPromises.h"
 #import "AppCheckCore/Sources/Core/APIService/GACURLSessionDataResponse.h"
+#import "AppCheckCore/Sources/Core/APIService/NSURLSession+GACPromises.h"
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
