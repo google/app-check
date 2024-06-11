@@ -98,7 +98,7 @@ static NSString *const kGoogleAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaa
                                                                  accessGroup:nil];
   // 2. Create and expect keychain error.
   NSError *gulsKeychainError = [NSError errorWithDomain:@"com.guls.keychain" code:-1 userInfo:nil];
-  id completionArg = [OCMArg invokeBlockWithArgs:[NSNull null], gulsKeychainError, nil];
+  id completionArg = [OCMArg invokeBlockWithArgs:gulsKeychainError, nil];
   OCMExpect([mockKeychainStorage getObjectForKey:[OCMArg any]
                                      objectClass:[OCMArg any]
                                      accessGroup:[OCMArg any]
@@ -124,7 +124,7 @@ static NSString *const kGoogleAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaa
 
   // 2. Create and expect keychain error.
   NSError *gulsKeychainError = [NSError errorWithDomain:@"com.guls.keychain" code:-1 userInfo:nil];
-  id completionArg = [OCMArg invokeBlockWithArgs:[NSNull null], gulsKeychainError, nil];
+  id completionArg = [OCMArg invokeBlockWithArgs:gulsKeychainError, nil];
   OCMExpect([mockKeychainStorage setObject:[OCMArg any]
                                     forKey:[OCMArg any]
                                accessGroup:[OCMArg any]
@@ -152,7 +152,7 @@ static NSString *const kGoogleAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaa
                                                                  accessGroup:nil];
   // 2. Create and expect keychain error.
   NSError *gulsKeychainError = [NSError errorWithDomain:@"com.guls.keychain" code:-1 userInfo:nil];
-  id completionArg = [OCMArg invokeBlockWithArgs:@NO, gulsKeychainError, nil];
+  id completionArg = [OCMArg invokeBlockWithArgs:gulsKeychainError, nil];
   OCMExpect([mockKeychainStorage removeObjectForKey:[OCMArg any]
                                         accessGroup:[OCMArg any]
                                   completionHandler:completionArg]);

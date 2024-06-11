@@ -88,13 +88,11 @@ static NSString *const kKeychainService = @"com.firebase.app_check.app_attest_ar
       return [GACAppCheckErrorUtil keychainErrorWithError:error];
     });
   } else {
-    return
-        [FBLPromise wrapBoolOrErrorCompletion:^(FBLPromiseBoolOrErrorCompletion _Nonnull handler) {
-          [self.keychainStorage removeObjectForKey:[self artifactKey]
-                                       accessGroup:self.accessGroup
-                                 completionHandler:handler];
-        }]
-            .then(^id _Nullable(NSNumber *__unused removeResult) {
+    return [FBLPromise wrapErrorCompletion:^(FBLPromiseErrorCompletion  _Nonnull handler) {
+      [self.keychainStorage removeObjectForKey:[self artifactKey]
+                                   accessGroup:self.accessGroup
+                             completionHandler:handler];
+        }].then(^id _Nullable(id _Nullable __unused _) {
               return nil;
             })
             .recover(^NSError *(NSError *error) {

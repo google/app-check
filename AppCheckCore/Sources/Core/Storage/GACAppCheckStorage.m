@@ -86,12 +86,12 @@ static NSString *const kKeychainService = @"com.google.app_check_core.token_stor
     });
   } else {
     return
-        [FBLPromise wrapBoolOrErrorCompletion:^(FBLPromiseBoolOrErrorCompletion _Nonnull handler) {
+        [FBLPromise wrapErrorCompletion:^(FBLPromiseErrorCompletion _Nonnull handler) {
           [self.keychainStorage removeObjectForKey:[self tokenKey]
                                        accessGroup:self.accessGroup
                                  completionHandler:handler];
         }]
-            .then(^id _Nullable(NSNumber *__unused removeResult) {
+            .then(^id _Nullable(id _Nullable __unused _) {
               return token;
             })
             .recover(^NSError *(NSError *error) {
