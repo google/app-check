@@ -35,7 +35,7 @@ jobs:
     - name: Build and test
       run: |
         scripts/third_party/travis/retry.sh scripts/pod_lib_lint.rb AppCheckCore.podspec \
-          --platforms=${{ matrix.target }}
+          --platforms=${{ matrix.target }} --verbose
 
   catalyst:
     runs-on: macos-latest
