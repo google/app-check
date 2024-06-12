@@ -19,9 +19,8 @@
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
-#import <GoogleUtilities/GULURLSessionDataResponse.h>
-
 #import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
+#import "AppCheckCore/Sources/Core/APIService/GACURLSessionDataResponse.h"
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
@@ -92,8 +91,8 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
   XCTAssertNotNil(responseBody);
 
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:200];
-  GULURLSessionDataResponse *APIResponse =
-      [[GULURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
+  GACURLSessionDataResponse *APIResponse =
+      [[GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
 
   OCMExpect([self.mockAPIService sendRequestWithURL:URLValidationArg
                                          HTTPMethod:@"POST"
@@ -145,8 +144,8 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
   XCTAssertNotNil(responseBody);
 
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:200];
-  GULURLSessionDataResponse *APIResponse =
-      [[GULURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
+  GACURLSessionDataResponse *APIResponse =
+      [[GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
 
   OCMExpect([self.mockAPIService sendRequestWithURL:URLValidationArg
                                          HTTPMethod:@"POST"

@@ -24,8 +24,6 @@
 
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 
-#import <GoogleUtilities/GULURLSessionDataResponse.h>
-
 static NSString *const kResponseFieldToken = @"token";
 static NSString *const kResponseFieldTTL = @"ttl";
 

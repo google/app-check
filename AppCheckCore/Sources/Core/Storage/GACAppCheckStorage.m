@@ -60,9 +60,13 @@ static NSString *const kKeychainService = @"com.google.app_check_core.token_stor
 }
 
 - (FBLPromise<GACAppCheckToken *> *)getToken {
-  return [self.keychainStorage getObjectForKey:[self tokenKey]
-                                   objectClass:[GACAppCheckStoredToken class]
-                                   accessGroup:self.accessGroup]
+  return [FBLPromise
+             wrapObjectOrErrorCompletion:^(FBLPromiseObjectOrErrorCompletion _Nonnull handler) {
+               [self.keychainStorage getObjectForKey:[self tokenKey]
+                                         objectClass:[GACAppCheckStoredToken class]
+                                         accessGroup:self.accessGroup
+                                   completionHandler:handler];
+             }]
       .then(^GACAppCheckToken *(id<NSSecureCoding> storedToken) {
         if ([(NSObject *)storedToken isKindOfClass:[GACAppCheckStoredToken class]]) {
           return [(GACAppCheckStoredToken *)storedToken appCheckToken];
@@ -81,8 +85,12 @@ static NSString *const kKeychainService = @"com.google.app_check_core.token_stor
       return [GACAppCheckErrorUtil keychainErrorWithError:error];
     });
   } else {
-    return [self.keychainStorage removeObjectForKey:[self tokenKey] accessGroup:self.accessGroup]
-        .then(^id _Nullable(NSNull *_Nullable value) {
+    return [FBLPromise wrapErrorCompletion:^(FBLPromiseErrorCompletion _Nonnull handler) {
+             [self.keychainStorage removeObjectForKey:[self tokenKey]
+                                          accessGroup:self.accessGroup
+                                    completionHandler:handler];
+           }]
+        .then(^id _Nullable(id _Nullable __unused _) {
           return token;
         })
         .recover(^NSError *(NSError *error) {
@@ -96,10 +104,14 @@ static NSString *const kKeychainService = @"com.google.app_check_core.token_stor
 - (FBLPromise<NSNull *> *)storeToken:(nullable GACAppCheckToken *)token {
   GACAppCheckStoredToken *storedToken = [[GACAppCheckStoredToken alloc] init];
   [storedToken updateWithToken:token];
-  return [self.keychainStorage setObject:storedToken
-                                  forKey:[self tokenKey]
-                             accessGroup:self.accessGroup]
-      .then(^id _Nullable(NSNull *_Nullable value) {
+  return
+      [FBLPromise wrapObjectOrErrorCompletion:^(
+                      FBLPromiseObjectOrErrorCompletion _Nonnull handler) {
+        [self.keychainStorage setObject:storedToken
+                                 forKey:[self tokenKey]
+                            accessGroup:self.accessGroup
+                      completionHandler:handler];
+      }].then(^id _Nullable(id<NSSecureCoding> _Nullable value) {
         return token;
       });
 }

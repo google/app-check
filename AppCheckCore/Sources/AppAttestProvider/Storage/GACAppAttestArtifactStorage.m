@@ -61,9 +61,13 @@ static NSString *const kKeychainService = @"com.firebase.app_check.app_attest_ar
 }
 
 - (FBLPromise<NSData *> *)getArtifactForKey:(NSString *)keyID {
-  return [self.keychainStorage getObjectForKey:[self artifactKey]
-                                   objectClass:[GACAppAttestStoredArtifact class]
-                                   accessGroup:self.accessGroup]
+  return [FBLPromise
+             wrapObjectOrErrorCompletion:^(FBLPromiseObjectOrErrorCompletion _Nonnull handler) {
+               [self.keychainStorage getObjectForKey:[self artifactKey]
+                                         objectClass:[GACAppAttestStoredArtifact class]
+                                         accessGroup:self.accessGroup
+                                   completionHandler:handler];
+             }]
       .then(^NSData *(id<NSSecureCoding> storedArtifact) {
         GACAppAttestStoredArtifact *artifact = (GACAppAttestStoredArtifact *)storedArtifact;
         if ([artifact isKindOfClass:[GACAppAttestStoredArtifact class]] &&
@@ -84,8 +88,12 @@ static NSString *const kKeychainService = @"com.firebase.app_check.app_attest_ar
       return [GACAppCheckErrorUtil keychainErrorWithError:error];
     });
   } else {
-    return [self.keychainStorage removeObjectForKey:[self artifactKey] accessGroup:self.accessGroup]
-        .then(^id _Nullable(NSNull *_Nullable value) {
+    return [FBLPromise wrapErrorCompletion:^(FBLPromiseErrorCompletion _Nonnull handler) {
+             [self.keychainStorage removeObjectForKey:[self artifactKey]
+                                          accessGroup:self.accessGroup
+                                    completionHandler:handler];
+           }]
+        .then(^id _Nullable(id _Nullable __unused _) {
           return nil;
         })
         .recover(^NSError *(NSError *error) {
@@ -100,10 +108,14 @@ static NSString *const kKeychainService = @"com.firebase.app_check.app_attest_ar
                                  forKey:(nonnull NSString *)keyID {
   GACAppAttestStoredArtifact *storedArtifact =
       [[GACAppAttestStoredArtifact alloc] initWithKeyID:keyID artifact:artifact];
-  return [self.keychainStorage setObject:storedArtifact
-                                  forKey:[self artifactKey]
-                             accessGroup:self.accessGroup]
-      .then(^id _Nullable(NSNull *_Nullable value) {
+  return
+      [FBLPromise wrapObjectOrErrorCompletion:^(
+                      FBLPromiseObjectOrErrorCompletion _Nonnull handler) {
+        [self.keychainStorage setObject:storedArtifact
+                                 forKey:[self artifactKey]
+                            accessGroup:self.accessGroup
+                      completionHandler:handler];
+      }].then(^id _Nullable(id<NSSecureCoding> _Nullable value) {
         return artifact;
       });
 }
