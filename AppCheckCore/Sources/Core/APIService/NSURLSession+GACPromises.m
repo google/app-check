@@ -24,7 +24,7 @@
 
 #import "AppCheckCore/Sources/Core/APIService/GACURLSessionDataResponse.h"
 
-@implementation NSURLSession (GULPromises)
+@implementation NSURLSession (GACPromises)
 
 - (FBLPromise<GACURLSessionDataResponse *> *)gac_dataTaskPromiseWithRequest:
     (NSURLRequest *)URLRequest {
