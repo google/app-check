@@ -195,7 +195,7 @@ static NSString *const kAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa";
 
   // 2. Create and expect keychain error.
   NSError *gulsKeychainError = [NSError errorWithDomain:@"com.guls.keychain" code:-1 userInfo:nil];
-  id completionArg = [OCMArg invokeBlockWithArgs:@NO, gulsKeychainError, nil];
+  id completionArg = [OCMArg invokeBlockWithArgs:gulsKeychainError, nil];
   OCMExpect([mockKeychainStorage removeObjectForKey:[OCMArg any]
                                         accessGroup:[OCMArg any]
                                   completionHandler:completionArg]);
