@@ -1,3 +1,6 @@
+# 10.19.2
+- [fixed] Addressed possible nil pointer crash. (https://github.com/firebase/firebase-ios-sdk/issues/12365)
+
 # 10.19.1
 - [fixed] Added invalid input error handling in App Attest key attestation. (#54)
 
