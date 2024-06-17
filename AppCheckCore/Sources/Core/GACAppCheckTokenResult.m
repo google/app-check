@@ -38,7 +38,7 @@ static NSString *const kPlaceholderTokenValue = @"eyJlcnJvciI6IlVOS05PV05fRVJST1
 }
 
 - (instancetype)initWithError:(NSError *)error {
-  return [self initWithToken:[[self class] placeholderToken] error:error];
+  return [self initWithToken:[GACAppCheckTokenResult placeholderToken] error:error];
 }
 
 #pragma mark - Internal
