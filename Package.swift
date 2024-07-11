@@ -33,9 +33,7 @@ let package = Package(
     ),
     .package(
       url: "https://github.com/google/GoogleUtilities.git",
-      branch: "main"
-      // TODO: Enable after GULs v8 publishes.
-      // "8.0.0" ..< "9.0.0"
+      "8.0.0" ..< "9.0.0"
     ),
     .package(
       url: "https://github.com/erikdoe/ocmock.git",
