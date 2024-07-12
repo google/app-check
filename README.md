@@ -52,7 +52,7 @@ other Google SDKs. External developers should integrate directly with the
     ```
     </details>
 * Run Firebase CI by waiting until next nightly or adding a PR that touches `Gemfile`.
-* to copybara, run the following command on gLinux:
+* To copybara, run the following command on gLinux:
   ```console
   /google/data/ro/teams/copybara/copybara third_party/app_check/copy.bara.sky
   ```
