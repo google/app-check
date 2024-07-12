@@ -1,3 +1,13 @@
+# 11.0.0
+- [changed] **Breaking change**: AppCheckCore's minimum supported versions have
+  updated for the following platforms:
+    - | Platform  | AppCheckCore 11 |
+      | ------------- | ------------- |
+      | iOS  | **12.0**  |
+      | tvOS  | **13.0**  |
+      | macOS  | **10.15**  |
+      | watchOS  | 7.0  |
+
 # 10.19.2
 - [fixed] Addressed possible nil pointer crash. (https://github.com/firebase/firebase-ios-sdk/issues/12365)
 
