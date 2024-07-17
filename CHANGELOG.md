@@ -1,6 +1,7 @@
 # 11.0.1 (SwiftPM Only)
-- [changed] Lowered the minimum Mac Catalyst version to 13.0. This aligns with
-  the mininum supported Mac Catalyst version for the CocoaPods distribution.
+- [changed] Lowered the minimum supported Mac Catalyst version to 13.0.
+  This aligns with the minimum supported Mac Catalyst version for the
+  CocoaPods distribution.
 
 # 11.0.0
 - [changed] **Breaking change**: AppCheckCore's minimum supported versions have
