@@ -35,11 +35,9 @@ let package = Package(
       url: "https://github.com/google/GoogleUtilities.git",
       "8.0.0" ..< "9.0.0"
     ),
-    // TODO: restore OCMock when https://github.com/erikdoe/ocmock/pull/537
-    // gets merged to fix Xcode 15.3 builds.
     .package(
-      url: "https://github.com/paulb777/ocmock.git",
-      revision: "173955e93e6ee6999a10729ab67e4b4efdd1db6d"
+      url: "https://github.com/erikdoe/ocmock.git",
+      revision: "2c0bfd373289f4a7716db5d6db471640f91a6507"
     ),
   ],
   targets: [
