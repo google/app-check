@@ -20,7 +20,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface GACAppAttestRejectionError : NSError
 
+@property(nonatomic, readonly) NSError *underlyingError;
+
 - (instancetype)init;
+- (instancetype)initWithUnderlyingError:(NSError *)underlyingError;
 
 @end
 
