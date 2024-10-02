@@ -253,7 +253,7 @@ NS_ASSUME_NONNULL_BEGIN
   return [FBLPromise onQueue:self.queue
              attempts:1
              delay:0
-             condition:^BOOL(NSInteger, NSError *_Nonnull error) {
+             condition:^BOOL(NSInteger attempts, NSError *_Nonnull error) {
                return [error isKindOfClass:[GACAppAttestRejectionError class]];
              }
              retry:^id {
