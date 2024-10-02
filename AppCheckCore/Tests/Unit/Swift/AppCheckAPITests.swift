@@ -225,8 +225,8 @@ final class AppCheckAPITests {
 
     // MARK: - GACAppCheckErrors
 
-    let code: AppCheckCoreMessageCode = .loggerAppCheckMessageCodeAppAttestNotSupported
-    switch code {
+    let code: AppCheckCoreMessageCode! = nil
+    switch code! {
     case .loggerAppCheckMessageCodeUnknown: break
     case .loggerAppCheckMessageCodeProviderIsMissing: break
     case .loggerAppCheckMessageCodeUnexpectedHTTPCode: break
