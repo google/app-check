@@ -520,12 +520,15 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   // 4. Stored attestation to be reset.
   [self expectAttestationReset];
 
-  // 5. Expect the App Attest key pair to be generated and attested.
+  // 5. Expect App Attest availability to be requested and stored key ID request to fail.
+  [self expectAppAttestAvailabilityToBeCheckedAndNotExistingStoredKeyRequested];
+
+  // 6. Expect the App Attest key pair to be generated and attested.
   NSString *keyID2 = @"keyID2";
   NSData *attestationData2 = [[NSUUID UUID].UUIDString dataUsingEncoding:NSUTF8StringEncoding];
   [self expectAppAttestKeyGeneratedAndAttestedWithKeyID:keyID2 attestationData:attestationData2];
 
-  // 6. Expect exchange request to be sent.
+  // 7. Expect exchange request to be sent.
   GACAppCheckToken *FACToken = [[GACAppCheckToken alloc] initWithToken:@"FAC token"
                                                         expirationDate:[NSDate date]];
   NSData *artifactData = [@"attestation artifact" dataUsingEncoding:NSUTF8StringEncoding];
@@ -541,11 +544,11 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                                                 challenge:OCMOCK_ANY
                                                limitedUse:YES]);
 
-  // 7. Expect the artifact received from Firebase backend to be saved.
+  // 8. Expect the artifact received from Firebase backend to be saved.
   OCMExpect([self.mockArtifactStorage setArtifact:artifactData forKey:keyID2])
       .andReturn([FBLPromise resolvedWith:artifactData]);
 
-  // 8. Call get token.
+  // 9. Call get token.
   XCTestExpectation *completionExpectation =
       [self expectationWithDescription:@"completionExpectation"];
   [self.provider
@@ -559,7 +562,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 
   [self waitForExpectations:@[ completionExpectation ] timeout:0.5 enforceOrder:YES];
 
-  // 8. Verify mocks.
+  // 10. Verify mocks.
   [self verifyAllMocks];
 }
 
@@ -587,12 +590,15 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   // 4. Stored attestation to be reset.
   [self expectAttestationReset];
 
-  // 5. Expect the App Attest key pair to be generated and attested.
+  // 5. Expect App Attest availability to be requested and stored key ID request to fail.
+  [self expectAppAttestAvailabilityToBeCheckedAndNotExistingStoredKeyRequested];
+
+  // 6. Expect the App Attest key pair to be generated and attested.
   NSString *keyID2 = @"keyID2";
   NSData *attestationData2 = [[NSUUID UUID].UUIDString dataUsingEncoding:NSUTF8StringEncoding];
   [self expectAppAttestKeyGeneratedAndAttestedWithKeyID:keyID2 attestationData:attestationData2];
 
-  // 6. Expect exchange request to be sent.
+  // 7. Expect exchange request to be sent.
   OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData2
                                                     keyID:keyID2
                                                 challenge:self.randomChallenge
@@ -603,13 +609,13 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                                                 challenge:OCMOCK_ANY
                                                limitedUse:YES]);
 
-  // 7. Stored attestation to be reset.
+  // 8. Stored attestation to be reset.
   [self expectAttestationReset];
 
-  // 8. Don't expect the artifact received from Firebase backend to be saved.
+  // 9. Don't expect the artifact received from Firebase backend to be saved.
   OCMReject([self.mockArtifactStorage setArtifact:OCMOCK_ANY forKey:OCMOCK_ANY]);
 
-  // 9. Call get token.
+  // 10. Call get token.
   XCTestExpectation *completionExpectation =
       [self expectationWithDescription:@"completionExpectation"];
   [self.provider
@@ -617,13 +623,13 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
         [completionExpectation fulfill];
 
         XCTAssertNil(token);
-        GACAppAttestRejectionError *expectedError = [[GACAppAttestRejectionError alloc] init];
-        XCTAssertEqualObjects(error, expectedError);
+        XCTAssertNotNil(error);
+        XCTAssert([error isKindOfClass:[GACAppCheckHTTPError class]]);
       }];
 
   [self waitForExpectations:@[ completionExpectation ] timeout:0.5 enforceOrder:YES];
 
-  // 9. Verify mocks.
+  // 11. Verify mocks.
   [self verifyAllMocks];
 }
 
@@ -1149,12 +1155,15 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   // 6. Stored attestation to be reset.
   [self expectAttestationReset];
 
-  // 7. Expect the App Attest key pair to be generated and attested.
+  // 7. Expect App Attest availability to be requested and stored key ID request to fail.
+  [self expectAppAttestAvailabilityToBeCheckedAndNotExistingStoredKeyRequested];
+
+  // 8. Expect the App Attest key pair to be generated and attested.
   NSString *newKeyID = @"newKeyID";
   NSData *attestationData = [[NSUUID UUID].UUIDString dataUsingEncoding:NSUTF8StringEncoding];
   [self expectAppAttestKeyGeneratedAndAttestedWithKeyID:newKeyID attestationData:attestationData];
 
-  // 8. Expect exchange request to be sent.
+  // 9. Expect exchange request to be sent.
   GACAppCheckToken *appCheckToken = [[GACAppCheckToken alloc] initWithToken:@"App Check Token"
                                                              expirationDate:[NSDate date]];
   NSData *artifactData = [@"attestation artifact" dataUsingEncoding:NSUTF8StringEncoding];
@@ -1166,11 +1175,11 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                                                limitedUse:NO])
       .andReturn([FBLPromise resolvedWith:attestKeyResponse]);
 
-  // 9. Expect the artifact received from Firebase backend to be saved.
+  // 10. Expect the artifact received from Firebase backend to be saved.
   OCMExpect([self.mockArtifactStorage setArtifact:artifactData forKey:newKeyID])
       .andReturn([FBLPromise resolvedWith:artifactData]);
 
-  // 10. Call get token.
+  // 11. Call get token.
   XCTestExpectation *completionExpectation =
       [self expectationWithDescription:@"completionExpectation"];
   [self.provider
@@ -1184,7 +1193,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 
   [self waitForExpectations:@[ completionExpectation ] timeout:0.5 enforceOrder:YES];
 
-  // 11. Verify mocks.
+  // 12. Verify mocks.
   [self verifyAllMocks];
 }
 
