@@ -26,10 +26,6 @@
   return self.userInfo[NSUnderlyingErrorKey];
 }
 
-- (instancetype)init {
-  return [self initWithDomain:GACAppCheckErrorDomain code:GACAppCheckErrorCodeUnknown userInfo:nil];
-}
-
 - (instancetype)initWithUnderlyingError:(NSError *)underlyingError {
   return [self initWithDomain:GACAppCheckErrorDomain
                          code:GACAppCheckErrorCodeUnknown

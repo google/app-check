@@ -22,8 +22,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property(nonatomic, readonly) NSError *underlyingError;
 
-- (instancetype)init;
 - (instancetype)initWithUnderlyingError:(NSError *)underlyingError;
+
+- (instancetype)init NS_UNAVAILABLE;
+- (instancetype)initWithDomain:(NSErrorDomain)domain
+                          code:(NSInteger)code
+                      userInfo:(nullable NSDictionary<NSErrorUserInfoKey, id> *)dict NS_UNAVAILABLE;
+- (instancetype)initWithCoder:(NSCoder *)coder NS_UNAVAILABLE;
 
 @end
 
