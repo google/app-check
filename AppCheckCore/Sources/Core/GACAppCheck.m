@@ -139,7 +139,7 @@ typedef void (^GACAppCheckTokenHandler)(GACAppCheckTokenResult *result);
     if (self.ongoingRetrieveOrRefreshTokenPromise == nil) {
       // Kick off a new operation only when there is not an ongoing one.
       self.ongoingRetrieveOrRefreshTokenPromise =
-          [self createRetrieveOrRefreshTokenPromiseForcingRefresh:YES]
+          [self createRetrieveOrRefreshTokenPromiseForcingRefresh:forcingRefresh]
 
               // Release the ongoing operation promise on completion.
               .then(^GACAppCheckToken *(GACAppCheckToken *token) {
