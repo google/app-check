@@ -1,3 +1,7 @@
+# 11.1.0
+- [changed] Fall back to App Attest attestation phase if assertion phase fails
+  with DeviceCheck error.
+
 # 11.0.1 (SwiftPM Only)
 - [changed] Lowered the minimum supported Mac Catalyst version to 13.0.
   This aligns with the minimum supported Mac Catalyst version for the
