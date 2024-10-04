@@ -55,5 +55,6 @@ typedef NS_ENUM(NSInteger, GACAppCheckMessageCode) {
 
   // App Attest Provider
   GACLoggerAppCheckMessageCodeAppAttestNotSupported = 7001,
-  GACLoggerAppCheckMessageCodeAttestationRejected = 7002
+  GACLoggerAppCheckMessageCodeAttestationRejected = 7002,
+  GACLoggerAppCheckMessageCodeAssertionRejected = 7003
 } NS_SWIFT_NAME(AppCheckCoreMessageCode);

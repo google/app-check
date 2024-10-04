@@ -222,6 +222,23 @@ final class AppCheckAPITests {
 
     // Set the log level for App Check Core
     AppCheckCoreLogger.logLevel = .debug
+
+    // MARK: - GACAppCheckErrors
+
+    let code: AppCheckCoreMessageCode! = nil
+    switch code! {
+    case .loggerAppCheckMessageCodeUnknown: break
+    case .loggerAppCheckMessageCodeProviderIsMissing: break
+    case .loggerAppCheckMessageCodeUnexpectedHTTPCode: break
+    case .loggerAppCheckMessageLocalDebugToken: break
+    case .loggerAppCheckMessageEnvironmentVariableDebugToken: break
+    case .loggerAppCheckMessageDebugProviderFirebaseEnvironmentVariable: break
+    case .loggerAppCheckMessageDebugProviderFailedExchange: break
+    case .loggerAppCheckMessageCodeAppAttestNotSupported: break
+    case .loggerAppCheckMessageCodeAttestationRejected: break
+    case .loggerAppCheckMessageCodeAssertionRejected: break
+    @unknown default: break
+    }
   }
 }
 

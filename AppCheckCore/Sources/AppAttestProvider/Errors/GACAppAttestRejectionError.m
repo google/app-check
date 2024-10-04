@@ -22,8 +22,14 @@
 
 @implementation GACAppAttestRejectionError
 
-- (instancetype)init {
-  return [self initWithDomain:GACAppCheckErrorDomain code:GACAppCheckErrorCodeUnknown userInfo:nil];
+- (NSError *)underlyingError {
+  return self.userInfo[NSUnderlyingErrorKey];
+}
+
+- (instancetype)initWithUnderlyingError:(NSError *)underlyingError {
+  return [self initWithDomain:GACAppCheckErrorDomain
+                         code:GACAppCheckErrorCodeUnknown
+                     userInfo:@{NSUnderlyingErrorKey : underlyingError}];
 }
 
 @end
