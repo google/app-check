@@ -757,10 +757,6 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
             invalidInputError];
 }
 
-- (void)testGetToken_WhenAssertionIsRejectedByApple_ThenResetToAttestationAndRetryOnceError {
-  // TODO
-}
-
 #pragma mark - Request merging
 
 - (void)testGetToken_WhenCalledSeveralTimesSuccess_ThenThereIsOnlyOneOngoingHandshake {
