@@ -91,6 +91,7 @@ static NSString *const kDefaultBaseURL = @"https://firebaseappcheck.googleapis.c
              __block NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:requestURL];
              request.HTTPMethod = HTTPMethod;
              request.HTTPBody = body;
+             request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
 
              if (self.APIKey) {
                [request setValue:self.APIKey forHTTPHeaderField:kAPIKeyHeaderKey];
