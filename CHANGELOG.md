@@ -1,3 +1,7 @@
+# 11.2.0
+- [changed] To prevent reusing expired artifacts, skip local cache when making
+  network requests.
+
 # 11.1.0
 - [changed] Fall back to App Attest attestation phase if assertion phase fails
   with DeviceCheck error.
