@@ -12,10 +12,17 @@ concurrency:
 
 jobs:
   swift-build-run:
-    runs-on: macOS-latest
     strategy:
       matrix:
+        os: [macos-15]
+        xcode: [Xcode_16.4]
+        platform: [iOS, tvOS, macOS, catalyst]
+        include:
+          - os: macos-14
+            xcode: Xcode_16.2
+            platform: iOS
         target: [iOS, tvOS, macOS, catalyst]
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
     - uses: ruby/setup-ruby@v1
