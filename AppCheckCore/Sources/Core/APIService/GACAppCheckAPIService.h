@@ -16,7 +16,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppAttestProvider.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckProvider.h"
 
 @class FBLPromise<Result>;
 @class GACURLSessionDataResponse;

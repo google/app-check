@@ -12,16 +12,24 @@ concurrency:
 
 jobs:
   swift-build-run:
-    runs-on: macOS-latest
     strategy:
       matrix:
-        target: [iOS, tvOS, macOS, catalyst]
+        os: [macos-15]
+        xcode: [Xcode_16.4]
+        platform: [iOS, tvOS, macOS, catalyst]
+        include:
+          - os: macos-14
+            xcode: Xcode_16.2
+            platform: iOS
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
     - uses: ruby/setup-ruby@v1
     - name: Setup Scripts Directory
       run: ./setup-scripts.sh
+    - name: Xcode
+      run: sudo xcode-select -s /Applications/${{ matrix.xcode }}.app/Contents/Developer
     - name: Initialize xcodebuild
       run: xcodebuild -list
     - name: iOS Unit Tests
-      run: scripts/third_party/travis/retry.sh scripts/build.sh AppCheck ${{ matrix.target }} spm
+      run: scripts/third_party/travis/retry.sh scripts/build.sh AppCheck ${{ matrix.platform }} spm
