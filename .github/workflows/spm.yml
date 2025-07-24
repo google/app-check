@@ -21,7 +21,6 @@ jobs:
           - os: macos-14
             xcode: Xcode_16.2
             platform: iOS
-        target: [iOS, tvOS, macOS, catalyst]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
@@ -33,4 +32,4 @@ jobs:
     - name: Initialize xcodebuild
       run: xcodebuild -list
     - name: iOS Unit Tests
-      run: scripts/third_party/travis/retry.sh scripts/build.sh AppCheck ${{ matrix.target }} spm
+      run: scripts/third_party/travis/retry.sh scripts/build.sh AppCheck ${{ matrix.platform }} spm
