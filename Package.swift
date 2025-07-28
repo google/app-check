@@ -41,13 +41,13 @@ let package = Package(
     ),
   ],
   targets: [
-    .target(name: "AppCheckCore",
+    .target(name: "AppCheckCoreProvider",
             dependencies: [
               .product(name: "FBLPromises", package: "Promises"),
               .product(name: "GULEnvironment", package: "GoogleUtilities"),
               .product(name: "GULUserDefaults", package: "GoogleUtilities"),
             ],
-            path: "AppCheckCore/Sources",
+            path: "AppCheckCoreProvider/Sources",
             publicHeadersPath: "Public",
             cSettings: [
               .headerSearchPath("../.."),
@@ -58,13 +58,30 @@ let package = Package(
                 .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .appCheckVisionOS])
               ),
             ]),
+    .target(name:"RecaptchaEnterpriseProvider",
+            dependencies:[
+                "AppCheckCoreProvider"
+            ],
+            path:"RecaptchaEnterpriseProvider/Sources"
+           ),
+    .target(name:"AppCheckCore",
+           dependencies: [
+            "AppCheckCoreProvider",
+            "RecaptchaEnterpriseProvider"
+           ],
+            path:"AppCheckCore/Sources",
+            publicHeadersPath:"Public",
+           cSettings: [
+            .headerSearchPath("../..")
+           ]),
+    
     .testTarget(
-      name: "AppCheckCoreUnit",
+      name: "AppCheckCoreProviderUnit",
       dependencies: [
-        "AppCheckCore",
+        "AppCheckCoreProvider",
         .product(name: "OCMock", package: "ocmock"),
       ],
-      path: "AppCheckCore/Tests",
+      path: "AppCheckCoreProvider/Tests",
       exclude: [
         // Swift tests are in the target `AppCheckCoreUnitSwift` since mixed language targets are
         // not supported (as of Xcode 14.3).
@@ -78,9 +95,9 @@ let package = Package(
       ]
     ),
     .testTarget(
-      name: "AppCheckCoreUnitSwift",
-      dependencies: ["AppCheckCore"],
-      path: "AppCheckCore/Tests/Unit/Swift",
+      name: "AppCheckCoreProviderUnitSwift",
+      dependencies: ["AppCheckCoreProvider"],
+      path: "AppCheckCoreProvider/Tests/Unit/Swift",
       cSettings: [
         .headerSearchPath("../.."),
       ]
