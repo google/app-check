@@ -1,33 +1,24 @@
-/*
- * Copyright 2020 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+//
+//  AppCheckCore.h
+//  AppCheck
+//
+//  Created by Hitesh Maurya on 28/07/25.
+//
 
-#import "GACAppCheck.h"
-#import "GACAppCheckErrors.h"
-#import "GACAppCheckLogger.h"
-#import "GACAppCheckProvider.h"
-#import "GACAppCheckSettings.h"
-#import "GACAppCheckToken.h"
-#import "GACAppCheckTokenDelegate.h"
-#import "GACAppCheckTokenResult.h"
+#import <AppCheckCoreProvider/GACAppCheck.h>
+#import <AppCheckCoreProvider/GACAppCheckErrors.h>
+#import <AppCheckCoreProvider/GACAppCheckLogger.h>
+#import <AppCheckCoreProvider/GACAppCheckProvider.h>
+#import <AppCheckCoreProvider/GACAppCheckSettings.h>
+#import <AppCheckCoreProvider/GACAppCheckToken.h>
+#import <AppCheckCoreProvider/GACAppCheckTokenDelegate.h>
+#import <AppCheckCoreProvider/GACAppCheckTokenResult.h>
 
 // Debug provider
-#import "GACAppCheckDebugProvider.h"
+#import <AppCheckCoreProvider/GACAppCheckDebugProvider.h>
 
 // DeviceCheck provider
-#import "GACDeviceCheckProvider.h"
+#import <AppCheckCoreProvider/GACDeviceCheckProvider.h>
 
 // App Attest provider.
-#import "GACAppAttestProvider.h"
+#import <AppCheckCoreProvider/GACAppAttestProvider.h>
