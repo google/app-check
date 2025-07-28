@@ -19,18 +19,18 @@
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
-#import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAPIService.h"
-#import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
-#import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
-#import "AppCheckCore/Sources/Core/APIService/GACURLSessionDataResponse.h"
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
+#import "AppCheckCoreProvider/Sources/AppAttestProvider/API/GACAppAttestAPIService.h"
+#import "AppCheckCoreProvider/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/APIService/GACAppCheckAPIService.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/APIService/GACURLSessionDataResponse.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckHTTPError.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrors.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckToken.h"
 
-#import "AppCheckCore/Tests/Unit/Utils/GACFixtureLoader.h"
-#import "AppCheckCore/Tests/Utils/Date/GACDateTestUtils.h"
-#import "AppCheckCore/Tests/Utils/URLSession/GACURLSessionOCMockStub.h"
+#import "AppCheckCoreProvider/Tests/Unit/Utils/GACFixtureLoader.h"
+#import "AppCheckCoreProvider/Tests/Utils/Date/GACDateTestUtils.h"
+#import "AppCheckCoreProvider/Tests/Utils/URLSession/GACURLSessionOCMockStub.h"
 
 static NSString *const kBaseURL = @"https://test.appcheck.url.com/beta";
 static NSString *const kResourceName = @"projects/project_id/apps/app_id";

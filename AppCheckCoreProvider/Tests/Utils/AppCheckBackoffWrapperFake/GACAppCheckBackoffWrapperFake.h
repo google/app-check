@@ -18,7 +18,7 @@
 
 #import <XCTest/XCTest.h>
 
-#import "AppCheckCore/Sources/Core/Backoff/GACAppCheckBackoffWrapper.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/Backoff/GACAppCheckBackoffWrapper.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

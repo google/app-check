@@ -18,12 +18,12 @@
 
 #import <OCMock/OCMock.h>
 
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckSettings.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckSettings.h"
 
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefreshResult.h"
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefresher.h"
-#import "AppCheckCore/Tests/Unit/Utils/GACFakeTimer.h"
-#import "AppCheckCore/Tests/Utils/Date/GACDateTestUtils.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/TokenRefresh/GACAppCheckTokenRefreshResult.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/TokenRefresh/GACAppCheckTokenRefresher.h"
+#import "AppCheckCoreProvider/Tests/Unit/Utils/GACFakeTimer.h"
+#import "AppCheckCoreProvider/Tests/Utils/Date/GACDateTestUtils.h"
 
 @interface GACAppCheckTokenRefresherTests : XCTestCase
 

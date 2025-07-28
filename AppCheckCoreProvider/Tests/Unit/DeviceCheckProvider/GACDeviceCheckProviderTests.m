@@ -19,13 +19,13 @@
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
-#import "AppCheckCore/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h"
-#import "AppCheckCore/Sources/DeviceCheckProvider/GACDeviceCheckTokenGenerator.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACDeviceCheckProvider.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCoreProvider/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h"
+#import "AppCheckCoreProvider/Sources/DeviceCheckProvider/GACDeviceCheckTokenGenerator.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckToken.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACDeviceCheckProvider.h"
 
-#import "AppCheckCore/Tests/Utils/AppCheckBackoffWrapperFake/GACAppCheckBackoffWrapperFake.h"
+#import "AppCheckCoreProvider/Tests/Utils/AppCheckBackoffWrapperFake/GACAppCheckBackoffWrapperFake.h"
 
 GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
 @interface GACDeviceCheckProvider (Tests)

@@ -16,8 +16,8 @@
 
 #import <XCTest/XCTest.h>
 
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckTokenResult.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckToken.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckTokenResult.h"
 
 static NSString *const kTestTokenValue = @"test-token";
 /// Placeholder value that indicates failure: `{"error":"UNKNOWN_ERROR"}` encoded as base64

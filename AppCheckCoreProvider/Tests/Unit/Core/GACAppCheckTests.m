@@ -20,18 +20,18 @@
 
 #import "FBLPromise+Testing.h"
 
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheck.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckProvider.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckSettings.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheck.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrors.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckProvider.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckSettings.h"
 
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
-#import "AppCheckCore/Sources/Core/Storage/GACAppCheckStorage.h"
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefreshResult.h"
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefresher.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckTokenDelegate.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckTokenResult.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/Storage/GACAppCheckStorage.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/TokenRefresh/GACAppCheckTokenRefreshResult.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/TokenRefresh/GACAppCheckTokenRefresher.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckToken.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckTokenDelegate.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckTokenResult.h"
 
 /// The placeholder token value returned when an error occurs: `{"error":"UNKNOWN_ERROR"}` encoded
 /// as base64

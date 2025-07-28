@@ -16,7 +16,7 @@
 
 #import <XCTest/XCTest.h>
 
-#import "AppCheckCore/Sources/Core/Utils/GACAppCheckCryptoUtils.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/Utils/GACAppCheckCryptoUtils.h"
 
 @interface GACAppCheckCryptoUtilsTests : XCTestCase
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Tests/Utils/Date/GACDateTestUtils.h"
+#import "AppCheckCoreProvider/Tests/Utils/Date/GACDateTestUtils.h"
 
 #import <XCTest/XCTest.h>
 
