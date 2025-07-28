@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#import "AppCheckCore/Tests/Unit/Utils/GACFixtureLoader.h"
+#import "AppCheckCoreProvider/Tests/Unit/Utils/GACFixtureLoader.h"
 
 @implementation GACFixtureLoader
 

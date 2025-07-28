@@ -16,7 +16,7 @@
 
 #import <XCTest/XCTest.h>
 
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTimer.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/TokenRefresh/GACAppCheckTimer.h"
 
 @interface GACAppCheckTimerTests : XCTestCase
 

@@ -16,9 +16,9 @@
 
 #import <XCTest/XCTest.h>
 
-#import "AppCheckCore/Sources/Core/Storage/GACAppCheckStoredToken+GACAppCheckToken.h"
-#import "AppCheckCore/Sources/Core/Storage/GACAppCheckStoredToken.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/Storage/GACAppCheckStoredToken+GACAppCheckToken.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/Storage/GACAppCheckStoredToken.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckToken.h"
 
 @interface GACAppCheckStoredTokenTests : XCTestCase
 

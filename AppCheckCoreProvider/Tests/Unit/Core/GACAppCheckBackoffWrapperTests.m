@@ -23,9 +23,9 @@
 #import "FBLPromises.h"
 #endif
 
-#import "AppCheckCore/Sources/Core/Backoff/GACAppCheckBackoffWrapper.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/Backoff/GACAppCheckBackoffWrapper.h"
 
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckHTTPError.h"
 
 @interface GACAppCheckBackoffWrapperTests : XCTestCase
 

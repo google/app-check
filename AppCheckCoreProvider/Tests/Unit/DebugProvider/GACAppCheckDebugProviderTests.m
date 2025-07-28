@@ -20,9 +20,9 @@
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
-#import "AppCheckCore/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckDebugProvider.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
+#import "AppCheckCoreProvider/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckDebugProvider.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckToken.h"
 
 static NSString *const kDebugTokenEnvKey = @"AppCheckDebugToken";
 static NSString *const kFirebaseDebugTokenEnvKey = @"FIRAAppCheckDebugToken";

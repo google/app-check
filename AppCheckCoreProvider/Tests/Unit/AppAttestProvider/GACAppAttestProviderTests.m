@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppAttestProvider.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppAttestProvider.h"
 
 #import <DeviceCheck/DeviceCheck.h>
 #import <XCTest/XCTest.h>
@@ -22,19 +22,19 @@
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
-#import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAPIService.h"
-#import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
-#import "AppCheckCore/Sources/AppAttestProvider/GACAppAttestService.h"
-#import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestArtifactStorage.h"
-#import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.h"
-#import "AppCheckCore/Sources/Core/Utils/GACAppCheckCryptoUtils.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
+#import "AppCheckCoreProvider/Sources/AppAttestProvider/API/GACAppAttestAPIService.h"
+#import "AppCheckCoreProvider/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
+#import "AppCheckCoreProvider/Sources/AppAttestProvider/GACAppAttestService.h"
+#import "AppCheckCoreProvider/Sources/AppAttestProvider/Storage/GACAppAttestArtifactStorage.h"
+#import "AppCheckCoreProvider/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/Utils/GACAppCheckCryptoUtils.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckToken.h"
 
-#import "AppCheckCore/Sources/AppAttestProvider/Errors/GACAppAttestRejectionError.h"
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
+#import "AppCheckCoreProvider/Sources/AppAttestProvider/Errors/GACAppAttestRejectionError.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckHTTPError.h"
 
-#import "AppCheckCore/Tests/Utils/AppCheckBackoffWrapperFake/GACAppCheckBackoffWrapperFake.h"
+#import "AppCheckCoreProvider/Tests/Utils/AppCheckBackoffWrapperFake/GACAppCheckBackoffWrapperFake.h"
 
 GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 @interface GACAppAttestProvider (Tests)

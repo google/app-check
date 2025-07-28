@@ -16,7 +16,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTimer.h"
+#import "AppCheckCoreProvider/Sources/CoreProvider/TokenRefresh/GACAppCheckTimer.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
