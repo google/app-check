@@ -24,7 +24,7 @@
 
 #import <GoogleUtilities/GULKeychainStorage.h>
 
-#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrorUtil.h"
 #import "AppCheckCoreProvider/Sources/CoreProvider/Storage/GACAppCheckStoredToken+GACAppCheckToken.h"
 
 NS_ASSUME_NONNULL_BEGIN

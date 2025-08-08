@@ -17,7 +17,7 @@
 #import "AppCheckCoreProvider/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
 
 #import "AppCheckCoreProvider/Sources/CoreProvider/APIService/GACAppCheckToken+APIResponse.h"
-#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrorUtil.h"
 
 static NSString *const kResponseFieldAppCheckTokenDict = @"appCheckToken";
 static NSString *const kResponseFieldArtifact = @"artifact";

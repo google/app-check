@@ -30,7 +30,7 @@
 #import "AppCheckCoreProvider/Sources/AppAttestProvider/GACAppAttestService.h"
 #import "AppCheckCoreProvider/Sources/AppAttestProvider/Storage/GACAppAttestArtifactStorage.h"
 #import "AppCheckCoreProvider/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.h"
-#import "AppCheckCoreProvider/Sources/CoreProvider/APIService/GACAppCheckAPIService.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckAPIService.h"
 #import "AppCheckCoreProvider/Sources/CoreProvider/Backoff/GACAppCheckBackoffWrapper.h"
 #import "AppCheckCoreProvider/Sources/CoreProvider/GACAppCheckLogger+Internal.h"
 #import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckToken.h"
@@ -38,7 +38,7 @@
 #import "AppCheckCoreProvider/Sources/CoreProvider/Utils/GACAppCheckCryptoUtils.h"
 
 #import "AppCheckCoreProvider/Sources/AppAttestProvider/Errors/GACAppAttestRejectionError.h"
-#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrorUtil.h"
 #import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckHTTPError.h"
 #import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrors.h"
 

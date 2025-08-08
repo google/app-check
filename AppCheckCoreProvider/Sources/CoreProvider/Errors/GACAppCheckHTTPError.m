@@ -16,7 +16,7 @@
 
 #import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckHTTPError.h"
 
-#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrorUtil.h"
 #import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrors.h"
 
 @implementation GACAppCheckHTTPError

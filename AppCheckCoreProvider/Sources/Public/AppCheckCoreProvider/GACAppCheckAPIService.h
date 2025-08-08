@@ -16,14 +16,14 @@
 
 #import <Foundation/Foundation.h>
 
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckProvider.h"
+#import "GACAppCheckProvider.h"
 
 @class FBLPromise<Result>;
 @class GACURLSessionDataResponse;
 @class GACAppCheckToken;
 
 NS_ASSUME_NONNULL_BEGIN
-
+NS_SWIFT_NAME(AppCheckCoreAPIServiceProtocol)
 @protocol GACAppCheckAPIServiceProtocol <NSObject>
 
 @property(nonatomic, readonly) NSString *baseURL;
@@ -38,7 +38,7 @@ NS_ASSUME_NONNULL_BEGIN
     (GACURLSessionDataResponse *)response;
 
 @end
-
+NS_SWIFT_NAME(AppCheckCoreAPIService)
 @interface GACAppCheckAPIService : NSObject <GACAppCheckAPIServiceProtocol>
 
 /**
@@ -56,6 +56,9 @@ NS_ASSUME_NONNULL_BEGIN
     NS_DESIGNATED_INITIALIZER;
 
 - (instancetype)init NS_UNAVAILABLE;
+
+- (FBLPromise<GACAppCheckToken *> *)appCheckTokenWithAPIResponse:
+    (GACURLSessionDataResponse *)response;
 
 @end
 

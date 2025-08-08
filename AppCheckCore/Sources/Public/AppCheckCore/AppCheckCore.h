@@ -31,3 +31,6 @@
 
 // App Attest provider.
 #import <AppCheckCoreProvider/GACAppAttestProvider.h>
+
+// reCAPTCHA Enterprise Provider
+//#import <RecaptchaEnterpriseProvider-Swift.h>

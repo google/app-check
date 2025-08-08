@@ -24,7 +24,7 @@
 
 #import <GoogleUtilities/GULUserDefaults.h>
 
-#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrorUtil.h"
 
 /// The `GULUserDefaults` suite name for the storage location of the app attest key ID.
 static NSString *const kKeyIDStorageDefaultsSuiteName = @"com.firebase.GACAppAttestKeyIDStorage";

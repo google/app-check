@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "AppCheckCoreProvider/Sources/CoreProvider/APIService/GACURLSessionDataResponse.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACURLSessionDataResponse.h"
 
 @implementation GACURLSessionDataResponse
 

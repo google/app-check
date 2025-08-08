@@ -23,7 +23,7 @@ let package = Package(
   products: [
     .library(
       name: "AppCheckCore",
-      targets: ["AppCheckCore"]
+      targets: ["AppCheckCore","RecaptchaEnterpriseProvider"]
     ),
   ],
   dependencies: [
@@ -38,6 +38,10 @@ let package = Package(
     .package(
       url: "https://github.com/erikdoe/ocmock.git",
       revision: "2c0bfd373289f4a7716db5d6db471640f91a6507"
+    ),
+    .package(
+      url: "https://github.com/google/interop-ios-for-google-sdks.git",
+      "101.0.0" ..< "102.0.0"
     ),
   ],
   targets: [
@@ -60,20 +64,27 @@ let package = Package(
             ]),
     .target(name:"RecaptchaEnterpriseProvider",
             dependencies:[
-                "AppCheckCoreProvider"
+                "AppCheckCoreProvider",
+                .product(name:"RecaptchaInterop",package:"interop-ios-for-google-sdks"),
+                .product(name: "Promises", package: "Promises"),
             ],
             path:"RecaptchaEnterpriseProvider/Sources"
            ),
     .target(name:"AppCheckCore",
            dependencies: [
             "AppCheckCoreProvider",
-            "RecaptchaEnterpriseProvider"
            ],
             path:"AppCheckCore/Sources",
             publicHeadersPath:"Public",
            cSettings: [
             .headerSearchPath("../..")
-           ]),
+           ],
+            linkerSettings: [
+              .linkedFramework(
+                "DeviceCheck",
+                .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .appCheckVisionOS])
+              ),
+            ]),
     
     .testTarget(
       name: "AppCheckCoreProviderUnit",
