@@ -23,9 +23,9 @@
 #endif
 
 #import "AppCheckCoreProvider/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
-#import "AppCheckCoreProvider/Sources/CoreProvider/APIService/GACAppCheckAPIService.h"
-#import "AppCheckCoreProvider/Sources/CoreProvider/APIService/GACURLSessionDataResponse.h"
-#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckAPIService.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACURLSessionDataResponse.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrorUtil.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

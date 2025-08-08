@@ -22,7 +22,7 @@
 #import "FBLPromises.h"
 #endif
 
-#import "AppCheckCoreProvider/Sources/CoreProvider/APIService/GACURLSessionDataResponse.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACURLSessionDataResponse.h"
 
 @implementation NSURLSession (GACPromises)
 

@@ -22,6 +22,9 @@
 #import "GACAppCheckToken.h"
 #import "GACAppCheckTokenDelegate.h"
 #import "GACAppCheckTokenResult.h"
+#import "GACAppCheckAPIService.h"
+#import "GACURLSessionDataResponse.h"
+#import "GACAppCheckErrorUtil.h"
 
 // Debug provider
 #import "GACAppCheckDebugProvider.h"

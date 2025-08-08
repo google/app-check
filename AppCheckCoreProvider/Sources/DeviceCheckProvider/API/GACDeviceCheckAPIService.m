@@ -22,10 +22,10 @@
 #import "FBLPromises.h"
 #endif
 
-#import "AppCheckCoreProvider/Sources/CoreProvider/APIService/GACAppCheckAPIService.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckAPIService.h"
 #import "AppCheckCoreProvider/Sources/CoreProvider/APIService/GACAppCheckToken+APIResponse.h"
 
-#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrorUtil.h"
 #import "AppCheckCoreProvider/Sources/CoreProvider/GACAppCheckLogger+Internal.h"
 
 NS_ASSUME_NONNULL_BEGIN

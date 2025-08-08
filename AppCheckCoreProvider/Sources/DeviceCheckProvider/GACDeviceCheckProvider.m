@@ -26,9 +26,9 @@
 
 #import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACDeviceCheckProvider.h"
 
-#import "AppCheckCoreProvider/Sources/CoreProvider/APIService/GACAppCheckAPIService.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckAPIService.h"
 #import "AppCheckCoreProvider/Sources/CoreProvider/Backoff/GACAppCheckBackoffWrapper.h"
-#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrorUtil.h"
 #import "AppCheckCoreProvider/Sources/CoreProvider/GACAppCheckLogger+Internal.h"
 #import "AppCheckCoreProvider/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h"
 #import "AppCheckCoreProvider/Sources/DeviceCheckProvider/DCDevice+GACDeviceCheckTokenGenerator.h"

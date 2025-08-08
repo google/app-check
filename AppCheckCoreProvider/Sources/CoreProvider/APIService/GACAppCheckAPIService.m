@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#import "AppCheckCoreProvider/Sources/CoreProvider/APIService/GACAppCheckAPIService.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckAPIService.h"
 
 #if __has_include(<FBLPromises/FBLPromises.h>)
 #import <FBLPromises/FBLPromises.h>
@@ -22,9 +22,9 @@
 #endif
 
 #import "AppCheckCoreProvider/Sources/CoreProvider/APIService/GACAppCheckToken+APIResponse.h"
-#import "AppCheckCoreProvider/Sources/CoreProvider/APIService/GACURLSessionDataResponse.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACURLSessionDataResponse.h"
 #import "AppCheckCoreProvider/Sources/CoreProvider/APIService/NSURLSession+GACPromises.h"
-#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrorUtil.h"
 #import "AppCheckCoreProvider/Sources/CoreProvider/GACAppCheckLogger+Internal.h"
 #import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrors.h"
 #import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckLogger.h"

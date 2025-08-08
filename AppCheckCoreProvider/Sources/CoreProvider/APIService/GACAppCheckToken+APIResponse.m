@@ -22,7 +22,7 @@
 #import "FBLPromises.h"
 #endif
 
-#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrorUtil.h"
 
 static NSString *const kResponseFieldToken = @"token";
 static NSString *const kResponseFieldTTL = @"ttl";
