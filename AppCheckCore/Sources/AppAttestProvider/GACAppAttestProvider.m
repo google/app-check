@@ -419,7 +419,8 @@ NS_ASSUME_NONNULL_BEGIN
         // error.
         GACAppCheckHTTPError *HTTPError = (GACAppCheckHTTPError *)error;
         if ([HTTPError isKindOfClass:[GACAppCheckHTTPError class]] &&
-            HTTPError.HTTPResponse.statusCode == 403) {
+            (HTTPError.HTTPResponse.statusCode == 401 ||
+             HTTPError.HTTPResponse.statusCode == 403)) {
           GACAppCheckLogDebug(GACLoggerAppCheckMessageCodeAttestationRejected,
                               @"App Attest attestation was rejected by backend. The existing "
                               @"attestation will be reset.");
