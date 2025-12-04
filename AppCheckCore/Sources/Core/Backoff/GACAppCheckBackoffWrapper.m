@@ -261,7 +261,7 @@ static double const kMaxExponentialBackoffInterval = 4 * 60 * 60;  // 4 hours.
       return GACAppCheckBackoffType1Day;
     }
 
-    if (statusCode == 403) {
+    if (statusCode == 401 || statusCode == 403) {
       // Project may have been soft-deleted accidentally. There is a chance of timely recovery, so
       // try again later.
       return GACAppCheckBackoffTypeExponential;

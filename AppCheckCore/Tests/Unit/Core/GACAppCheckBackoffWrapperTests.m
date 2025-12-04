@@ -262,6 +262,9 @@
   GACAppCheckHTTPError *HTTP400Error = [self httpErrorWithStatusCode:400];
   XCTAssertEqual(errorHandler(HTTP400Error), GACAppCheckBackoffType1Day);
 
+  GACAppCheckHTTPError *HTTP401Error = [self httpErrorWithStatusCode:401];
+  XCTAssertEqual(errorHandler(HTTP401Error), GACAppCheckBackoffTypeExponential);
+
   GACAppCheckHTTPError *HTTP403Error = [self httpErrorWithStatusCode:403];
   XCTAssertEqual(errorHandler(HTTP403Error), GACAppCheckBackoffTypeExponential);
 
@@ -276,7 +279,7 @@
 
   // Test all other codes from 400 to 599.
   for (NSInteger statusCode = 400; statusCode < 600; statusCode++) {
-    if (statusCode == 400 || statusCode == 404) {
+    if (statusCode == 400 || statusCode == 401 || statusCode == 404) {
       // Skip status codes with non-exponential backoff.
       continue;
     }

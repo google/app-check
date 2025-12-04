@@ -1,3 +1,6 @@
+# 11.3.0
+- [changed] Add a retry for 401 failures. (https://github.com/firebase/firebase-ios-sdk/issues/15372)
+
 # 11.2.0
 - [changed] To prevent reusing expired artifacts, skip local cache when making
   network requests.
