@@ -18,12 +18,10 @@ jobs:
         target: [ios, tvos, macos --skip-tests, watchos]
         os: [macos-13, macos-14, macos-15]
         include:
-          - os: macos-13
-            xcode: Xcode_15.2
           - os: macos-14
-            xcode: Xcode_15.4
-          - os: macos-15
-            xcode: Xcode_16.1
+            xcode: Xcode_16.4
+          - os: macos-26
+            xcode: Xcode_26.1
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
