@@ -23,7 +23,7 @@ let package = Package(
   products: [
     .library(
       name: "AppCheckCore",
-      targets: ["AppCheckCore"]
+      targets: ["AppCheckCore","RecaptchaEnterpriseProvider"]
     ),
   ],
   dependencies: [
@@ -39,15 +39,19 @@ let package = Package(
       url: "https://github.com/erikdoe/ocmock.git",
       revision: "2c0bfd373289f4a7716db5d6db471640f91a6507"
     ),
+    .package(
+      url: "https://github.com/google/interop-ios-for-google-sdks.git",
+      "101.0.0" ..< "102.0.0"
+    ),
   ],
   targets: [
-    .target(name: "AppCheckCore",
+    .target(name: "AppCheckCoreProvider",
             dependencies: [
               .product(name: "FBLPromises", package: "Promises"),
               .product(name: "GULEnvironment", package: "GoogleUtilities"),
               .product(name: "GULUserDefaults", package: "GoogleUtilities"),
             ],
-            path: "AppCheckCore/Sources",
+            path: "AppCheckCoreProvider/Sources",
             publicHeadersPath: "Public",
             cSettings: [
               .headerSearchPath("../.."),
@@ -58,13 +62,37 @@ let package = Package(
                 .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .appCheckVisionOS])
               ),
             ]),
+    .target(name:"RecaptchaEnterpriseProvider",
+            dependencies:[
+                "AppCheckCoreProvider",
+                .product(name:"RecaptchaInterop",package:"interop-ios-for-google-sdks"),
+                .product(name: "Promises", package: "Promises"),
+            ],
+            path:"RecaptchaEnterpriseProvider/Sources"
+           ),
+    .target(name:"AppCheckCore",
+           dependencies: [
+            "AppCheckCoreProvider",
+           ],
+            path:"AppCheckCore/Sources",
+            publicHeadersPath:"Public",
+           cSettings: [
+            .headerSearchPath("../..")
+           ],
+            linkerSettings: [
+              .linkedFramework(
+                "DeviceCheck",
+                .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .appCheckVisionOS])
+              ),
+            ]),
+    
     .testTarget(
-      name: "AppCheckCoreUnit",
+      name: "AppCheckCoreProviderUnit",
       dependencies: [
-        "AppCheckCore",
+        "AppCheckCoreProvider",
         .product(name: "OCMock", package: "ocmock"),
       ],
-      path: "AppCheckCore/Tests",
+      path: "AppCheckCoreProvider/Tests",
       exclude: [
         // Swift tests are in the target `AppCheckCoreUnitSwift` since mixed language targets are
         // not supported (as of Xcode 14.3).
@@ -78,9 +106,9 @@ let package = Package(
       ]
     ),
     .testTarget(
-      name: "AppCheckCoreUnitSwift",
-      dependencies: ["AppCheckCore"],
-      path: "AppCheckCore/Tests/Unit/Swift",
+      name: "AppCheckCoreProviderUnitSwift",
+      dependencies: ["AppCheckCoreProvider"],
+      path: "AppCheckCoreProvider/Tests/Unit/Swift",
       cSettings: [
         .headerSearchPath("../.."),
       ]
