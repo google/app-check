@@ -1,6 +1,6 @@
 # App Check Providers: Deep Dive
 
-This document details the internal design and detailed flows of each App Check provider.
+This document details the internal design and detailed flows of each App Check provider, including error handling, retries, and state resets.
 
 ## AppAttest Provider (`GACAppAttestProvider`)
 The most complex provider, interacting with `DCAppAttestService`. It maintains a stable key pair on the device to sign assertions.
@@ -9,10 +9,12 @@ The most complex provider, interacting with `DCAppAttestService`. It maintains a
 *   **Service:** `DCAppAttestService` (Apple's API).
 *   **Storage:**
     *   `GACAppAttestKeyIDStorage`: Stores the generated App Attest Key ID.
-    *   `GACAppAttestArtifactStorage`: Stores the "artifact" returned by the Firebase backend after a successful initial handshake. This artifact effectively links the on-device key to the backend session.
+    *   `GACAppAttestArtifactStorage`: Stores the "artifact" returned by the Firebase backend after a successful initial handshake.
+*   **Resiliency:**
+    *   **Automatic Retry:** The provider wraps the entire flow in a retry loop. If a specific "Rejection Error" occurs (e.g., invalid key), it resets its internal state and retries the flow from scratch.
 
 ### Flow 1: Initial Handshake (Attestation)
-Occurs when the app runs for the first time or if the stored artifact is missing/corrupted.
+Occurs when the app runs for the first time, or if the stored artifact is missing, or **after a reset**.
 
 ```mermaid
 sequenceDiagram
@@ -23,31 +25,45 @@ sequenceDiagram
     participant Backend as Firebase Backend
 
     App->>Provider: getToken()
-    Provider->>API: getRandomChallenge()
-    API->>Backend: POST /generateAppAttestChallenge
-    Backend-->>API: { "challenge": "..." }
     
-    par Parallel Execution
-        Provider->>Apple: generateKey()
-        Apple-->>Provider: Key ID
-    and
-        Provider->>API: (Challenge received)
+    loop Retry Loop (Max 1 Retry)
+        Provider->>API: getRandomChallenge()
+        API->>Backend: POST /generateAppAttestChallenge
+        Backend-->>API: { "challenge": "..." }
+        
+        par Parallel Execution
+            Provider->>Apple: generateKey() (If needed)
+            Apple-->>Provider: Key ID
+        and
+            Provider->>API: (Challenge received)
+        end
+
+        Provider->>Apple: attestKey(keyId, clientDataHash=SHA256(challenge))
+        
+        alt Attestation Failed (Invalid Key/Input)
+            Apple-->>Provider: DCErrorInvalidKey / Input
+            Provider->>Provider: RESET: Delete KeyID & Artifact
+            Note right of Provider: Throws RejectionError,<br/>Triggering Loop Retry
+        else Attestation Success
+            Apple-->>Provider: Attestation Object
+            Provider->>API: attestKeyWithAttestation(...)
+            API->>Backend: POST /exchangeAppAttestAttestation
+            
+            alt Backend Rejection (403)
+                Backend-->>API: 403 Forbidden
+                Provider->>Provider: RESET: Delete KeyID & Artifact
+                Note right of Provider: Throws RejectionError,<br/>Triggering Loop Retry
+            else Success
+                Backend-->>API: { "token": "...", "artifact": "..." }
+                Provider->>Provider: Store Artifact & Key ID
+                Provider-->>App: App Check Token
+            end
+        end
     end
-
-    Provider->>Apple: attestKey(keyId, clientDataHash=SHA256(challenge))
-    Apple-->>Provider: Attestation Object
-
-    Provider->>API: attestKeyWithAttestation(attestation, keyID, challenge)
-    API->>Backend: POST /exchangeAppAttestAttestation
-    Note right of Backend: Verifies attestation validity <br/>and app integrity.
-    Backend-->>API: { "token": "...", "artifact": "..." }
-    
-    Provider->>Provider: Store Artifact & Key ID
-    Provider-->>App: App Check Token
 ```
 
 ### Flow 2: Token Refresh (Assertion)
-Occurs for subsequent requests. It's faster and uses the established key pair.
+Occurs for subsequent requests using the established key pair.
 
 ```mermaid
 sequenceDiagram
@@ -58,21 +74,30 @@ sequenceDiagram
     participant Backend as Firebase Backend
 
     App->>Provider: getToken()
-    Provider->>API: getRandomChallenge()
-    API->>Backend: POST /generateAppAttestChallenge
-    Backend-->>API: { "challenge": "..." }
-
-    Provider->>Provider: Retrieve stored Artifact
-    Provider->>Provider: ClientData = Artifact + Challenge
-    Provider->>Apple: generateAssertion(keyId, clientDataHash=SHA256(ClientData))
-    Apple-->>Provider: Assertion Object
-
-    Provider->>API: getAppCheckTokenWithArtifact(artifact, challenge, assertion)
-    API->>Backend: POST /exchangeAppAttestAssertion
-    Note right of Backend: Verifies assertion signature <br/>matches stored public key.
-    Backend-->>API: { "token": "..." }
     
-    Provider-->>App: App Check Token
+    loop Retry Loop (Max 1 Retry)
+        Provider->>API: getRandomChallenge()
+        API->>Backend: POST /generateAppAttestChallenge
+        Backend-->>API: { "challenge": "..." }
+
+        Provider->>Provider: Retrieve stored Artifact
+        Provider->>Provider: ClientData = Artifact + Challenge
+        Provider->>Apple: generateAssertion(keyId, clientDataHash=SHA256(ClientData))
+        
+        alt Assertion Failed (Invalid Key/Input)
+            Apple-->>Provider: DCErrorInvalidKey / Input
+            Provider->>Provider: RESET: Delete KeyID & Artifact
+            Note right of Provider: Throws RejectionError,<br/>Triggering Loop Retry<br/>(Will fall back to Initial Handshake)
+        else Assertion Success
+            Apple-->>Provider: Assertion Object
+            
+            Provider->>API: getAppCheckTokenWithArtifact(...)
+            API->>Backend: POST /exchangeAppAttestAssertion
+            Backend-->>API: { "token": "..." }
+            
+            Provider-->>App: App Check Token
+        end
+    end
 ```
 
 ---
@@ -82,7 +107,7 @@ A simpler provider for older devices.
 
 ### Components
 *   **Service:** `DCDevice` (Apple's API).
-*   **Generator:** `DCDevice.currentDevice` (can be mocked for testing).
+*   **Generator:** `DCDevice.currentDevice`.
 
 ### Flow
 ```mermaid
@@ -94,15 +119,23 @@ sequenceDiagram
     participant Backend as Firebase Backend
 
     App->>Provider: getToken()
+    
+    Note right of Provider: Wrapped in Backoff Wrapper
     Provider->>Apple: generateToken()
     Apple-->>Provider: Device Token (Ephemeral)
 
     Provider->>API: appCheckTokenWithDeviceToken(deviceToken)
     API->>Backend: POST /exchangeDeviceCheckToken
     Note right of Backend: Verifies device token with Apple.
-    Backend-->>API: { "token": "..." }
     
-    Provider-->>App: App Check Token
+    alt Error (e.g., 503)
+        Backend-->>API: 503 Service Unavailable
+        Provider->>Provider: Record Failure (Backoff)
+        Provider-->>App: Error
+    else Success
+        Backend-->>API: { "token": "..." }
+        Provider-->>App: App Check Token
+    end
 ```
 
 ---
