@@ -31,7 +31,7 @@ is missing, or **after a reset**.
 sequenceDiagram
     participant App
     participant Provider as GACAppAttestProvider
-    participant Apple as DCAppAttestService<br/>(Apple's DeviceCheck Framework)
+    participant Apple as DCAppAttestService<br/><br/>(Apple's DeviceCheck Framework)
     participant API as GACAppAttestAPIService
     participant Backend as Firebase Backend
 
@@ -80,7 +80,7 @@ Occurs for subsequent requests using the established key pair.
 sequenceDiagram
     participant App
     participant Provider as GACAppAttestProvider
-    participant Apple as DCAppAttestService<br/>(Apple's DeviceCheck Framework)
+    participant Apple as DCAppAttestService<br/><br/>(Apple's DeviceCheck Framework)
     participant API as GACAppAttestAPIService
     participant Backend as Firebase Backend
 
@@ -125,7 +125,7 @@ A simpler provider for older devices.
 sequenceDiagram
     participant App
     participant Provider as GACDeviceCheckProvider
-    participant Apple as DCDevice<br/>(Apple's DeviceCheck Framework)
+    participant Apple as DCDevice<br/><br/>(Apple's DeviceCheck Framework)
     participant API as GACDeviceCheckAPIService
     participant Backend as Firebase Backend
 
