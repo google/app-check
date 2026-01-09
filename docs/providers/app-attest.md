@@ -29,31 +29,31 @@ finish) and then start a fresh handshake to ensure a unique token is
 generated.
 
 ```mermaid
-flowchart TD
-    Start[getToken call] --> CheckUse{Limited Use Request?}
+flowchart LR
+    Start[getToken] --> CheckUse{Limited Use?}
     
     CheckUse -- Yes --> Chain[Chain Promise]
-    CheckUse -- No --> Coalesce{Ongoing Operation?}
+    CheckUse -- No --> Coalesce{Ongoing Op?}
     
-    Coalesce -- No --> Backoff[Apply Backoff]
-    Coalesce -- Yes --> CheckOngoing{Ongoing is Limited?}
+    Coalesce -- No --> Backoff[Backoff]
+    Coalesce -- Yes --> CheckOngoing{Ongoing Limited?}
     
     CheckOngoing -- Yes --> Chain
-    CheckOngoing -- No --> Reuse[Reuse Ongoing Promise]
+    CheckOngoing -- No --> Reuse[Reuse Promise]
     
     Chain --> Backoff
     
     Backoff --> StateCheck{Attestation State?}
     
-    StateCheck -->|Not Supported| Error[Return Error]
+    StateCheck -->|No| Error[Error]
     
-    StateCheck -->|Supported| KeyCheck{Key ID Stored?}
+    StateCheck -->|Yes| KeyCheck{Key ID?}
     
-    KeyCheck -- No --> Flow1[Flow 1: Initial Handshake]
-    KeyCheck -- Yes --> ArtifactCheck{Artifact Stored?}
+    KeyCheck -- No --> Flow1[Flow 1: Initial]
+    KeyCheck -- Yes --> ArtifactCheck{Artifact?}
     
     ArtifactCheck -- No --> Flow1
-    ArtifactCheck -- Yes --> Flow2[Flow 2: Token Refresh/Assertion]
+    ArtifactCheck -- Yes --> Flow2[Flow 2: Refresh]
 ```
 
 ## Concurrent Request Handling
