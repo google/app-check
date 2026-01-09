@@ -42,7 +42,7 @@ flowchart LR
     CheckOngoing -- Yes --> Queue
     CheckOngoing -- No --> Reuse[Reuse Existing Request]
     
-    Queue --> StartNew
+    Queue --> Backoff
     StartNew --> Backoff[Backoff]
     
     Backoff --> StateCheck{Attestation State?}
