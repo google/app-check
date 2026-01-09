@@ -38,15 +38,14 @@ sequenceDiagram
     App->>Provider: getToken()
     
     loop Retry Loop (Max 1 Retry)
-        Provider->>API: getRandomChallenge()
-        API->>Backend: POST /generateAppAttestChallenge
-        Backend-->>API: { "challenge": "..." }
-        
         par Parallel Execution
+            Provider->>API: getRandomChallenge()
+            API->>Backend: POST /generateAppAttestChallenge
+            Backend-->>API: { "challenge": "..." }
+            API-->>Provider: Challenge
+        and
             Provider->>Apple: generateKey() (If needed)
             Apple-->>Provider: Key ID
-        and
-            Provider->>API: (Challenge received)
         end
 
         Provider->>Apple: attestKey(keyId, clientDataHash=SHA256(challenge))
