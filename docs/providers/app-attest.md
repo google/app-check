@@ -29,7 +29,7 @@ finish) and then start a fresh handshake to ensure a unique token is
 generated.
 
 ```mermaid
-%%{init: {"flowchart": {"diagramPadding": 125}}}%%
+%%{init: {"flowchart": {"diagramPadding": 130}}}%%
 flowchart LR
     Start[getToken] --> CheckUse{Limited Use?}
     
@@ -57,7 +57,9 @@ flowchart LR
 
     StateCheck -->|No| Error[Error]
 
-    Reuse ~~~ Footnote[Note: Requests are represented as a<br/>shared promise property 'ongoingGetTokenOperation']
+    Reuse -.- Footnote[Note: The 'ongoingGetTokenOperation' (with its 'ongoingGetTokenOperationLimitedUse' flag)<br/>manages the active token fetch. Standard requests reuse it if types match;<br/>otherwise, new requests are queued to run sequentially.]
+    Queue -.- Footnote
+    StartNew -.- Footnote
 ```
 
 ## Concurrent Request Handling
