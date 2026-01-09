@@ -49,11 +49,11 @@ flowchart LR
     
     StateCheck -->|Yes| KeyCheck{Key ID?}
     
-    KeyCheck -- No --> Flow1[Flow 1: Initial]
+    KeyCheck -- No --> Flow1[Flow 1: Initial Handshake<br/>(Attestation)]
     KeyCheck -- Yes --> ArtifactCheck{Artifact?}
     
     ArtifactCheck -- No --> Flow1
-    ArtifactCheck -- Yes --> Flow2[Flow 2: Refresh]
+    ArtifactCheck -- Yes --> Flow2[Flow 2: Token Refresh<br/>(Assertion)]
 
     StateCheck -->|No| Error[Error]
 
