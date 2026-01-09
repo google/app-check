@@ -27,24 +27,38 @@ maintains a stable key pair on the device to sign assertions.
 Before executing a handshake, the provider determines the correct flow
 based on the internal state and manages concurrent requests.
 
+**Note on Limited Use:** Limited-use tokens are never reused/coalesced.
+If a limited-use token is requested (or if one is currently being
+fetched), the new request will "chain" (wait for the ongoing one to
+finish) and then start a fresh handshake to ensure a unique token is
+generated.
+
 ```mermaid
 flowchart TD
-    Start[getToken call] --> Coalesce{Ongoing Operation?}
+    Start[getToken call] --> CheckUse{Limited Use Request?}
     
-    Coalesce -- Yes --> Reuse[Reuse or Chain Promise]
-    Coalesce -- No --> Backoff[Apply Backoff Wrapper]
+    CheckUse -- Yes --> Chain[Chain Promise]
+    CheckUse -- No --> Coalesce{Ongoing Operation?}
     
-    Backoff --> StateCheck{Check State<br/>attestationState}
+    Coalesce -- No --> Backoff[Apply Backoff]
+    Coalesce -- Yes --> CheckOngoing{Ongoing is Limited?}
+    
+    CheckOngoing -- Yes --> Chain
+    CheckOngoing -- No --> Reuse[Reuse Ongoing Promise]
+    
+    Chain --> Backoff
+    
+    Backoff --> StateCheck{Attestation State?}
     
     StateCheck -->|Not Supported| Error[Return Error]
     
     StateCheck -->|Supported| KeyCheck{Key ID Stored?}
     
-    KeyCheck -- No --> Flow1[<b>Go to Flow 1</b><br/>Initial Handshake]
+    KeyCheck -- No --> Flow1[Flow 1: Initial Handshake]
     KeyCheck -- Yes --> ArtifactCheck{Artifact Stored?}
     
     ArtifactCheck -- No --> Flow1
-    ArtifactCheck -- Yes --> Flow2[<b>Go to Flow 2</b><br/>Token Refresh/Assertion]
+    ArtifactCheck -- Yes --> Flow2[Flow 2: Token Refresh/Assertion]
 ```
 
 ### Flow 1: Initial Handshake (Attestation)
@@ -59,7 +73,7 @@ sequenceDiagram
     participant API as GACAppAttestAPIService
     participant Backend as Firebase Backend
 
-    App->>Provider: getToken()
+    App->>Provider: getToken(limitedUse)
     
     loop Retry Loop (Max 1 Retry)
         par Parallel Execution
@@ -80,8 +94,8 @@ sequenceDiagram
             Note right of Provider: Throws RejectionError,<br/>Triggering Loop Retry
         else Attestation Success
             Apple-->>Provider: Attestation Object
-            Provider->>API: attestKeyWithAttestation(...)
-            API->>Backend: POST /exchangeAppAttestAttestation
+            Provider->>API: attestKeyWithAttestation(..., limitedUse)
+            API->>Backend: POST /exchangeAppAttestAttestation<br/>{ limited_use: true/false }
             
             alt Backend Rejection (403)
                 Backend-->>API: 403 Forbidden
@@ -107,7 +121,7 @@ sequenceDiagram
     participant API as GACAppAttestAPIService
     participant Backend as Firebase Backend
 
-    App->>Provider: getToken()
+    App->>Provider: getToken(limitedUse)
     
     loop Retry Loop (Max 1 Retry)
         Provider->>API: getRandomChallenge()
@@ -125,8 +139,8 @@ sequenceDiagram
         else Assertion Success
             Apple-->>Provider: Assertion Object
             
-            Provider->>API: getAppCheckTokenWithArtifact(...)
-            API->>Backend: POST /exchangeAppAttestAssertion
+            Provider->>API: getAppCheckTokenWithArtifact(..., limitedUse)
+            API->>Backend: POST /exchangeAppAttestAssertion<br/>{ limited_use: true/false }
             Backend-->>API: { "token": "..." }
             
             Provider-->>App: App Check Token
@@ -152,14 +166,14 @@ sequenceDiagram
     participant API as GACDeviceCheckAPIService
     participant Backend as Firebase Backend
 
-    App->>Provider: getToken()
+    App->>Provider: getToken(limitedUse)
     
     Note right of Provider: Wrapped in Backoff Wrapper
     Provider->>Apple: generateToken()
     Apple-->>Provider: Device Token (Ephemeral)
 
-    Provider->>API: appCheckTokenWithDeviceToken(deviceToken)
-    API->>Backend: POST /exchangeDeviceCheckToken
+    Provider->>API: appCheckTokenWithDeviceToken(deviceToken, limitedUse)
+    API->>Backend: POST /exchangeDeviceCheckToken<br/>{ limited_use: true/false }
     Note right of Backend: Verifies device token with Apple.
     
     alt Error (e.g., 503)
@@ -193,11 +207,11 @@ sequenceDiagram
     participant API as GACAppCheckDebugProviderAPIService
     participant Backend as Firebase Backend
 
-    App->>Provider: getToken()
+    App->>Provider: getToken(limitedUse)
     Provider->>Provider: Determine Debug Secret (Env Var or UUID)
     
-    Provider->>API: appCheckTokenWithDebugToken(debugToken)
-    API->>Backend: POST /exchangeDebugToken
+    Provider->>API: appCheckTokenWithDebugToken(debugToken, limitedUse)
+    API->>Backend: POST /exchangeDebugToken<br/>{ limited_use: true/false }
     Note right of Backend: Checks if debug token is <br/>registered in Console.
     Backend-->>API: { "token": "..." }
     
