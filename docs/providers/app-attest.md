@@ -29,7 +29,7 @@ finish) and then start a fresh handshake to ensure a unique token is
 generated.
 
 ```mermaid
-%%{init: {"flowchart": {"diagramPadding": 130}}}%%
+%%{init: {"flowchart": {"diagramPadding": 75}}}%%
 flowchart LR
     Start[getToken] --> CheckUse{Limited Use?}
     
@@ -42,21 +42,27 @@ flowchart LR
     CheckOngoing -- Yes --> Queue2[Queue New Request]
     CheckOngoing -- No --> Reuse[Reuse Existing Request]
     
-    Queue1 --> Backoff[Backoff]
+    subgraph Execution ["Backoff Wrapped Execution"]
+        direction LR
+        Backoff[Check Backoff]
+        StateCheck{Attestation State?}
+        
+        Backoff --> StateCheck
+        
+        StateCheck -->|Yes| KeyCheck{Key ID?}
+        
+        KeyCheck -- No --> Flow1[Flow 1: Initial]
+        KeyCheck -- Yes --> ArtifactCheck{Artifact?}
+        
+        ArtifactCheck -- No --> Flow1
+        ArtifactCheck -- Yes --> Flow2[Flow 2: Refresh]
+
+        StateCheck -->|No| Error[Error]
+    end
+
+    Queue1 --> Backoff
     Queue2 --> Backoff
     StartNew --> Backoff
-    
-    Backoff --> StateCheck{Attestation State?}
-    
-    StateCheck -->|Yes| KeyCheck{Key ID?}
-    
-    KeyCheck -- No --> Flow1[Flow 1: Initial]
-    KeyCheck -- Yes --> ArtifactCheck{Artifact?}
-    
-    ArtifactCheck -- No --> Flow1
-    ArtifactCheck -- Yes --> Flow2[Flow 2: Refresh]
-
-    StateCheck -->|No| Error[Error]
 
     Reuse -.- Footnote["Note: The 'ongoingGetTokenOperation' (with its 'ongoingGetTokenOperationLimitedUse' flag)<br/>manages the active token fetch. Standard requests reuse it if types match;<br/>otherwise, new requests are queued to run sequentially."]
     Queue1 -.- Footnote
