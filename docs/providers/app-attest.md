@@ -29,36 +29,38 @@ finish) and then start a fresh handshake to ensure a unique token is
 generated.
 
 ```mermaid
-%%{init: {"flowchart": {"diagramPadding": 140}}}%%
+%%{init: {"flowchart": {"diagramPadding": 130}}}%%
 flowchart LR
     Start[getToken] --> CheckUse{Limited Use?}
     
-    CheckUse -- Yes --> Queue[Queue New Request]
+    CheckUse -- Yes --> Queue1[Queue New Request]
     CheckUse -- No --> Coalesce{Ongoing Op?}
     
     Coalesce -- No --> StartNew[Start New Request]
     Coalesce -- Yes --> CheckOngoing{Ongoing Limited?}
     
-    CheckOngoing -- Yes --> Queue
+    CheckOngoing -- Yes --> Queue2[Queue New Request]
     CheckOngoing -- No --> Reuse[Reuse Existing Request]
     
-    Queue --> Backoff
-    StartNew --> Backoff[Backoff]
+    Queue1 --> Backoff[Backoff]
+    Queue2 --> Backoff
+    StartNew --> Backoff
     
     Backoff --> StateCheck{Attestation State?}
     
     StateCheck -->|Yes| KeyCheck{Key ID?}
     
-    KeyCheck -- No --> Flow1["Flow 1: Initial Handshake <br/> (Attestation)"]
+    KeyCheck -- No --> Flow1[Flow 1: Initial]
     KeyCheck -- Yes --> ArtifactCheck{Artifact?}
     
     ArtifactCheck -- No --> Flow1
-    ArtifactCheck -- Yes --> Flow2["Flow 2: Token Refresh <br/> (Assertion)"]
+    ArtifactCheck -- Yes --> Flow2[Flow 2: Refresh]
 
     StateCheck -->|No| Error[Error]
 
     Reuse -.- Footnote["Note: The 'ongoingGetTokenOperation' (with its 'ongoingGetTokenOperationLimitedUse' flag)<br/>manages the active token fetch. Standard requests reuse it if types match;<br/>otherwise, new requests are queued to run sequentially."]
-    Queue -.- Footnote
+    Queue1 -.- Footnote
+    Queue2 -.- Footnote
     StartNew -.- Footnote
 ```
 
