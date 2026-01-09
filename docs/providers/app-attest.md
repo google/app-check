@@ -45,8 +45,6 @@ flowchart LR
     
     Backoff --> StateCheck{Attestation State?}
     
-    StateCheck -->|No| Error[Error]
-    
     StateCheck -->|Yes| KeyCheck{Key ID?}
     
     KeyCheck -- No --> Flow1[Flow 1: Initial]
@@ -54,6 +52,8 @@ flowchart LR
     
     ArtifactCheck -- No --> Flow1
     ArtifactCheck -- Yes --> Flow2[Flow 2: Refresh]
+
+    StateCheck -->|No| Error[Error]
 ```
 
 ## Concurrent Request Handling
