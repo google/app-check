@@ -29,7 +29,7 @@ finish) and then start a fresh handshake to ensure a unique token is
 generated.
 
 ```mermaid
-%%{init: {"flowchart": {"diagramPadding": 50, "fontSize": 36}}}%%
+%%{init: {"flowchart": {"diagramPadding": 75, "fontSize": 36}}}%%
 flowchart LR
     Start[getToken] --> CheckUse{Limited Use?}
     
