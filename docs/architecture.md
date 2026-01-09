@@ -67,14 +67,9 @@ codes returned by the backend:
 
 | HTTP Status Code | Backoff Type | Reason |
 | :--- | :--- | :--- |
-| **< 400** | **None** | Network errors or successful requests do not
-    trigger backoff. |
-| **400 (Bad Request)**<br>**404 (Not Found)** | **1 Day** | Indicates a
-    project misconfiguration or outdated app version. Unlikely to
-    resolve quickly. |
-| **403 (Forbidden)**<br>**429 (Too Many Requests)**<br>**503 (Service
-    Unavailable)** | **Exponential** | Indicates soft deletion, rate
-    limiting, or server overload. Retrying later is appropriate. |
+| **< 400** | **None** | Network errors or successful requests do not trigger backoff. |
+| **400 (Bad Request)**<br>**404 (Not Found)** | **1 Day** | Indicates a project misconfiguration or outdated app version. Unlikely to resolve quickly. |
+| **403 (Forbidden)**<br>**429 (Too Many Requests)**<br>**503 (Service Unavailable)** | **Exponential** | Indicates soft deletion, rate limiting, or server overload. Retrying later is appropriate. |
 | **Other 5xx** | **Exponential** | Standard server errors. |
 
 ### Implementation
