@@ -23,6 +23,30 @@ maintains a stable key pair on the device to sign assertions.
         invalid key), it resets its internal state and retries the flow
         from scratch.
 
+### Decision Logic & State Machine
+Before executing a handshake, the provider determines the correct flow
+based on the internal state and manages concurrent requests.
+
+```mermaid
+flowchart TD
+    Start[getToken call] --> Coalesce{Ongoing Operation?}
+    
+    Coalesce -- Yes --> Reuse[Reuse or Chain Promise]
+    Coalesce -- No --> Backoff[Apply Backoff Wrapper]
+    
+    Backoff --> StateCheck{Check State<br/>attestationState}
+    
+    StateCheck -->|Not Supported| Error[Return Error]
+    
+    StateCheck -->|Supported| KeyCheck{Key ID Stored?}
+    
+    KeyCheck -- No --> Flow1[<b>Go to Flow 1</b><br/>Initial Handshake]
+    KeyCheck -- Yes --> ArtifactCheck{Artifact Stored?}
+    
+    ArtifactCheck -- No --> Flow1
+    ArtifactCheck -- Yes --> Flow2[<b>Go to Flow 2</b><br/>Token Refresh/Assertion]
+```
+
 ### Flow 1: Initial Handshake (Attestation)
 Occurs when the app runs for the first time, or if the stored artifact
 is missing, or **after a reset**.
