@@ -1,20 +1,31 @@
 # App Check Providers: Deep Dive
 
-This document details the internal design and detailed flows of each App Check provider, including error handling, retries, and state resets.
+This document details the internal design and detailed flows of each
+App Check provider, including error handling, retries, and state
+resets.
 
 ## AppAttest Provider (`GACAppAttestProvider`)
-The most complex provider, interacting with `DCAppAttestService`. It maintains a stable key pair on the device to sign assertions.
+The most complex provider, interacting with `DCAppAttestService`. It
+maintains a stable key pair on the device to sign assertions.
 
 ### Components
 *   **Service:** `DCAppAttestService` (Apple's API).
 *   **Storage:**
-    *   `GACAppAttestKeyIDStorage`: Stores the generated App Attest Key ID.
-    *   `GACAppAttestArtifactStorage`: Stores the "artifact" returned by the Firebase backend after a successful initial handshake.
+    *   `GACAppAttestKeyIDStorage`: Stores the generated App Attest Key
+        ID.
+    *   `GACAppAttestArtifactStorage`: Stores the "artifact" returned by
+        the Firebase backend after a successful initial handshake. This
+        artifact effectively links the on-device key to the backend
+        session.
 *   **Resiliency:**
-    *   **Automatic Retry:** The provider wraps the entire flow in a retry loop. If a specific "Rejection Error" occurs (e.g., invalid key), it resets its internal state and retries the flow from scratch.
+    *   **Automatic Retry:** The provider wraps the entire flow in a
+        retry loop. If a specific "Rejection Error" occurs (e.g.,
+        invalid key), it resets its internal state and retries the flow
+        from scratch.
 
 ### Flow 1: Initial Handshake (Attestation)
-Occurs when the app runs for the first time, or if the stored artifact is missing, or **after a reset**.
+Occurs when the app runs for the first time, or if the stored artifact
+is missing, or **after a reset**.
 
 ```mermaid
 sequenceDiagram
@@ -145,9 +156,11 @@ Used for local development and CI.
 
 ### Configuration
 The provider looks for a debug secret in the following order:
-1.  **Environment Variable:** `AppCheckDebugToken` (or legacy `FIRAAppCheckDebugToken`).
+1.  **Environment Variable:** `AppCheckDebugToken` (or legacy
+    `FIRAAppCheckDebugToken`).
 2.  **Local Storage:** `NSUserDefaults` key `GACAppCheckDebugToken`.
-3.  **Generation:** If neither exists, it generates a new UUID, stores it in `NSUserDefaults`, and logs it to the console (warning level).
+3.  **Generation:** If neither exists, it generates a new UUID, stores it
+    in `NSUserDefaults`, and logs it to the console (warning level).
 
 ### Flow
 ```mermaid
