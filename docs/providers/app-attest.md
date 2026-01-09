@@ -56,6 +56,8 @@ flowchart LR
     ArtifactCheck -- Yes --> Flow2[Flow 2: Refresh]
 
     StateCheck -->|No| Error[Error]
+
+    Reuse ~~~ Footnote[Note: Requests are represented as a<br/>shared promise property 'ongoingGetTokenOperation']
 ```
 
 ## Concurrent Request Handling
