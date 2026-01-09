@@ -57,7 +57,7 @@ flowchart LR
 
     StateCheck -->|No| Error[Error]
 
-    Reuse -.- Footnote[Note: The 'ongoingGetTokenOperation' (with its 'ongoingGetTokenOperationLimitedUse' flag)<br/>manages the active token fetch. Standard requests reuse it if types match;<br/>otherwise, new requests are queued to run sequentially.]
+    Reuse -.- Footnote["Note: The 'ongoingGetTokenOperation' (with its 'ongoingGetTokenOperationLimitedUse' flag)<br/>manages the active token fetch. Standard requests reuse it if types match;<br/>otherwise, new requests are queued to run sequentially."]
     Queue -.- Footnote
     StartNew -.- Footnote
 ```
