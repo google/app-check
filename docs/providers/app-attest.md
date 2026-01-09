@@ -32,16 +32,17 @@ generated.
 flowchart LR
     Start[getToken] --> CheckUse{Limited Use?}
     
-    CheckUse -- Yes --> Chain[Chain Promise]
+    CheckUse -- Yes --> Queue[Queue New Request]
     CheckUse -- No --> Coalesce{Ongoing Op?}
     
-    Coalesce -- No --> Backoff[Backoff]
+    Coalesce -- No --> StartNew[Start New Request]
     Coalesce -- Yes --> CheckOngoing{Ongoing Limited?}
     
-    CheckOngoing -- Yes --> Chain
-    CheckOngoing -- No --> Reuse[Reuse Promise]
+    CheckOngoing -- Yes --> Queue
+    CheckOngoing -- No --> Reuse[Reuse Existing Request]
     
-    Chain --> Backoff
+    Queue --> StartNew
+    StartNew --> Backoff[Backoff]
     
     Backoff --> StateCheck{Attestation State?}
     
