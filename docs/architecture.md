@@ -53,8 +53,10 @@ To prevent overwhelming the backend or Apple's servers during failures,
 
 ### Algorithm
 The backoff interval is calculated as follows:
-$ Interval = min(Base * Jitter, MaxInterval) $
-*   **Base:** $2^{retry\_count}$ seconds.
+```math
+Interval = \min(Base \times Jitter, MaxInterval)
+```
+*   **Base:** $2^{retryCount}$ seconds.
 *   **Jitter:** A random multiplier between $1.0$ and $1.5$ (to prevent
     thundering herd problems).
 *   **MaxInterval:** 4 hours.
