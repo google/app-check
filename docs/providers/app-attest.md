@@ -64,7 +64,7 @@ flowchart LR
     Queue2 --> Backoff
     StartNew --> Backoff
 
-    Reuse -.- Footnote["Note: The 'ongoingGetTokenOperation' (with its 'ongoingGetTokenOperationLimitedUse' flag) manages the active token fetch. Standard requests reuse it if<br/>types match;otherwise, new requests are queued to run sequentially."]
+    Reuse -.- Footnote["Note: The 'ongoingGetTokenOperation' (with its 'ongoingGetTokenOperationLimitedUse' flag) manages the active token fetch. Standard requests reuse it if types match;otherwise, new requests are queued to run sequentially."]
     Queue1 -.- Footnote
     Queue2 -.- Footnote
     StartNew -.- Footnote
