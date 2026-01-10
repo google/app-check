@@ -56,7 +56,7 @@ The backoff interval is calculated as follows:
 ```math
 Interval = \min(Base \times Jitter, MaxInterval)
 ```
-*   **Base:** $2^{retryCount}$ seconds.
+*   **Base:** $`2^{retryCount}`$ seconds.
 *   **Jitter:** A random multiplier between $1.0$ and $1.5$ (to prevent
     thundering herd problems).
 *   **MaxInterval:** 4 hours.
