@@ -20,11 +20,11 @@ sequenceDiagram
 
     App->>Provider: getToken(limitedUse)
     Provider->>Provider: Determine Debug Secret (Env Var or UUID)
-    
+
     Provider->>API: appCheckTokenWithDebugToken(debugToken, limitedUse)
     API->>Backend: POST /exchangeDebugToken<br/>{ limited_use: true/false }
     Note right of Backend: Checks if debug token is <br/>registered in Console.
     Backend-->>API: { "token": "..." }
-    
+
     Provider-->>App: App Check Token
 ```

@@ -16,7 +16,7 @@ sequenceDiagram
     participant Backend as Firebase Backend
 
     App->>Provider: getToken(limitedUse)
-    
+
     Note right of Provider: Wrapped in Backoff Wrapper
     Provider->>Apple: generateToken()
     Apple-->>Provider: Device Token (Ephemeral)
@@ -24,7 +24,7 @@ sequenceDiagram
     Provider->>API: appCheckTokenWithDeviceToken(deviceToken, limitedUse)
     API->>Backend: POST /exchangeDeviceCheckToken<br/>{ limited_use: true/false }
     Note right of Backend: Verifies device token with Apple.
-    
+
     alt Error (e.g., 503)
         Backend-->>API: 503 Service Unavailable
         Provider->>Provider: Record Failure (Backoff)
