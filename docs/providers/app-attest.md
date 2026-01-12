@@ -8,15 +8,21 @@ maintains a stable key pair on the device to sign assertions.
 *   **Storage:**
     *   `GACAppAttestKeyIDStorage`: Stores the generated App Attest Key
         ID.
+        *   **Location:** `UserDefaults` (Suite: `com.firebase.GACAppAttestKeyIDStorage`).
     *   `GACAppAttestArtifactStorage`: Stores the "artifact" returned by
         the Firebase backend after a successful initial handshake. This
         artifact effectively links the on-device key to the backend
         session.
+        *   **Location:** Keychain (Service: `com.firebase.app_check.app_attest_artifact_storage`).
 *   **Resiliency:**
     *   **Automatic Retry:** The provider wraps the entire flow in a
-        retry loop. If a specific "Rejection Error" occurs (e.g.,
-        invalid key), it resets its internal state and retries the flow
-        from scratch.
+        retry loop. It resets its internal state (clearing Key ID and
+        Artifact) and retries the flow from scratch if a specific
+        "Rejection Error" occurs.
+        *   **Triggers:**
+            *   `DCErrorInvalidKey` (Apple DeviceCheck error)
+            *   `DCErrorInvalidInput` (Apple DeviceCheck error)
+            *   HTTP 403 Forbidden (Backend rejection)
 
 ## Decision Logic & State Machine
 Before executing a handshake, the provider determines the correct flow
@@ -29,31 +35,31 @@ finish) and then start a fresh handshake to ensure a unique token is
 generated.
 
 ```mermaid
-%%{init: {"flowchart": {"diagramPadding": 75}}}%%
+%%{init: {"flowchart": {"diagramPadding": 130}}}%%
 flowchart LR
     Start[getToken] --> CheckUse{Limited Use?}
-
+    
     CheckUse -- Yes --> Queue1[Queue New Request]
     CheckUse -- No --> Coalesce{Ongoing Op?}
-
+    
     Coalesce -- No --> StartNew[Start New Request]
     Coalesce -- Yes --> CheckOngoing{Ongoing Limited?}
-
+    
     CheckOngoing -- Yes --> Queue2[Queue New Request]
     CheckOngoing -- No --> Reuse[Reuse Existing Request]
-
+    
     subgraph Execution ["Backoff Wrapped Execution"]
         direction LR
         Backoff[Check Backoff]
         StateCheck{Attestation State?}
-
+        
         Backoff --> StateCheck
-
+        
         StateCheck -->|Yes| KeyCheck{Key ID?}
-
+        
         KeyCheck -- No --> Flow1[Flow 1: Initial]
         KeyCheck -- Yes --> ArtifactCheck{Artifact?}
-
+        
         ArtifactCheck -- No --> Flow1
         ArtifactCheck -- Yes --> Flow2[Flow 2: Refresh]
 
@@ -98,12 +104,12 @@ sequenceDiagram
     participant AppB as App (Limited)
     participant AppC as App (Standard)
     participant Provider as GACAppAttestProvider
-
+    
     AppA->>Provider: getToken(false)
     activate Provider
     Note right of Provider: No ongoing op.<br/>Start new op (standard).<br/>Set ongoingGetTokenOperation.
     Provider-->>Provider: Start Flow 1/2 sequence
-
+    
     AppB->>Provider: getToken(true)
     activate Provider
     Note right of Provider: Ongoing op (standard) exists.<br/>New request is limited-use.<br/>Chain: Wait for ongoing, then start new op.
@@ -138,7 +144,7 @@ sequenceDiagram
     participant Backend as Firebase Backend
 
     App->>Provider: getToken(limitedUse)
-
+    
     loop Retry Loop (Max 1 Retry)
         par Parallel Execution
             Provider->>API: getRandomChallenge()
@@ -151,7 +157,7 @@ sequenceDiagram
         end
 
         Provider->>Apple: attestKey(keyId, clientDataHash=SHA256(challenge))
-
+        
         alt Attestation Failed (Invalid Key/Input)
             Apple-->>Provider: DCErrorInvalidKey / Input
             Provider->>Provider: RESET: Delete KeyID & Artifact
@@ -160,7 +166,7 @@ sequenceDiagram
             Apple-->>Provider: Attestation Object
             Provider->>API: attestKeyWithAttestation(..., limitedUse)
             API->>Backend: POST /exchangeAppAttestAttestation<br/>{ limited_use: true/false }
-
+            
             alt Backend Rejection (403)
                 Backend-->>API: 403 Forbidden
                 Provider->>Provider: RESET: Delete KeyID & Artifact
@@ -186,7 +192,7 @@ sequenceDiagram
     participant Backend as Firebase Backend
 
     App->>Provider: getToken(limitedUse)
-
+    
     loop Retry Loop (Max 1 Retry)
         Provider->>API: getRandomChallenge()
         API->>Backend: POST /generateAppAttestChallenge
@@ -195,18 +201,18 @@ sequenceDiagram
         Provider->>Provider: Retrieve stored Artifact
         Provider->>Provider: ClientData = Artifact + Challenge
         Provider->>Apple: generateAssertion(keyId, clientDataHash=SHA256(ClientData))
-
+        
         alt Assertion Failed (Invalid Key/Input)
             Apple-->>Provider: DCErrorInvalidKey / Input
             Provider->>Provider: RESET: Delete KeyID & Artifact
             Note right of Provider: Throws RejectionError,<br/>Triggering Loop Retry<br/>(Will fall back to Initial Handshake)
         else Assertion Success
             Apple-->>Provider: Assertion Object
-
+            
             Provider->>API: getAppCheckTokenWithArtifact(..., limitedUse)
             API->>Backend: POST /exchangeAppAttestAssertion<br/>{ limited_use: true/false }
             Backend-->>API: { "token": "..." }
-
+            
             Provider-->>App: App Check Token
         end
     end
