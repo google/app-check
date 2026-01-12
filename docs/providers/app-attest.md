@@ -16,23 +16,25 @@ maintains a stable key pair on the device to sign assertions.
         *   **Location:** Keychain (Service: `com.firebase.app_check.app_attest_artifact_storage`).
 *   **Resiliency:**
     *   **Automatic Retry (Internal):** The provider wraps the entire flow in a
-        retry loop. It resets its internal state (clearing Key ID and
-        Artifact) and retries the flow from scratch if a specific
-        "Rejection Error" occurs.
+        retry loop (max 1 attempt). It resets its internal state (clearing Key
+        ID and Artifact) and retries the flow from scratch if specific
+        recoverable errors occur.
         *   **Triggers for Reset & Retry:**
-            *   `DCErrorInvalidKey` (Apple DeviceCheck error)
-            *   `DCErrorInvalidInput` (Apple DeviceCheck error)
-            *   HTTP 403 Forbidden (Backend rejection during attestation exchange)
-        *   **Transient Error Handling (No Reset):** If `DCErrorServerUnavailable`
-            (indicating a temporary issue reaching Apple's App Attest service) occurs,
-            the request fails (allowing the app to retry) without resetting the
-            App Attest key or artifact. This aligns with Apple's recommendation to
-            preserve the device's risk metric.
+            *   `DCErrorInvalidKey` / `DCErrorInvalidInput` (Apple DeviceCheck error).
+            *   HTTP 403 (Attestation Rejected).
     *   **Backoff Strategy (External):** An outer wrapper protects the backend
-        from traffic spikes.
-        *   **Triggers:** HTTP 404/400 (1 day backoff), HTTP 429/503 (Exponential backoff).
-        *   **Behavior:** If a request fails with these errors, subsequent
-            requests are blocked immediately until the backoff interval passes.
+        from traffic spikes by enforcing delays on subsequent attempts based on
+        the error type.
+        *   **No Backoff (Immediate Retry):** Applied to non-HTTP errors,
+            including Apple's `DCError` (e.g., `serverUnavailable`), network
+            connectivity issues, and storage/parsing failures.
+        *   **Exponential Backoff:** Applied to retryable server errors.
+            *   HTTP 403 (Project/App Deleted) *if internal retry fails*.
+            *   HTTP 429 (Too Many Requests).
+            *   HTTP 503 (Server Overloaded).
+        *   **1 Day Backoff:** Applied to configuration errors unlikely to resolve quickly.
+            *   HTTP 400 (Bad Request).
+            *   HTTP 404 (Not Found).
 
 ## Decision Logic & State Machine
 Before executing a handshake, the provider determines the correct flow
@@ -51,10 +53,10 @@ flowchart LR
     
     CheckUse -- Yes --> Queue1[Queue New Request]
     CheckUse -- No --> Coalesce{Ongoing Op?}
-
-    Coalesce -- Yes --> CheckOngoing{Ongoing Limited?}
+    
     Coalesce -- No --> StartNew[Start New Request]
-
+    Coalesce -- Yes --> CheckOngoing{Ongoing Limited?}
+    
     CheckOngoing -- Yes --> Queue2[Queue New Request]
     CheckOngoing -- No --> Reuse[Reuse Existing Request]
     
