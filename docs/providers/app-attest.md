@@ -52,8 +52,8 @@ flowchart LR
     CheckUse -- Yes --> Queue1[Queue New Request]
     CheckUse -- No --> Coalesce{Ongoing Op?}
     
-    Coalesce -- Yes --> CheckOngoing{Ongoing Limited?}
     Coalesce -- No --> StartNew[Start New Request]
+    Coalesce -- Yes --> CheckOngoing{Ongoing Limited?}
     
     CheckOngoing -- Yes --> Queue2[Queue New Request]
     CheckOngoing -- No --> Reuse[Reuse Existing Request]
