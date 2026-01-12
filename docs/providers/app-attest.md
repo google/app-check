@@ -15,7 +15,7 @@ maintains a stable key pair on the device to sign assertions.
         session.
         *   **Location:** Keychain (Service: `com.firebase.app_check.app_attest_artifact_storage`).
 *   **Resiliency:**
-    *   **Automatic Retry:** The provider wraps the entire flow in a
+    *   **Automatic Retry (Internal):** The provider wraps the entire flow in a
         retry loop. It resets its internal state (clearing Key ID and
         Artifact) and retries the flow from scratch if a specific
         "Rejection Error" occurs.
@@ -23,6 +23,11 @@ maintains a stable key pair on the device to sign assertions.
             *   `DCErrorInvalidKey` (Apple DeviceCheck error)
             *   `DCErrorInvalidInput` (Apple DeviceCheck error)
             *   HTTP 403 Forbidden (Backend rejection)
+    *   **Backoff Strategy (External):** An outer wrapper protects the backend
+        from traffic spikes.
+        *   **Triggers:** HTTP 404/400 (1 day backoff), HTTP 429/503 (Exponential backoff).
+        *   **Behavior:** If a request fails with these errors, subsequent
+            requests are blocked immediately until the backoff interval passes.
 
 ## Decision Logic & State Machine
 Before executing a handshake, the provider determines the correct flow
