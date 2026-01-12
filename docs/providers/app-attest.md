@@ -19,10 +19,15 @@ maintains a stable key pair on the device to sign assertions.
         retry loop. It resets its internal state (clearing Key ID and
         Artifact) and retries the flow from scratch if a specific
         "Rejection Error" occurs.
-        *   **Triggers:**
+        *   **Triggers for Reset & Retry:**
             *   `DCErrorInvalidKey` (Apple DeviceCheck error)
             *   `DCErrorInvalidInput` (Apple DeviceCheck error)
-            *   HTTP 403 Forbidden (Backend rejection)
+            *   HTTP 403 Forbidden (Backend rejection during attestation exchange)
+        *   **Transient Error Handling (No Reset):** If `DCErrorServerUnavailable`
+            (indicating a temporary issue reaching Apple's App Attest service) occurs,
+            the request fails (allowing the app to retry) without resetting the
+            App Attest key or artifact. This aligns with Apple's recommendation to
+            preserve the device's risk metric.
     *   **Backoff Strategy (External):** An outer wrapper protects the backend
         from traffic spikes.
         *   **Triggers:** HTTP 404/400 (1 day backoff), HTTP 429/503 (Exponential backoff).
@@ -145,6 +150,7 @@ sequenceDiagram
     participant App
     participant Provider as GACAppAttestProvider
     participant Apple as DCAppAttestService<br/><br/>(Apple's DeviceCheck Framework)
+    participant AppleServer as Apple Server
     participant API as GACAppAttestAPIService
     participant Backend as Firebase Backend
 
@@ -162,6 +168,8 @@ sequenceDiagram
         end
 
         Provider->>Apple: attestKey(keyId, clientDataHash=SHA256(challenge))
+        Apple->>AppleServer: Contact App Attest Service
+        AppleServer-->>Apple: Attestation Result
         
         alt Attestation Failed (Invalid Key/Input)
             Apple-->>Provider: DCErrorInvalidKey / Input
