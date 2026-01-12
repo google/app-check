@@ -84,8 +84,6 @@ flowchart LR
     Queue1 -.- Footnote
     Queue2 -.- Footnote
     StartNew -.- Footnote
-
-    CheckOngoing ~~~ StartNew
 ```
 
 ## Concurrent Request Handling
