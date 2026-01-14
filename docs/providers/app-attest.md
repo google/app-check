@@ -144,7 +144,7 @@ sequenceDiagram
     Provider-->>AppA: App Check Token (from completed op)
     deactivate Provider
 
-    Provider-->>Provider: Start new Flow 1/2 for AppB
+    Provider-->>Provider: Start new Flow 1/2 for App (Limited)
     activate Provider
     Provider-->>AppB: App Check Token (from new op)
     deactivate Provider
@@ -186,7 +186,7 @@ sequenceDiagram
             Note right of Provider: Throws RejectionError,<br/>Triggering Loop Retry
         else Attestation Success
             Apple-->>Provider: Attestation Object
-            Provider->>API: attestKeyWithAttestation(..., limitedUse)
+            Provider->>API: attestKeyWithAttestation(attestation, keyID, challenge, limitedUse)
             API->>Backend: POST /exchangeAppAttestAttestation<br/>{ limited_use: true/false }
             
             alt Backend Rejection (403)
