@@ -64,7 +64,7 @@ flowchart LR
     Coalesce -- No --> StartNew[Start New Request]
     Coalesce -- Yes --> CheckOngoing{Ongoing Limited?}
     
-    CheckOngoing -- Yes --> Queue1
+    CheckOngoing -- Yes --> Queue2[Queue New Request]
     CheckOngoing -- No --> Reuse[Reuse Existing Request]
     
     subgraph Execution ["Backoff Wrapped Execution"]
@@ -86,10 +86,12 @@ flowchart LR
     end
 
     Queue1 --> Backoff
+    Queue2 --> Backoff
     StartNew --> Backoff
 
     Reuse -.- Footnote["Note: The 'ongoingGetTokenOperation' tracks the active fetch.<br/>Standard requests reuse it (unless the active fetch is Limited-use).<br/>Limited-use requests always queue a new, sequential fetch."]
     Queue1 -.- Footnote
+    Queue2 -.- Footnote
     StartNew -.- Footnote
 ```
 
