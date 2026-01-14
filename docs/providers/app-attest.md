@@ -15,19 +15,25 @@ maintains a stable key pair on the device to sign assertions.
         session.
         *   **Location:** Keychain (Service: `com.firebase.app_check.app_attest_artifact_storage`).
 *   **Resiliency:**
-    *   **Automatic Retry (Internal):** The provider wraps the entire flow in a
-        retry loop (max 1 attempt). It resets its internal state (clearing Key
-        ID and Artifact) and retries the flow from scratch if specific
-        recoverable errors occur.
-        *   **Triggers for Reset & Retry:**
+    *   **Automatic Retry (Internal):** The provider includes an internal
+        retry loop (max 1 attempt) with a 0-second delay. This loop is
+        specifically triggered if an error wrapped as
+        `GACAppAttestRejectionError` occurs.
+        *   **Triggers for Reset & Internal Retry:**
             *   `DCErrorInvalidKey` / `DCErrorInvalidInput` (Apple DeviceCheck error).
-            *   HTTP 403 (Attestation Rejected).
-    *   **Backoff Strategy (External):** An outer wrapper protects the backend
-        from traffic spikes by enforcing delays on subsequent attempts based on
-        the error type.
-        *   **No Backoff (Immediate Retry):** Applied to non-HTTP errors,
-            including Apple's `DCError` (e.g., `serverUnavailable`), network
-            connectivity issues, and storage/parsing failures.
+            *   HTTP 403 (Attestation Rejected) from the backend during handshake.
+        *   **Transient Error Handling (No Reset):** If `DCErrorServerUnavailable`
+            (indicating a temporary issue reaching Apple's App Attest service) occurs,
+            the request fails, but the App Attest key and artifact are **preserved**.
+            This allows the app to retry the request later using the same key,
+            aligning with Apple's recommendation to preserve the device's risk metric.
+    *   **Backoff Strategy (External):** An outer `GACAppCheckBackoffWrapper`
+        protects the backend from traffic spikes by enforcing delays on subsequent
+        attempts based on the error type.
+        *   **No Backoff (Immediately Permitted):** For non-HTTP errors (e.g.,
+            Apple's `DCError` like `serverUnavailable`), network connectivity issues,
+            storage failures, or parsing errors, the backoff wrapper **does not** enforce
+            a delay. Subsequent `getToken` calls by the app are immediately permitted.
         *   **Exponential Backoff:** Applied to retryable server errors.
             *   HTTP 403 (Project/App Deleted) *if internal retry fails*.
             *   HTTP 429 (Too Many Requests).
@@ -188,7 +194,7 @@ sequenceDiagram
                 Note right of Provider: Throws RejectionError,<br/>Triggering Loop Retry
             else Success
                 Backend-->>API: { "token": "...", "artifact": "..." }
-                Provider->>Provider: Store Artifact & Key ID
+                Provider-->>Provider: Store Artifact & Key ID
                 Provider-->>App: App Check Token
             end
         end
