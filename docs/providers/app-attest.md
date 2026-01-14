@@ -165,7 +165,7 @@ sequenceDiagram
 
     App->>Provider: getToken(limitedUse)
     
-    loop Retry Loop (Max 1 Retry)
+    loop Retry Loop (Max 1 Retry for GACAppAttestRejectionError)
         par Parallel Execution
             Provider->>API: getRandomChallenge()
             API->>Backend: POST /generateAppAttestChallenge
@@ -183,7 +183,7 @@ sequenceDiagram
         alt Attestation Failed (Invalid Key/Input)
             Apple-->>Provider: DCErrorInvalidKey / Input
             Provider->>Provider: RESET: Delete KeyID & Artifact
-            Note right of Provider: Throws RejectionError,<br/>Triggering Loop Retry
+            Note right of Provider: Throws GACAppAttestRejectionError,<br/>Triggering Loop Retry
         else Attestation Success
             Apple-->>Provider: Attestation Object
             Provider->>API: attestKeyWithAttestation(attestation, keyID, challenge, limitedUse)
@@ -191,11 +191,13 @@ sequenceDiagram
             
             alt Backend Rejection (403)
                 Backend-->>API: 403 Forbidden
+                API-->>Provider: Error (403)
                 Provider->>Provider: RESET: Delete KeyID & Artifact
-                Note right of Provider: Throws RejectionError,<br/>Triggering Loop Retry
+                Note right of Provider: Throws GACAppAttestRejectionError,<br/>Triggering Loop Retry
             else Success
                 Backend-->>API: { "token": "...", "artifact": "..." }
-                Provider-->>Provider: Store Artifact & Key ID
+                API-->>Provider: { "token": "...", "artifact": "..." }
+                Provider->>Provider: Store Artifact & Key ID
                 Provider-->>App: App Check Token
             end
         end
@@ -215,7 +217,7 @@ sequenceDiagram
 
     App->>Provider: getToken(limitedUse)
     
-    loop Retry Loop (Max 1 Retry)
+    loop Retry Loop (Max 1 Retry for GACAppAttestRejectionError)
         Provider->>API: getRandomChallenge()
         API->>Backend: POST /generateAppAttestChallenge
         Backend-->>API: { "challenge": "..." }
@@ -227,7 +229,7 @@ sequenceDiagram
         alt Assertion Failed (Invalid Key/Input)
             Apple-->>Provider: DCErrorInvalidKey / Input
             Provider->>Provider: RESET: Delete KeyID & Artifact
-            Note right of Provider: Throws RejectionError,<br/>Triggering Loop Retry<br/>(Will fall back to Initial Handshake)
+            Note right of Provider: Throws GACAppAttestRejectionError,<br/>Triggering Loop Retry<br/>(Will fall back to Initial Handshake)
         else Assertion Success
             Apple-->>Provider: Assertion Object
             
