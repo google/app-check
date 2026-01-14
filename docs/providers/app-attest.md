@@ -38,6 +38,7 @@ maintains a stable key pair on the device to sign assertions.
             *   HTTP 403 (Project/App Deleted) *if internal retry fails*.
             *   HTTP 429 (Too Many Requests).
             *   HTTP 503 (Server Overloaded).
+            *   Other HTTP 5xx (Server Errors) or 4xx not listed above or handled by 1 day backoff.
         *   **1 Day Backoff:** Applied to configuration errors unlikely to resolve quickly.
             *   HTTP 400 (Bad Request).
             *   HTTP 404 (Not Found).
