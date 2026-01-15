@@ -75,8 +75,6 @@ fetched), the new request will "chain" (wait for the ongoing one to
 finish) and then start a fresh handshake to ensure a unique token is
 generated.
 
-%%{init: {"flowchart": {"diagramPadding": 100}}}%%
-
 ```mermaid
 flowchart LR
     Start[getToken] --> Ongoing{Ongoing Op?}
