@@ -52,18 +52,17 @@ dictates whether to perform an initial handshake or a token refresh.
 flowchart LR
     Start([Calculate State]) --> CheckSupport{Is App Attest<br/>Supported?}
     
-    CheckSupport -- No --> Unsupported[State: Unsupported]
-    
-    CheckSupport -- Yes --> CheckKey{Stored Key ID?}
-    
-    CheckKey -- No --> SupportedInitial["State: SupportedInitial<br/>(Ready for Handshake)"]
-    
-    CheckKey -- Yes --> CheckArtifact{Stored Artifact<br/>for Key ID?}
-    
-    CheckArtifact -- No --> KeyGenerated["State: KeyGenerated<br/>(Key exists, no Artifact)"]
-    
-    CheckArtifact -- Yes --> KeyRegistered["State: KeyRegistered<br/>(Key & Artifact exist)"]
-```
+        CheckSupport -- Yes --> CheckKey{Stored Key ID?}
+        
+        CheckSupport -- No --> Unsupported["State: Unsupported"]
+        
+        CheckKey -- Yes --> CheckArtifact{Stored Artifact<br/>for Key ID?}
+        
+        CheckKey -- No --> SupportedInitial["State: SupportedInitial<br/>(Ready for Handshake)"]
+        
+        CheckArtifact -- Yes --> KeyRegistered["State: KeyRegistered<br/>(Key & Artifact exist)"]
+        
+        CheckArtifact -- No --> KeyGenerated["State: KeyGenerated<br/>(Key exists, no Artifact)"]```
 
 ## Decision Logic & State Machine
 Before executing a handshake, the provider determines the correct flow
