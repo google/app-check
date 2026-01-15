@@ -56,13 +56,13 @@ flowchart LR
     
     CheckSupport -- Yes --> CheckKey{Stored Key ID?}
     
-    CheckKey -- No --> SupportedInitial[State: SupportedInitial<br/>(Ready for Handshake)]
+    CheckKey -- No --> SupportedInitial["State: SupportedInitial<br/>(Ready for Handshake)"]
     
     CheckKey -- Yes --> CheckArtifact{Stored Artifact<br/>for Key ID?}
     
-    CheckArtifact -- No --> KeyGenerated[State: KeyGenerated<br/>(Key exists, no Artifact)]
+    CheckArtifact -- No --> KeyGenerated["State: KeyGenerated<br/>(Key exists, no Artifact)"]
     
-    CheckArtifact -- Yes --> KeyRegistered[State: KeyRegistered<br/>(Key & Artifact exist)]
+    CheckArtifact -- Yes --> KeyRegistered["State: KeyRegistered<br/>(Key & Artifact exist)"]
 ```
 
 ## Decision Logic & State Machine
