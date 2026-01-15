@@ -92,7 +92,7 @@ flowchart LR
     subgraph Execution ["Backoff Wrapped Execution"]
         direction LR
         Backoff[Check Backoff]
-        StateCheck{Attestation State?}<br/>(See 'Attestation State Calculation' above)
+        StateCheck["Attestation State?<br/>(See 'Attestation State Calculation' above)"]
 
         Backoff --> StateCheck
 
