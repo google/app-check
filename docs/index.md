@@ -19,6 +19,18 @@ tvOS, and watchOS.
     limited-use tokens for scenarios requiring single-use or short-lived
     authentication.
 
+## Important Disclaimer
+**The detailed architectural and implementation documentation within this
+`docs/` directory, especially the deep dives into provider internals and
+decision logic, are provided for comprehensive understanding only.**
+
+**Consumers of the App Check Core library should exclusively rely on the
+public API surface (as defined by the public header files, e.g., in
+`AppCheckCore/Sources/Public`) for integration. Internal implementation
+details, including specific error handling flows, storage mechanisms, and
+concurrency management described herein, are subject to change without
+notice across library versions.**
+
 ## Documentation Sections
 *   [Getting Started](getting-started.md): Installation and basic setup.
 *   [Usage Guide](usage.md): How to initialize and fetch tokens.
