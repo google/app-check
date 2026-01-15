@@ -62,7 +62,8 @@ flowchart LR
         
         CheckArtifact -- Yes --> KeyRegistered["State: KeyRegistered<br/>(Key & Artifact exist)"]
         
-        CheckArtifact -- No --> KeyGenerated["State: KeyGenerated<br/>(Key exists, no Artifact)"]```
+        CheckArtifact -- No --> KeyGenerated["State: KeyGenerated<br/>(Key exists, no Artifact)"]
+```
 
 ## Decision Logic & State Machine
 Before executing a handshake, the provider determines the correct flow
