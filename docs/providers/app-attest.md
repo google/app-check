@@ -194,6 +194,12 @@ sequenceDiagram
 Occurs when the app runs for the first time, or if the stored artifact
 is missing, or **after a reset**.
 
+**Note on Error Handling:** Errors not explicitly handled in this flow (e.g.,
+network issues, storage failures) will result in the promise being rejected.
+Such errors may be subject to external backoff if applicable, and all errors
+eventually bubble up to the caller (unless successfully resolved by an
+internal retry).
+
 ```mermaid
 sequenceDiagram
     participant App
@@ -242,16 +248,16 @@ sequenceDiagram
             end
         end
     end
-    Note right of App: Errors not explicitly handled in this flow (e.g.,
-    Note right of App: network issues, storage failures) will result in the
-    Note right of App: promise being rejected. Such errors may be subject
-    Note right of App: to external backoff if applicable, and all errors
-    Note right of App: eventually bubble up to the caller (unless successfully
-    Note right of App: resolved by an internal retry).
 ```
 
 ## Flow 2: Token Refresh (Assertion)
 Occurs for subsequent requests using the established key pair.
+
+**Note on Error Handling:** Errors not explicitly handled in this flow (e.g.,
+network issues, storage failures) will result in the promise being rejected.
+Such errors may be subject to external backoff if applicable, and all errors
+eventually bubble up to the caller (unless successfully resolved by an
+internal retry).
 
 ```mermaid
 sequenceDiagram
@@ -286,10 +292,4 @@ sequenceDiagram
             Provider-->>App: App Check Token
         end
     end
-    Note right of App: Errors not explicitly handled in this flow (e.g.,
-    Note right of App: network issues, storage failures) will result in the
-    Note right of App: promise being rejected. Such errors may be subject
-    Note right of App: to external backoff if applicable, and all errors
-    Note right of App: eventually bubble up to the caller (unless successfully
-    Note right of App: resolved by an internal retry).
 ```
