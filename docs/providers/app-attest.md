@@ -8,9 +8,9 @@ The App Attest provider uses a two-phase process:
 
 1.  **Initial Handshake (Attestation):** The app generates a
     cryptographic key pair via Apple's `DCAppAttestService`. Apple then
-    certifies this key via a call to an Apple server. The app sends this
-    certification to the Firebase backend, which validates it and returns
-    an **App Check Token** and an **Artifact**.
+    certifies this key via a call to an Apple server. The AppCheckCore SDK
+    sends this certification to the Firebase backend, which validates it
+    and returns an **App Check Token** and an **Artifact**.
 2.  **Token Refresh (Assertion):** For subsequent requests, the app
     uses the stored Key ID to sign a challenge (Assertion) from Apple.
     The Firebase backend verifies this signature against the stored
@@ -242,6 +242,12 @@ sequenceDiagram
             end
         end
     end
+    Note right of App: Errors not explicitly handled in this flow (e.g.,
+    Note right of App: network issues, storage failures) will result in the
+    Note right of App: promise being rejected. Such errors may be subject
+    Note right of App: to external backoff if applicable, and all errors
+    Note right of App: eventually bubble up to the caller (unless successfully
+    Note right of App: resolved by an internal retry).
 ```
 
 ## Flow 2: Token Refresh (Assertion)
@@ -280,4 +286,10 @@ sequenceDiagram
             Provider-->>App: App Check Token
         end
     end
+    Note right of App: Errors not explicitly handled in this flow (e.g.,
+    Note right of App: network issues, storage failures) will result in the
+    Note right of App: promise being rejected. Such errors may be subject
+    Note right of App: to external backoff if applicable, and all errors
+    Note right of App: eventually bubble up to the caller (unless successfully
+    Note right of App: resolved by an internal retry).
 ```
