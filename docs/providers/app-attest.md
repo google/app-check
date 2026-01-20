@@ -6,11 +6,15 @@ maintains a stable key pair on the device to sign assertions.
 ## Overview
 The App Attest provider uses a two-phase process:
 
-1.  **Initial Handshake (Attestation):** The app generates a
-    cryptographic key pair via Apple's `DCAppAttestService`. Apple then
-    certifies this key via a call to an Apple server. The AppCheckCore SDK
-    sends this certification to the Firebase backend, which validates it
-    and returns an **App Check Token** and an **Artifact**.
+1.  **Initial Handshake (Attestation):** The SDK generates a cryptographic key
+    pair containing a random challenge and a Key ID. The random challenge is
+    provided by a Firebase backend. The Key ID is provided by an Apple backend,
+    via Apple's `DCAppAttestService` (from the DeviceCheck framework). The
+    key pair is then attested by an Apple backend, via `DCAppAttestService`,
+    which provides an attestation result. This attestation, Key ID, and
+    challenge are sent to a Firebase backend for verification and exchange
+    for an **App Check Token** and an **Attestation Artifact**, which is
+    used to validate token refreshes (assertions).
 2.  **Token Refresh (Assertion):** For subsequent requests, the app
     uses the stored Key ID to sign a challenge (Assertion) from Apple.
     The Firebase backend verifies this signature against the stored
