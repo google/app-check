@@ -4,14 +4,13 @@ The most complex provider, interacting with `DCAppAttestService`. It
 maintains a stable key pair on the device to sign assertions.
 
 ## Overview
-The App Attest provider uses a two-phase process that minimizes
-network usage and preserves privacy:
+The App Attest provider uses a two-phase process:
 
 1.  **Initial Handshake (Attestation):** The app generates a
-    cryptographic key pair via Apple's `DCAppAttestService`. Apple
-    certifies this key. The app sends this certification to the
-    Firebase backend, which validates it and returns an
-    **App Check Token** and an **Artifact**.
+    cryptographic key pair via Apple's `DCAppAttestService`. Apple then
+    certifies this key via a call to an Apple server. The app sends this
+    certification to the Firebase backend, which validates it and returns
+    an **App Check Token** and an **Artifact**.
 2.  **Token Refresh (Assertion):** For subsequent requests, the app
     uses the stored Key ID to sign a challenge (Assertion) from Apple.
     The Firebase backend verifies this signature against the stored
@@ -42,13 +41,6 @@ network usage and preserves privacy:
         *   **Triggers for Reset & Internal Retry:**
             *   `DCErrorInvalidKey` / `DCErrorInvalidInput` (Apple DeviceCheck error).
             *   HTTP 403 (Attestation Rejected) from the backend during handshake.
-    *   **Other Non-Resetting Errors (State Preserved):** For errors that
-        do not trigger the internal retry loop or an explicit external
-        backoff (e.g., `DCErrorServerUnavailable`, generic network issues,
-        storage errors), the request fails, but the App Attest key and
-        artifact are **preserved**. This allows the app to retry the
-        request later using the same key, aligning with Apple's
-        recommendation to preserve the device's risk metric.
     *   **Backoff Strategy (External):** An outer `GACAppCheckBackoffWrapper`
         protects the backend from traffic spikes by enforcing delays on
         subsequent attempts based on the error type.
@@ -67,6 +59,13 @@ network usage and preserves privacy:
             resolve quickly.
             *   HTTP 400 (Bad Request).
             *   HTTP 404 (Not Found).
+    *   **Other Non-Resetting Errors (State Preserved):** For errors that
+        do not trigger the internal retry loop or an explicit external
+        backoff (e.g., `DCErrorServerUnavailable`, generic network issues,
+        storage errors), the request fails, but the App Attest key and
+        artifact are **preserved**. This allows the app to retry the
+        request later using the same key, aligning with Apple's
+        recommendation to preserve the device's risk metric.
 
 ## Attestation State Calculation
 The provider determines its current state by checking for the presence of
