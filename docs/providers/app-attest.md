@@ -197,6 +197,12 @@ sequenceDiagram
 
 ## Flow 1: Initial Handshake (Attestation)
 Occurs when the app runs for the first time, or if the stored artifact
+
+| Component | Details |
+| :--- | :--- |
+| **Inputs** | `limitedUse` (Bool)<br>Optional existing `Key ID` |
+| **Outputs** | `App Check Token` (Returned)<br>`Key ID` (Persisted)<br>`Artifact` (Persisted) |
+
 > [!NOTE]
 > **Note on Error Handling:** Errors not explicitly handled in this flow
 > (e.g., network issues, storage failures) will result in the promise being
@@ -256,6 +262,11 @@ sequenceDiagram
 
 ## Flow 2: Token Refresh (Assertion)
 Occurs for subsequent requests using the established key pair.
+
+| Component | Details |
+| :--- | :--- |
+| **Inputs** | `limitedUse` (Bool)<br>`Key ID` (From Storage)<br>`Artifact` (From Storage) |
+| **Outputs** | `App Check Token` (Returned) |
 
 > [!NOTE]
 > **Note on Error Handling:** Errors not explicitly handled in this flow
