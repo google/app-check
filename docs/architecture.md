@@ -4,9 +4,10 @@ This document details the internal architecture of `AppCheckCore`,
 focusing on token storage, lifecycle management, and security
 mechanisms.
 
-**Note:** This document describes internal implementation details that
-are subject to change. Rely only on the public API surface for
-integration (see [App Check Core Documentation](index.md#important-disclaimer)).
+> [!WARNING]
+> This document describes internal implementation details that are subject
+> to change. Rely only on the public API surface for integration
+> (see [App Check Core Documentation](index.md#important-disclaimer)).
 
 ## Token Storage
 App Check tokens are sensitive credentials that grant access to your

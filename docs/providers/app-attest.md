@@ -93,11 +93,12 @@ flowchart LR
 Before executing a handshake, the provider determines the correct flow
 based on the internal state and manages concurrent requests.
 
-**Note on Limited Use:** Limited-use tokens are never reused/coalesced.
-If a limited-use token is requested (or if one is currently being
-fetched), the new request will "chain" (wait for the ongoing one to
-finish) and then start a fresh handshake to ensure a unique token is
-generated.
+> [!IMPORTANT]
+> **Note on Limited Use:** Limited-use tokens are never reused/coalesced.
+> If a limited-use token is requested (or if one is currently being
+> fetched), the new request will "chain" (wait for the ongoing one to
+> finish) and then start a fresh handshake to ensure a unique token is
+> generated.
 
 ```mermaid
 flowchart LR
@@ -192,13 +193,12 @@ sequenceDiagram
 
 ## Flow 1: Initial Handshake (Attestation)
 Occurs when the app runs for the first time, or if the stored artifact
-is missing, or **after a reset**.
-
-**Note on Error Handling:** Errors not explicitly handled in this flow (e.g.,
-network issues, storage failures) will result in the promise being rejected.
-Such errors may be subject to external backoff if applicable, and all errors
-eventually bubble up to the caller (unless successfully resolved by an
-internal retry).
+> [!NOTE]
+> **Note on Error Handling:** Errors not explicitly handled in this flow
+> (e.g., network issues, storage failures) will result in the promise being
+> rejected. Such errors may be subject to external backoff if applicable,
+> and all errors eventually bubble up to the caller (unless successfully
+> resolved by an internal retry).
 
 ```mermaid
 sequenceDiagram
@@ -253,11 +253,12 @@ sequenceDiagram
 ## Flow 2: Token Refresh (Assertion)
 Occurs for subsequent requests using the established key pair.
 
-**Note on Error Handling:** Errors not explicitly handled in this flow (e.g.,
-network issues, storage failures) will result in the promise being rejected.
-Such errors may be subject to external backoff if applicable, and all errors
-eventually bubble up to the caller (unless successfully resolved by an
-internal retry).
+> [!NOTE]
+> **Note on Error Handling:** Errors not explicitly handled in this flow
+> (e.g., network issues, storage failures) will result in the promise being
+> rejected. Such errors may be subject to external backoff if applicable,
+> and all errors eventually bubble up to the caller (unless successfully
+> resolved by an internal retry).
 
 ```mermaid
 sequenceDiagram
