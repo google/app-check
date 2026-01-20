@@ -3,6 +3,26 @@
 The most complex provider, interacting with `DCAppAttestService`. It
 maintains a stable key pair on the device to sign assertions.
 
+## Overview
+The App Attest provider uses a two-phase process that minimizes
+network usage and preserves privacy:
+
+1.  **Initial Handshake (Attestation):** The app generates a
+    cryptographic key pair via Apple's `DCAppAttestService`. Apple
+    certifies this key. The app sends this certification to the
+    Firebase backend, which validates it and returns an
+    **App Check Token** and an **Artifact**.
+2.  **Token Refresh (Assertion):** For subsequent requests, the app
+    uses the stored Key ID to sign a challenge (Assertion) from Apple.
+    The Firebase backend verifies this signature against the stored
+    Artifact to issue a new token.
+
+**Stored Artifacts:**
+*   **Key ID:** Identifies the key pair on the device (persisted in
+    UserDefaults).
+*   **Artifact:** An opaque object from the Firebase backend linking
+    the device's key to the user's session (persisted in Keychain).
+
 ## Components
 *   **Service:** `DCAppAttestService` (Apple's API).
 *   **Storage:**
@@ -22,24 +42,29 @@ maintains a stable key pair on the device to sign assertions.
         *   **Triggers for Reset & Internal Retry:**
             *   `DCErrorInvalidKey` / `DCErrorInvalidInput` (Apple DeviceCheck error).
             *   HTTP 403 (Attestation Rejected) from the backend during handshake.
-        *   **Transient Error Handling (No Reset):** If `DCErrorServerUnavailable`
-            (indicating a temporary issue reaching Apple's App Attest service) occurs,
-            the request fails, but the App Attest key and artifact are **preserved**.
-            This allows the app to retry the request later using the same key,
-            aligning with Apple's recommendation to preserve the device's risk metric.
+    *   **Other Non-Resetting Errors (State Preserved):** For errors that
+        do not trigger the internal retry loop or an explicit external
+        backoff (e.g., `DCErrorServerUnavailable`, generic network issues,
+        storage errors), the request fails, but the App Attest key and
+        artifact are **preserved**. This allows the app to retry the
+        request later using the same key, aligning with Apple's
+        recommendation to preserve the device's risk metric.
     *   **Backoff Strategy (External):** An outer `GACAppCheckBackoffWrapper`
-        protects the backend from traffic spikes by enforcing delays on subsequent
-        attempts based on the error type.
+        protects the backend from traffic spikes by enforcing delays on
+        subsequent attempts based on the error type.
         *   **No Backoff (Immediately Permitted):** For non-HTTP errors (e.g.,
-            Apple's `DCError` like `serverUnavailable`), network connectivity issues,
-            storage failures, or parsing errors, the backoff wrapper **does not** enforce
-            a delay. Subsequent `getToken` calls by the app are immediately permitted.
+            Apple's `DCError` like `serverUnavailable`), network connectivity
+            issues, storage failures, or parsing errors, the backoff wrapper
+            **does not** enforce a delay. Subsequent `getToken` calls by the
+            app are immediately permitted.
         *   **Exponential Backoff:** Applied to retryable server errors.
             *   HTTP 403 (Project/App Deleted) *if internal retry fails*.
             *   HTTP 429 (Too Many Requests).
             *   HTTP 503 (Server Overloaded).
-            *   Other HTTP 5xx (Server Errors) or 4xx not listed above or handled by 1 day backoff.
-        *   **1 Day Backoff:** Applied to configuration errors unlikely to resolve quickly.
+            *   Other HTTP 5xx (Server Errors) or 4xx not listed above or
+                handled by 1 day backoff.
+        *   **1 Day Backoff:** Applied to configuration errors unlikely to
+            resolve quickly.
             *   HTTP 400 (Bad Request).
             *   HTTP 404 (Not Found).
 
