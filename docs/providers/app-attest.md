@@ -286,11 +286,11 @@ sequenceDiagram
     App->>Provider: getToken(limitedUse)
     
     loop Retry Loop (Max 1 Retry for GACAppAttestRejectionError)
+        Provider->>Provider: Retrieve Key ID & Artifact
         Provider->>API: getRandomChallenge()
         API->>Backend: POST /generateAppAttestChallenge
         Backend-->>API: { "challenge": "..." }
 
-        Provider->>Provider: Retrieve stored Artifact
         Provider->>Provider: ClientData = Artifact + Challenge
         Provider->>Apple: generateAssertion(keyId, clientDataHash=SHA256(ClientData))
         
