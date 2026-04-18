@@ -16,44 +16,45 @@
 // limitations under the License.
 
 import Foundation
-import RecaptchaInterop
 import Promises
+import RecaptchaInterop
 
-final class RecaptchaEnterpriseTokenGenerator{
-    
-    private let siteKey:String;
-    private let action:RCAActionProtocol;
-    private var recaptchaPromise:Promise<RCARecaptchaClientProtocol>?=nil;
-    
-    init(siteKey: String, action:RCAActionProtocol){
-        self.siteKey = siteKey;
-        self.action = action;
-        self.recaptchaPromise=Promise<RCARecaptchaClientProtocol>{fulfill,reject in
-            guard let recaptcha =
-                    NSClassFromString("RecaptchaEnterprise.RCARecaptcha") as? RCARecaptchaProtocol.Type else{
-                throw NSError(domain: "RecaptchaEnterprise", code: 1, userInfo: nil);
-            }
-            recaptcha.fetchClient(withSiteKey:siteKey){client,error in
-                if let client=client{
-                    fulfill(client)
-                }else{
-                    reject(error!)
-                }
-                
-            }
+final class RecaptchaEnterpriseTokenGenerator {
+  private let siteKey: String
+  private let action: RCAActionProtocol
+
+  private var recaptchaPromise: Promise<RCARecaptchaClientProtocol>?
+
+  init(siteKey: String, action: RCAActionProtocol) {
+    self.siteKey = siteKey
+    self.action = action
+    recaptchaPromise = Promise<RCARecaptchaClientProtocol> { fulfill, reject in
+      guard let recaptcha =
+        NSClassFromString("RecaptchaEnterprise.RCARecaptcha") as? RCARecaptchaProtocol
+          .Type else {
+        throw NSError(domain: "RecaptchaEnterprise", code: 1, userInfo: nil)
+      }
+      recaptcha.fetchClient(withSiteKey: siteKey) { client, error in
+        if let client = client {
+          fulfill(client)
+        } else {
+          reject(error!)
         }
+      }
     }
-    
-    func getRecaptchaToken() ->Promise<String>{
-        recaptchaPromise!.then{client in
-            return Promise<String>{fulfill,reject in
-                client.execute(withAction: self.action){token,error in
-                    if let token=token{
-                        fulfill(token)
-                    }else{
-                        reject(error!)
-                    }
-                }
-            }
+  }
+
+  func getRecaptchaToken() -> Promise<String> {
+    recaptchaPromise!.then { client in
+      Promise<String> { fulfill, reject in
+        client.execute(withAction: self.action) { token, error in
+          if let token = token {
+            fulfill(token)
+          } else {
+            reject(error!)
+          }
         }
-    }}
+      }
+    }
+  }
+}

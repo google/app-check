@@ -23,7 +23,7 @@ let package = Package(
   products: [
     .library(
       name: "AppCheckCore",
-      targets: ["AppCheckCore","RecaptchaEnterpriseProvider"]
+      targets: ["AppCheckCore", "RecaptchaEnterpriseProvider"]
     ),
   ],
   dependencies: [
@@ -62,30 +62,29 @@ let package = Package(
                 .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .appCheckVisionOS])
               ),
             ]),
-    .target(name:"RecaptchaEnterpriseProvider",
-            dependencies:[
-                "AppCheckCoreProvider",
-                .product(name:"RecaptchaInterop",package:"interop-ios-for-google-sdks"),
-                .product(name: "Promises", package: "Promises"),
+    .target(name: "RecaptchaEnterpriseProvider",
+            dependencies: [
+              "AppCheckCoreProvider",
+              .product(name: "RecaptchaInterop", package: "interop-ios-for-google-sdks"),
+              .product(name: "Promises", package: "Promises"),
             ],
-            path:"RecaptchaEnterpriseProvider/Sources"
-           ),
-    .target(name:"AppCheckCore",
-           dependencies: [
-            "AppCheckCoreProvider",
-           ],
-            path:"AppCheckCore/Sources",
-            publicHeadersPath:"Public",
-           cSettings: [
-            .headerSearchPath("../..")
-           ],
+            path: "RecaptchaEnterpriseProvider/Sources"),
+    .target(name: "AppCheckCore",
+            dependencies: [
+              "AppCheckCoreProvider",
+            ],
+            path: "AppCheckCore/Sources",
+            publicHeadersPath: "Public",
+            cSettings: [
+              .headerSearchPath("../.."),
+            ],
             linkerSettings: [
               .linkedFramework(
                 "DeviceCheck",
                 .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .appCheckVisionOS])
               ),
             ]),
-    
+
     .testTarget(
       name: "AppCheckCoreProviderUnit",
       dependencies: [

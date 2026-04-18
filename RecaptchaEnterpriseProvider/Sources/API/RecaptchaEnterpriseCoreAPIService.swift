@@ -15,11 +15,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import Foundation
 import AppCheckCoreProvider
+import Foundation
 import Promises
 
-fileprivate enum Constants {
+private enum Constants {
   static let contentTypeKey = "Content-Type"
   static let jsonContentType = "application/json"
   static let recaptchaTokenField = "recaptcha_enterprise_token"
@@ -27,56 +27,58 @@ fileprivate enum Constants {
 }
 
 @objc(GARecaptchaEnterpriseAPIService)
-final class RecaptchaEnterpriseAPIService: NSObject{
-    private var APIService: AppCheckCoreAPIServiceProtocol?=nil
-    private let resourceName: String
-    
-    init(APIService: AppCheckCoreAPIServiceProtocol, resourceName: String){
-       self.APIService = APIService
-        self.resourceName = resourceName
+final class RecaptchaEnterpriseAPIService: NSObject {
+  private var APIService: AppCheckCoreAPIServiceProtocol? = nil
+  private let resourceName: String
+
+  init(APIService: AppCheckCoreAPIServiceProtocol, resourceName: String) {
+    self.APIService = APIService
+    self.resourceName = resourceName
+  }
+
+  func appCheckToken(withRecaptchaToken recaptchaToken: String,
+                     limitedUse: Bool) -> Promise<AppCheckCoreToken> {
+    let urlString = "\(APIService!.baseURL)/\(resourceName):exchangeRecaptchaEnterpriseToken"
+    guard let url = URL(string: urlString) else {
+      return Promise(GACAppCheckErrorUtil.error(withFailureReason: "Invalid URL string"))
     }
-    
-    func appCheckToken(
-        withRecaptchaToken recaptchaToken: String,
-        limitedUse: Bool
-    )->Promise<AppCheckCoreToken>{
-        let urlString="\(APIService!.baseURL)/\(resourceName):exchangeRecaptchaEnterpriseToken"
-        guard let url=URL(string: urlString) else{
-            return Promise(GACAppCheckErrorUtil.error(withFailureReason: "Invalid URL string"))
-        }
-        
-        return httpBody(withRecaptchaToken: recaptchaToken, limitedUse: limitedUse)
-            .then{httpBody in
-             Promise<GACURLSessionDataResponse>(   self.APIService!.sendRequest(with:url,
-                                             httpMethod: "POST",
-                                             body:httpBody,
-                                             additionalHeaders: [Constants.contentTypeKey: Constants.jsonContentType]))
-            }.then{response in
-               Promise<AppCheckCoreToken>( self.APIService!.appCheckToken(withAPIResponse: response))}
+
+    return httpBody(withRecaptchaToken: recaptchaToken, limitedUse: limitedUse)
+      .then { httpBody in
+        Promise<GACURLSessionDataResponse>(self.APIService!.sendRequest(with: url,
+                                                                        httpMethod: "POST",
+                                                                        body: httpBody,
+                                                                        additionalHeaders: [Constants
+                                                                          .contentTypeKey: Constants
+                                                                          .jsonContentType]))
+      }.then { response in
+        Promise<AppCheckCoreToken>(self.APIService!.appCheckToken(withAPIResponse: response))
+      }
+  }
+
+  private func httpBody(withRecaptchaToken recaptchaToken: String,
+                        limitedUse: Bool) -> Promise<Data> {
+    guard !recaptchaToken.isEmpty else {
+      return Promise(GACAppCheckErrorUtil
+        .error(withFailureReason: "Recaptcha token cannot be empty"))
     }
-    
-    private func httpBody(withRecaptchaToken recaptchaToken: String, limitedUse: Bool)->Promise<Data>{
-        guard !recaptchaToken.isEmpty else{
-            return Promise(GACAppCheckErrorUtil.error(withFailureReason:"Recaptcha token cannot be empty"))
-        }
-        
-        return Promise(on:backgroundQueue()){
-            
-            let payload: [String: Any] = [
-                Constants.recaptchaTokenField: recaptchaToken,
-                Constants.limitedUseField: limitedUse
-            ]
-            
-            do{
-                let jsonData = try JSONSerialization.data(withJSONObject: payload, options: [])
-                return jsonData
-            }catch{
-                throw GACAppCheckErrorUtil.jsonSerializationError(error)
-            }
-        }
+
+    return Promise(on: backgroundQueue()) {
+      let payload: [String: Any] = [
+        Constants.recaptchaTokenField: recaptchaToken,
+        Constants.limitedUseField: limitedUse,
+      ]
+
+      do {
+        let jsonData = try JSONSerialization.data(withJSONObject: payload, options: [])
+        return jsonData
+      } catch {
+        throw GACAppCheckErrorUtil.jsonSerializationError(error)
+      }
     }
-    
-    private func backgroundQueue()->DispatchQueue{
-        return DispatchQueue.global(qos:.utility)
-    }
+  }
+
+  private func backgroundQueue() -> DispatchQueue {
+    return DispatchQueue.global(qos: .utility)
+  }
 }
