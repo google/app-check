@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "AppCheckCoreProvider/Tests/Unit/Utils/GACFakeTimer.h"
+#import "AppCheckCore/Tests/Unit/Utils/GACFakeTimer.h"
 
 @implementation GACFakeTimer
 

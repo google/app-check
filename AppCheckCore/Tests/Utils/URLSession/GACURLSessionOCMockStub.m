@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "AppCheckCoreProvider/Tests/Utils/URLSession/GACURLSessionOCMockStub.h"
+#import "AppCheckCore/Tests/Utils/URLSession/GACURLSessionOCMockStub.h"
 
 #import <OCMock/OCMock.h>
 

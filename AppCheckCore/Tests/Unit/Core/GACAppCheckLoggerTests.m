@@ -16,7 +16,7 @@
 
 #import <XCTest/XCTest.h>
 
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckLogger.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckLogger.h"
 
 @interface GACAppCheckLoggerTests : XCTestCase
 @end

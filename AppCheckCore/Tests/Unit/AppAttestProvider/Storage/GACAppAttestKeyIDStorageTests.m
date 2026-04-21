@@ -18,9 +18,9 @@
 
 #import "FBLPromise+Testing.h"
 
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.h"
+#import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.h"
 
-#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 
 static NSString *const kAppName = @"GACAppAttestKeyIDStorageTestsApp";
 static NSString *const kAppID = @"app_id";

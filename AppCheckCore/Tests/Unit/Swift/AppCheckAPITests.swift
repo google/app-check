@@ -18,7 +18,7 @@
 
 import Foundation
 
-import AppCheckCoreProvider
+import AppCheckCore
 
 final class AppCheckAPITests {
   func usage() {
