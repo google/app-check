@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/API/GACAppAttestAPIService.h"
+#import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAPIService.h"
 
 #if __has_include(<FBLPromises/FBLPromises.h>)
 #import <FBLPromises/FBLPromises.h>
@@ -22,10 +22,10 @@
 #import "FBLPromises.h"
 #endif
 
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckAPIService.h"
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrorUtil.h"
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACURLSessionDataResponse.h"
+#import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
+#import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
+#import "AppCheckCore/Sources/Core/APIService/GACURLSessionDataResponse.h"
+#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

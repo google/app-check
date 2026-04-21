@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-#import <AppCheckCoreProvider/GACAppCheck.h>
-#import <AppCheckCoreProvider/GACAppCheckErrors.h>
-#import <AppCheckCoreProvider/GACAppCheckLogger.h>
-#import <AppCheckCoreProvider/GACAppCheckProvider.h>
-#import <AppCheckCoreProvider/GACAppCheckSettings.h>
-#import <AppCheckCoreProvider/GACAppCheckToken.h>
-#import <AppCheckCoreProvider/GACAppCheckTokenDelegate.h>
-#import <AppCheckCoreProvider/GACAppCheckTokenResult.h>
+#import "GACAppCheck.h"
+#import "GACAppCheckErrors.h"
+#import "GACAppCheckLogger.h"
+#import "GACAppCheckProvider.h"
+#import "GACAppCheckSettings.h"
+#import "GACAppCheckToken.h"
+#import "GACAppCheckTokenDelegate.h"
+#import "GACAppCheckTokenResult.h"
 
 // Debug provider
-#import <AppCheckCoreProvider/GACAppCheckDebugProvider.h>
+#import "GACAppCheckDebugProvider.h"
 
 // DeviceCheck provider
-#import <AppCheckCoreProvider/GACDeviceCheckProvider.h>
+#import "GACDeviceCheckProvider.h"
 
 // App Attest provider.
-#import <AppCheckCoreProvider/GACAppAttestProvider.h>
-
-// reCAPTCHA Enterprise Provider
-// #import <RecaptchaEnterpriseProvider-Swift.h>
+#import "GACAppAttestProvider.h"

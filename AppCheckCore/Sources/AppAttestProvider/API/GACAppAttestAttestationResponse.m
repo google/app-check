@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
+#import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
 
-#import "AppCheckCoreProvider/Sources/CoreProvider/APIService/GACAppCheckToken+APIResponse.h"
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Core/APIService/GACAppCheckToken+APIResponse.h"
+#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 
 static NSString *const kResponseFieldAppCheckTokenDict = @"appCheckToken";
 static NSString *const kResponseFieldArtifact = @"artifact";

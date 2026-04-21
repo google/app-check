@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAvailability.h"
+#import "AppCheckCore/Sources/Core/APIService/GACURLSessionDataResponse.h"
 
-#import <DeviceCheck/DeviceCheck.h>
+@implementation GACURLSessionDataResponse
 
-#import "AppCheckCore/Sources/DeviceCheckProvider/GACDeviceCheckTokenGenerator.h"
-
-NS_ASSUME_NONNULL_BEGIN
-
-GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
-@interface DCDevice (GACDeviceCheckTokenGenerator) <GACDeviceCheckTokenGenerator>
+- (instancetype)initWithResponse:(NSHTTPURLResponse *)response HTTPBody:(NSData *)body {
+  self = [super init];
+  if (self) {
+    _HTTPResponse = response;
+    _HTTPBody = body;
+  }
+  return self;
+}
 
 @end
-
-NS_ASSUME_NONNULL_END

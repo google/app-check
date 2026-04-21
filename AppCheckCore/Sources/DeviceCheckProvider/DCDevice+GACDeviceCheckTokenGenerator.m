@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "AppCheckCoreProvider/Sources/DeviceCheckProvider/DCDevice+GACDeviceCheckTokenGenerator.h"
+#import "AppCheckCore/Sources/DeviceCheckProvider/DCDevice+GACDeviceCheckTokenGenerator.h"
 
 @implementation DCDevice (GACDeviceCheckTokenGenerator)
 

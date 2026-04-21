@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google LLC
+ * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAvailability.h"
-
-#import <DeviceCheck/DeviceCheck.h>
-
-#import "AppCheckCore/Sources/DeviceCheckProvider/GACDeviceCheckTokenGenerator.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckSettings.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
-@interface DCDevice (GACDeviceCheckTokenGenerator) <GACDeviceCheckTokenGenerator>
+@implementation GACAppCheckSettings
+
+@synthesize isTokenAutoRefreshEnabled = _isTokenAutoRefreshEnabled;
 
 @end
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckAvailability.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAvailability.h"
 
 #import <Foundation/Foundation.h>
 
@@ -24,15 +24,15 @@
 #import "FBLPromises.h"
 #endif
 
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACDeviceCheckProvider.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACDeviceCheckProvider.h"
 
-#import "AppCheckCoreProvider/Sources/CoreProvider/Backoff/GACAppCheckBackoffWrapper.h"
-#import "AppCheckCoreProvider/Sources/CoreProvider/GACAppCheckLogger+Internal.h"
-#import "AppCheckCoreProvider/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h"
-#import "AppCheckCoreProvider/Sources/DeviceCheckProvider/DCDevice+GACDeviceCheckTokenGenerator.h"
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckAPIService.h"
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrorUtil.h"
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckToken.h"
+#import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
+#import "AppCheckCore/Sources/Core/Backoff/GACAppCheckBackoffWrapper.h"
+#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Core/GACAppCheckLogger+Internal.h"
+#import "AppCheckCore/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h"
+#import "AppCheckCore/Sources/DeviceCheckProvider/DCDevice+GACDeviceCheckTokenGenerator.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

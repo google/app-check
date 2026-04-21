@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/DCAppAttestService+GACAppAttestService.h"
+#import "AppCheckCore/Sources/AppAttestProvider/DCAppAttestService+GACAppAttestService.h"
 
 @implementation DCAppAttestService (GACAppAttestService)
 

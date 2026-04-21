@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/GACAppAttestProviderState.h"
+#import "AppCheckCore/Sources/AppAttestProvider/GACAppAttestProviderState.h"
 
 @implementation GACAppAttestProviderState
 

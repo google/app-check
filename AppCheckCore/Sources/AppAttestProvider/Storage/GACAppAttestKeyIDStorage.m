@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.h"
+#import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.h"
 
 #if __has_include(<FBLPromises/FBLPromises.h>)
 #import <FBLPromises/FBLPromises.h>
@@ -24,7 +24,7 @@
 
 #import <GoogleUtilities/GULUserDefaults.h>
 
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 
 /// The `GULUserDefaults` suite name for the storage location of the app attest key ID.
 static NSString *const kKeyIDStorageDefaultsSuiteName = @"com.firebase.GACAppAttestKeyIDStorage";

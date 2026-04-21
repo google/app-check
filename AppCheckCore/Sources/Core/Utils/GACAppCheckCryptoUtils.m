@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAvailability.h"
+#import "AppCheckCore/Sources/Core/Utils/GACAppCheckCryptoUtils.h"
 
-#import <DeviceCheck/DeviceCheck.h>
+#import <CommonCrypto/CommonDigest.h>
 
-#import "AppCheckCore/Sources/DeviceCheckProvider/GACDeviceCheckTokenGenerator.h"
+@implementation GACAppCheckCryptoUtils
 
-NS_ASSUME_NONNULL_BEGIN
-
-GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
-@interface DCDevice (GACDeviceCheckTokenGenerator) <GACDeviceCheckTokenGenerator>
++ (NSData *)sha256HashFromData:(NSData *)dataToHash {
+  NSMutableData *digest = [[NSMutableData alloc] initWithLength:CC_SHA256_DIGEST_LENGTH];
+  CC_SHA256(dataToHash.bytes, (CC_LONG)dataToHash.length, digest.mutableBytes);
+  return [digest copy];
+}
 
 @end
-
-NS_ASSUME_NONNULL_END

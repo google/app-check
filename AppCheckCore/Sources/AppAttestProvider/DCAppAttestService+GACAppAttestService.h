@@ -16,11 +16,11 @@
 
 #import <TargetConditionals.h>
 
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckAvailability.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAvailability.h"
 
 #import <DeviceCheck/DeviceCheck.h>
 
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/GACAppAttestService.h"
+#import "AppCheckCore/Sources/AppAttestProvider/GACAppAttestService.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

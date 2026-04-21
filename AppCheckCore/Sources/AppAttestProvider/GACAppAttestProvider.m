@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppAttestProvider.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppAttestProvider.h"
 
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/DCAppAttestService+GACAppAttestService.h"
+#import "AppCheckCore/Sources/AppAttestProvider/DCAppAttestService+GACAppAttestService.h"
 
 #if __has_include(<FBLPromises/FBLPromises.h>)
 #import <FBLPromises/FBLPromises.h>
@@ -24,23 +24,23 @@
 #import "FBLPromises.h"
 #endif
 
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/API/GACAppAttestAPIService.h"
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/GACAppAttestProviderState.h"
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/GACAppAttestService.h"
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/Storage/GACAppAttestArtifactStorage.h"
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.h"
-#import "AppCheckCoreProvider/Sources/CoreProvider/Backoff/GACAppCheckBackoffWrapper.h"
-#import "AppCheckCoreProvider/Sources/CoreProvider/GACAppCheckLogger+Internal.h"
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckAPIService.h"
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckToken.h"
+#import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAPIService.h"
+#import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
+#import "AppCheckCore/Sources/AppAttestProvider/GACAppAttestProviderState.h"
+#import "AppCheckCore/Sources/AppAttestProvider/GACAppAttestService.h"
+#import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestArtifactStorage.h"
+#import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.h"
+#import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
+#import "AppCheckCore/Sources/Core/Backoff/GACAppCheckBackoffWrapper.h"
+#import "AppCheckCore/Sources/Core/GACAppCheckLogger+Internal.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
-#import "AppCheckCoreProvider/Sources/CoreProvider/Utils/GACAppCheckCryptoUtils.h"
+#import "AppCheckCore/Sources/Core/Utils/GACAppCheckCryptoUtils.h"
 
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/Errors/GACAppAttestRejectionError.h"
-#import "AppCheckCoreProvider/Sources/CoreProvider/Errors/GACAppCheckHTTPError.h"
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrorUtil.h"
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrors.h"
+#import "AppCheckCore/Sources/AppAttestProvider/Errors/GACAppAttestRejectionError.h"
+#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

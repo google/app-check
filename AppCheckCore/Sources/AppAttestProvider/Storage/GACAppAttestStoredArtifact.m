@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/Storage/GACAppAttestStoredArtifact.h"
+#import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestStoredArtifact.h"
 
 static NSString *const kKeyIDKey = @"keyID";
 static NSString *const kArtifactKey = @"artifact";

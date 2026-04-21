@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrors.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
 
-#import "AppCheckCoreProvider/Sources/AppAttestProvider/Errors/GACAppAttestRejectionError.h"
+#import "AppCheckCore/Sources/AppAttestProvider/Errors/GACAppAttestRejectionError.h"
 
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 
 @implementation GACAppAttestRejectionError
 

@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAvailability.h"
+#import "AppCheckCore/Sources/Core/Storage/GACAppCheckStoredToken.h"
 
-#import <DeviceCheck/DeviceCheck.h>
-
-#import "AppCheckCore/Sources/DeviceCheckProvider/GACDeviceCheckTokenGenerator.h"
+@class GACAppCheckToken;
 
 NS_ASSUME_NONNULL_BEGIN
 
-GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
-@interface DCDevice (GACDeviceCheckTokenGenerator) <GACDeviceCheckTokenGenerator>
+@interface GACAppCheckStoredToken (GACAppCheckToken)
+
+- (void)updateWithToken:(GACAppCheckToken *)token;
+
+- (GACAppCheckToken *)appCheckToken;
 
 @end
 

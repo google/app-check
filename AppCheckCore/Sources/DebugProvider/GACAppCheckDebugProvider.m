@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckDebugProvider.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckDebugProvider.h"
 
 #if __has_include(<FBLPromises/FBLPromises.h>)
 #import <FBLPromises/FBLPromises.h>
@@ -24,11 +24,11 @@
 
 #import <GoogleUtilities/GULUserDefaults.h>
 
-#import "AppCheckCoreProvider/Sources/CoreProvider/GACAppCheckLogger+Internal.h"
-#import "AppCheckCoreProvider/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h"
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckAPIService.h"
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckErrors.h"
-#import "AppCheckCoreProvider/Sources/Public/AppCheckCoreProvider/GACAppCheckToken.h"
+#import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
+#import "AppCheckCore/Sources/Core/GACAppCheckLogger+Internal.h"
+#import "AppCheckCore/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

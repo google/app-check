@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAvailability.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
-#import <DeviceCheck/DeviceCheck.h>
-
-#import "AppCheckCore/Sources/DeviceCheckProvider/GACDeviceCheckTokenGenerator.h"
+@class FBLPromise<Result>;
+@class GACURLSessionDataResponse;
 
 NS_ASSUME_NONNULL_BEGIN
 
-GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
-@interface DCDevice (GACDeviceCheckTokenGenerator) <GACDeviceCheckTokenGenerator>
+@interface GACAppCheckToken (APIResponse)
+
+- (nullable instancetype)initWithTokenExchangeResponse:(NSData *)response
+                                           requestDate:(NSDate *)requestDate
+                                                 error:(NSError **)outError;
+
+- (nullable instancetype)initWithResponseDict:(NSDictionary<NSString *, id> *)responseDict
+                                  requestDate:(NSDate *)requestDate
+                                        error:(NSError **)outError;
 
 @end
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestArtifactStorage.h"
+#import "AppCheckCore/Sources/Core/Storage/GACAppCheckStorage.h"
 
 #if __has_include(<FBLPromises/FBLPromises.h>)
 #import <FBLPromises/FBLPromises.h>
@@ -24,55 +24,52 @@
 
 #import <GoogleUtilities/GULKeychainStorage.h>
 
-#import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestStoredArtifact.h"
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Core/Storage/GACAppCheckStoredToken+GACAppCheckToken.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-static NSString *const kKeychainService = @"com.firebase.app_check.app_attest_artifact_storage";
+static NSString *const kKeychainService = @"com.google.app_check_core.token_storage";
 
-@interface GACAppAttestArtifactStorage ()
+@interface GACAppCheckStorage ()
 
-@property(nonatomic, readonly) NSString *keySuffix;
+@property(nonatomic, readonly) NSString *tokenKey;
 @property(nonatomic, readonly) GULKeychainStorage *keychainStorage;
 @property(nonatomic, readonly, nullable) NSString *accessGroup;
 
 @end
 
-@implementation GACAppAttestArtifactStorage
+@implementation GACAppCheckStorage
 
-- (instancetype)initWithKeySuffix:(NSString *)keySuffix
-                  keychainStorage:(GULKeychainStorage *)keychainStorage
-                      accessGroup:(nullable NSString *)accessGroup {
+- (instancetype)initWithTokenKey:(NSString *)tokenKey
+                 keychainStorage:(GULKeychainStorage *)keychainStorage
+                     accessGroup:(nullable NSString *)accessGroup {
   self = [super init];
   if (self) {
-    _keySuffix = [keySuffix copy];
+    _tokenKey = [tokenKey copy];
     _keychainStorage = keychainStorage;
     _accessGroup = [accessGroup copy];
   }
   return self;
 }
 
-- (instancetype)initWithKeySuffix:(NSString *)keySuffix
-                      accessGroup:(nullable NSString *)accessGroup {
+- (instancetype)initWithTokenKey:(NSString *)tokenKey accessGroup:(nullable NSString *)accessGroup {
   GULKeychainStorage *keychainStorage =
       [[GULKeychainStorage alloc] initWithService:kKeychainService];
-  return [self initWithKeySuffix:keySuffix keychainStorage:keychainStorage accessGroup:accessGroup];
+  return [self initWithTokenKey:tokenKey keychainStorage:keychainStorage accessGroup:accessGroup];
 }
 
-- (FBLPromise<NSData *> *)getArtifactForKey:(NSString *)keyID {
+- (FBLPromise<GACAppCheckToken *> *)getToken {
   return [FBLPromise
              wrapObjectOrErrorCompletion:^(FBLPromiseObjectOrErrorCompletion _Nonnull handler) {
-               [self.keychainStorage getObjectForKey:[self artifactKey]
-                                         objectClass:[GACAppAttestStoredArtifact class]
+               [self.keychainStorage getObjectForKey:[self tokenKey]
+                                         objectClass:[GACAppCheckStoredToken class]
                                          accessGroup:self.accessGroup
                                    completionHandler:handler];
              }]
-      .then(^NSData *(id<NSSecureCoding> storedArtifact) {
-        GACAppAttestStoredArtifact *artifact = (GACAppAttestStoredArtifact *)storedArtifact;
-        if ([artifact isKindOfClass:[GACAppAttestStoredArtifact class]] &&
-            [artifact.keyID isEqualToString:keyID]) {
-          return artifact.artifact;
+      .then(^GACAppCheckToken *(id<NSSecureCoding> storedToken) {
+        if ([(NSObject *)storedToken isKindOfClass:[GACAppCheckStoredToken class]]) {
+          return [(GACAppCheckStoredToken *)storedToken appCheckToken];
         } else {
           return nil;
         }
@@ -82,19 +79,19 @@ static NSString *const kKeychainService = @"com.firebase.app_check.app_attest_ar
       });
 }
 
-- (FBLPromise<NSData *> *)setArtifact:(nullable NSData *)artifact forKey:(nonnull NSString *)keyID {
-  if (artifact) {
-    return [self storeArtifact:artifact forKey:keyID].recover(^NSError *(NSError *error) {
+- (FBLPromise<NSNull *> *)setToken:(nullable GACAppCheckToken *)token {
+  if (token) {
+    return [self storeToken:token].recover(^NSError *(NSError *error) {
       return [GACAppCheckErrorUtil keychainErrorWithError:error];
     });
   } else {
     return [FBLPromise wrapErrorCompletion:^(FBLPromiseErrorCompletion _Nonnull handler) {
-             [self.keychainStorage removeObjectForKey:[self artifactKey]
+             [self.keychainStorage removeObjectForKey:[self tokenKey]
                                           accessGroup:self.accessGroup
                                     completionHandler:handler];
            }]
         .then(^id _Nullable(id _Nullable __unused _) {
-          return nil;
+          return token;
         })
         .recover(^NSError *(NSError *error) {
           return [GACAppCheckErrorUtil keychainErrorWithError:error];
@@ -104,24 +101,19 @@ static NSString *const kKeychainService = @"com.firebase.app_check.app_attest_ar
 
 #pragma mark - Helpers
 
-- (FBLPromise<NSData *> *)storeArtifact:(nullable NSData *)artifact
-                                 forKey:(nonnull NSString *)keyID {
-  GACAppAttestStoredArtifact *storedArtifact =
-      [[GACAppAttestStoredArtifact alloc] initWithKeyID:keyID artifact:artifact];
+- (FBLPromise<NSNull *> *)storeToken:(nullable GACAppCheckToken *)token {
+  GACAppCheckStoredToken *storedToken = [[GACAppCheckStoredToken alloc] init];
+  [storedToken updateWithToken:token];
   return
       [FBLPromise wrapObjectOrErrorCompletion:^(
                       FBLPromiseObjectOrErrorCompletion _Nonnull handler) {
-        [self.keychainStorage setObject:storedArtifact
-                                 forKey:[self artifactKey]
+        [self.keychainStorage setObject:storedToken
+                                 forKey:[self tokenKey]
                             accessGroup:self.accessGroup
                       completionHandler:handler];
       }].then(^id _Nullable(id<NSSecureCoding> _Nullable value) {
-        return artifact;
+        return token;
       });
-}
-
-- (NSString *)artifactKey {
-  return [NSString stringWithFormat:@"app_check_app_attest_artifact.%@", self.keySuffix];
 }
 
 @end
