@@ -290,6 +290,7 @@ sequenceDiagram
         Provider->>API: getRandomChallenge()
         API->>Backend: POST /generateAppAttestChallenge
         Backend-->>API: { "challenge": "..." }
+        API-->>Provider: Challenge
 
         Provider->>Provider: ClientData = Artifact + Challenge
         Provider->>Apple: generateAssertion(keyId, clientDataHash=SHA256(ClientData))
