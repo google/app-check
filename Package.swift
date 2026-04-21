@@ -23,7 +23,7 @@ let package = Package(
   products: [
     .library(
       name: "AppCheckCore",
-      targets: ["AppCheckCore", "RecaptchaEnterpriseProvider"]
+      targets: ["AppCheckCore"]
     ),
   ],
   dependencies: [
@@ -84,14 +84,13 @@ let package = Package(
                 .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .appCheckVisionOS])
               ),
             ]),
-
     .testTarget(
-      name: "AppCheckCoreProviderUnit",
+      name: "AppCheckCoreUnit",
       dependencies: [
-        "AppCheckCoreProvider",
+        "AppCheckCore",
         .product(name: "OCMock", package: "ocmock"),
       ],
-      path: "AppCheckCoreProvider/Tests",
+      path: "AppCheckCore/Tests",
       exclude: [
         // Swift tests are in the target `AppCheckCoreUnitSwift` since mixed language targets are
         // not supported (as of Xcode 14.3).
@@ -105,9 +104,9 @@ let package = Package(
       ]
     ),
     .testTarget(
-      name: "AppCheckCoreProviderUnitSwift",
-      dependencies: ["AppCheckCoreProvider"],
-      path: "AppCheckCoreProvider/Tests/Unit/Swift",
+      name: "AppCheckCoreUnitSwift",
+      dependencies: ["AppCheckCore"],
+      path: "AppCheckCore/Tests/Unit/Swift",
       cSettings: [
         .headerSearchPath("../.."),
       ]
