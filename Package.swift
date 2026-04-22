@@ -39,6 +39,10 @@ let package = Package(
       url: "https://github.com/erikdoe/ocmock.git",
       revision: "2c0bfd373289f4a7716db5d6db471640f91a6507"
     ),
+    .package(
+      url: "https://github.com/google/interop-ios-for-google-sdks.git",
+      "101.0.0" ..< "102.0.0"
+    ),
   ],
   targets: [
     .target(name: "AppCheckCore",
@@ -58,6 +62,13 @@ let package = Package(
                 .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .appCheckVisionOS])
               ),
             ]),
+    .target(name: "RecaptchaEnterpriseProvider",
+            dependencies: [
+              "AppCheckCore",
+              .product(name: "RecaptchaInterop", package: "interop-ios-for-google-sdks"),
+              .product(name: "Promises", package: "Promises"),
+            ],
+            path: "RecaptchaEnterpriseProvider/Sources"),
     .testTarget(
       name: "AppCheckCoreUnit",
       dependencies: [
