@@ -45,33 +45,11 @@ let package = Package(
     ),
   ],
   targets: [
-    .target(name: "AppCheckCoreProvider",
+    .target(name: "AppCheckCore",
             dependencies: [
               .product(name: "FBLPromises", package: "Promises"),
               .product(name: "GULEnvironment", package: "GoogleUtilities"),
               .product(name: "GULUserDefaults", package: "GoogleUtilities"),
-            ],
-            path: "AppCheckCoreProvider/Sources",
-            publicHeadersPath: "Public",
-            cSettings: [
-              .headerSearchPath("../.."),
-            ],
-            linkerSettings: [
-              .linkedFramework(
-                "DeviceCheck",
-                .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .appCheckVisionOS])
-              ),
-            ]),
-    .target(name: "RecaptchaEnterpriseProvider",
-            dependencies: [
-              "AppCheckCoreProvider",
-              .product(name: "RecaptchaInterop", package: "interop-ios-for-google-sdks"),
-              .product(name: "Promises", package: "Promises"),
-            ],
-            path: "RecaptchaEnterpriseProvider/Sources"),
-    .target(name: "AppCheckCore",
-            dependencies: [
-              "AppCheckCoreProvider",
             ],
             path: "AppCheckCore/Sources",
             publicHeadersPath: "Public",
@@ -84,6 +62,13 @@ let package = Package(
                 .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .appCheckVisionOS])
               ),
             ]),
+    .target(name: "RecaptchaEnterpriseProvider",
+            dependencies: [
+              "AppCheckCore",
+              .product(name: "RecaptchaInterop", package: "interop-ios-for-google-sdks"),
+              .product(name: "Promises", package: "Promises"),
+            ],
+            path: "RecaptchaEnterpriseProvider/Sources"),
     .testTarget(
       name: "AppCheckCoreUnit",
       dependencies: [
