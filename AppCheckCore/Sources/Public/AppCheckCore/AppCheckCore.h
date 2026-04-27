@@ -31,3 +31,8 @@
 
 // App Attest provider.
 #import "GACAppAttestProvider.h"
+
+// Internal headers exposed for interop with the Swift implementation.
+#import "GACAppCheckErrorUtil.h"
+#import "GACAppCheckAPIService.h"
+#import "GACURLSessionDataResponse.h"
