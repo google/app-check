@@ -41,6 +41,7 @@ let package = Package(
     ),
     .package(
       url: "https://github.com/google/interop-ios-for-google-sdks.git",
+      // TODO(ncooke3): Is this the correct supported version window?
       "101.0.0" ..< "102.0.0"
     ),
   ],
