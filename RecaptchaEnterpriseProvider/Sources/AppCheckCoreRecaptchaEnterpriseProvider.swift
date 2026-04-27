@@ -26,7 +26,7 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
               requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? = nil) {
     let recaptchaAction =
       NSClassFromString("RecaptchaEnterprise.RCAAction") as? RCAActionProtocol.Type
-    let action = recaptchaAction?.init(customAction: "fire_app_check")
+    let action = recaptchaAction?.init(customAction: "app_check_ios")
     tokenGenerator = RecaptchaEnterpriseTokenGenerator(siteKey: siteKey, action: action!)
 
     let urlSession = URLSession(configuration: .ephemeral)
