@@ -59,8 +59,9 @@ When reporting back to the user, prioritize scannability and clarity:
 ### Step 1: Test-Driven Development (TDD)
 - **Constraint**: You MUST write tests before writing implementation code.
 - **Action**:
-    1. Write a failing unit or integration test asserting the new behavior.
-    2. Verify it fails by running the appropriate test command.
+    1. Create or identify the correct test target in `Package.swift`. Keep Swift and Obj-C test targets separate.
+    2. Write a failing unit or integration test asserting the new behavior.
+    3. Verify it fails by running the appropriate test command (e.g., `swift test --filter <TargetName>`).
 
 ### Step 2: Implementation
 - Implement the feature or fix.
@@ -147,6 +148,21 @@ you may encounter the following blockers. Use these workarounds:
   local Ruby version by prefixing the command with `RBENV_VERSION=2.7.5`.
 - **Quality Gates**: Do not skip `style.sh` and `pod_lib_lint.rb`. They are
   critical for verification.
+
+### Swift / Objective-C Interoperability Pitfalls
+
+When working on mixed-language targets (e.g., Swift tests for Objective-C core code), you will encounter strict compiler bridging issues, particularly with generic classes like `FBLPromise`. To avoid build loop failures:
+
+- **FBLPromise Instantiation**: `FBLPromise.init()` is `NS_UNAVAILABLE`. The standard Objective-C factory methods (`resolvedWith:` and `promiseWithError:`) bridge to Swift as **unlabeled** static methods that lose type inference.
+- **The Fix**: Do NOT attempt to specify generics on the receiver (e.g., `FBLPromise<Type>.resolved(...)` will fail). Instead, call the base method and force-cast the result:
+  ```swift
+  // Success
+  return FBLPromise.resolved(response) as! FBLPromise<GACURLSessionDataResponse>
+
+  // Failure (Must explicitly cast to NSError)
+  return FBLPromise.resolved(error as NSError) as! FBLPromise<GACURLSessionDataResponse>
+  ```
+- **Dynamic Dispatch fallback**: If Swift inference completely fails in test mocks, use Objective-C dynamic dispatch to bypass the compiler: `promiseClass.perform(NSSelectorFromString("resolvedWith:"), with: resolution)`.
 
 ---
 
