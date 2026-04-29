@@ -97,6 +97,17 @@ let package = Package(
         .headerSearchPath("../.."),
       ]
     ),
+    .testTarget(
+      name: "RecaptchaEnterpriseProviderUnit",
+      dependencies: [
+        "RecaptchaEnterpriseProvider",
+        .product(name: "OCMock", package: "ocmock"),
+      ],
+      path: "RecaptchaEnterpriseProvider/Tests",
+      cSettings: [
+        .headerSearchPath("../.."),
+      ]
+    ),
   ]
 )
 
