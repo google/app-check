@@ -31,6 +31,15 @@ A successful task completion MUST produce:
 
 ---
 
+## 💬 Communication Guidelines
+
+When reporting back to the user, prioritize scannability and clarity:
+1.  **Use Categorized Bullet Points**: Group findings and results into clear categories (e.g., "Build & Test Results", "Code Changes").
+2.  **Use Indicators**: Prefix status updates with checkmarks (✅) or caution symbols (⚠️) for immediate visual parsing.
+3.  **Be Concise**: Avoid conversational filler. Get straight to the results and next steps.
+
+---
+
 ## 🔄 The Agentic Loop: Step-by-Step
 
 ### Step 0: Workflow Selection & Planning (Hybrid Approach)
