@@ -91,8 +91,9 @@ A successful task completion MUST produce:
 ## 🏆 Quality Gates & Best Practices
 
 - **Error Handling**: Test edge cases and error paths.
-- **Code Style**: Use `<path_to_firebase_ios_sdk>/scripts/style.sh` if
-  applicable to maintain consistency.
+- **Code Style**: You MUST run `<path_to_firebase_ios_sdk>/scripts/style.sh` to
+  maintain consistency. Since style changes are non-functional, you do NOT need
+  to re-run tests after applying style fixes.
 - **No Hardcoded Secrets**: Ensure no secrets are committed.
 - **Code Reuse & Refactoring**: Prioritize understanding existing structures
   to reuse or extend them with minor refactors rather than adding redundant
@@ -108,6 +109,35 @@ A successful task completion MUST produce:
   race conditions or deadlocks.
 - [ ] **Memory Management**: Ensured no retain cycles or memory leaks are
   introduced.
+
+---
+
+## 📦 Git & Commits
+
+- **Commit Often**: Pause and commit work frequently.
+- **Scope**: Optimize for smaller commits that represent a complete piece of work
+  or a specific milestone within a larger task.
+- **Convention**: Follow conventional commit practices (e.g. `feat:`, `fix:`, `refactor:`).
+
+---
+
+## 🛠️ Environment & Troubleshooting
+
+When operating in a restricted or sandboxed environment (like the Jetski IDE),
+you may encounter the following blockers. Use these workarounds:
+
+- **Terminal Sandbox (SPM `sandbox-exec` errors)**: `swift build` may fail if
+  run inside a sandbox. Disable the terminal sandbox in the IDE settings
+  (`enableTerminalSandbox: false`) or use `swift build --disable-sandbox`.
+- **Missing `python` Command**: Modern macOS lacks `python` (Python 2). If
+  external scripts fail, create a local wrapper script that forwards to
+  `python3` and add it to the `PATH`:
+  `mkdir -p tmp/bin && echo '#!/bin/sh\nexec python3 "$@"' > tmp/bin/python && chmod +x tmp/bin/python && export PATH="$PWD/tmp/bin:$PATH"`
+- **Ruby Version Conflicts**: External scripts (like `pod_lib_lint.rb`) may
+  fail if `rbenv` tries to use the external repo's `.ruby-version`. Force the
+  local Ruby version by prefixing the command with `RBENV_VERSION=2.7.5`.
+- **Quality Gates**: Do not skip `style.sh` and `pod_lib_lint.rb`. They are
+  critical for verification.
 
 ---
 
