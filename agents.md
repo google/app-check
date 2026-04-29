@@ -64,6 +64,8 @@ A successful task completion MUST produce:
   scripts directly if possible. Set an environment variable like
   `FIREBASE_IOS_SDK_PATH` if your path differs from the default
   `<path_to_firebase_ios_sdk>`.
+  - To bypass the CI secret check in `check_secrets.sh` when running external
+    scripts in a trusted environment, export `FIREBASECI_IS_TRUSTED_ENV="true"`.
 - **Commands**:
     - **Primary (Fast Iteration)**: For SPM testing (which uses `xcodebuild`
       under the hood):

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import AppCheckCoreProvider
+import AppCheckCore
 import Foundation
 import Promises
 
@@ -25,7 +25,7 @@ private enum Constants {
 
 @objc(GARecaptchaEnterpriseAPIService)
 final class RecaptchaEnterpriseAPIService: NSObject {
-  private var APIService: AppCheckCoreAPIServiceProtocol? = nil
+  private let APIService: AppCheckCoreAPIServiceProtocol
   private let resourceName: String
 
   init(APIService: AppCheckCoreAPIServiceProtocol, resourceName: String) {
@@ -35,21 +35,21 @@ final class RecaptchaEnterpriseAPIService: NSObject {
 
   func appCheckToken(withRecaptchaToken recaptchaToken: String,
                      limitedUse: Bool) -> Promise<AppCheckCoreToken> {
-    let urlString = "\(APIService!.baseURL)/\(resourceName):exchangeRecaptchaEnterpriseToken"
+    let urlString = "\(APIService.baseURL)/\(resourceName):exchangeRecaptchaEnterpriseToken"
     guard let url = URL(string: urlString) else {
       return Promise(GACAppCheckErrorUtil.error(withFailureReason: "Invalid URL string"))
     }
 
     return httpBody(withRecaptchaToken: recaptchaToken, limitedUse: limitedUse)
       .then { httpBody in
-        Promise<GACURLSessionDataResponse>(self.APIService!.sendRequest(with: url,
-                                                                        httpMethod: "POST",
-                                                                        body: httpBody,
-                                                                        additionalHeaders: [Constants
-                                                                          .contentTypeKey: Constants
-                                                                          .jsonContentType]))
+        Promise<GACURLSessionDataResponse>(self.APIService.sendRequest(with: url,
+                                                                       httpMethod: "POST",
+                                                                       body: httpBody,
+                                                                       additionalHeaders: [Constants
+                                                                         .contentTypeKey: Constants
+                                                                         .jsonContentType]))
       }.then { response in
-        Promise<AppCheckCoreToken>(self.APIService!.appCheckToken(withAPIResponse: response))
+        Promise<AppCheckCoreToken>(self.APIService.appCheckToken(withAPIResponse: response))
       }
   }
 

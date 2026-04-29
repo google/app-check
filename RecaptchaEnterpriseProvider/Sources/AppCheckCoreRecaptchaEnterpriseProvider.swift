@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import AppCheckCoreProvider
+import AppCheckCore
 import Foundation
 import Promises
 import RecaptchaInterop
 
 @objc(GACRecaptchaEnterpriseProvider)
 public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCoreProvider {
-  private let tokenGenerator: RecaptchaEnterpriseTokenGenerator!
+  private var tokenGenerator: RecaptchaEnterpriseTokenGenerator?
   private let apiService: RecaptchaEnterpriseAPIService
 
   public init(siteKey: String, resourceName: String, APIKey: String,
@@ -27,7 +27,12 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
     let recaptchaAction =
       NSClassFromString("RecaptchaEnterprise.RCAAction") as? RCAActionProtocol.Type
     let action = recaptchaAction?.init(customAction: "app_check_ios")
-    tokenGenerator = RecaptchaEnterpriseTokenGenerator(siteKey: siteKey, action: action!)
+
+    if let action = action {
+      tokenGenerator = RecaptchaEnterpriseTokenGenerator(siteKey: siteKey, action: action)
+    } else {
+      tokenGenerator = nil
+    }
 
     let urlSession = URLSession(configuration: .ephemeral)
     let appCheckAPIService = AppCheckCoreAPIService(urlSession: urlSession,
@@ -62,6 +67,9 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
   }
 
   private func getToken(limitedUse: Bool) -> Promise<AppCheckCoreToken> {
+    guard let tokenGenerator = tokenGenerator else {
+      return Promise(GACAppCheckErrorUtil.unsupportedAttestationProvider("RecaptchaEnterprise"))
+    }
     return tokenGenerator.getRecaptchaToken()
       .then { recaptchaToken in
         self.apiService.appCheckToken(

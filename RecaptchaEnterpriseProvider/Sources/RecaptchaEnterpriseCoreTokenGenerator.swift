@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import AppCheckCore
 import Foundation
 import Promises
 import RecaptchaInterop
@@ -20,7 +21,7 @@ final class RecaptchaEnterpriseTokenGenerator {
   private let siteKey: String
   private let action: RCAActionProtocol
 
-  private var recaptchaPromise: Promise<RCARecaptchaClientProtocol>?
+  private let recaptchaPromise: Promise<RCARecaptchaClientProtocol>
 
   init(siteKey: String, action: RCAActionProtocol) {
     self.siteKey = siteKey
@@ -29,26 +30,29 @@ final class RecaptchaEnterpriseTokenGenerator {
       guard let recaptcha =
         NSClassFromString("RecaptchaEnterprise.RCARecaptcha") as? RCARecaptchaProtocol
           .Type else {
-        throw NSError(domain: "RecaptchaEnterprise", code: 1, userInfo: nil)
+        throw GACAppCheckErrorUtil.unsupportedAttestationProvider("RecaptchaEnterprise")
       }
       recaptcha.fetchClient(withSiteKey: siteKey) { client, error in
         if let client = client {
           fulfill(client)
         } else {
-          reject(error!)
+          reject(error ?? GACAppCheckErrorUtil
+            .error(withFailureReason: "Failed to fetch Recaptcha client"))
         }
       }
     }
   }
 
+  // TODO(ncooke3): Investigate whether we need a backoff mechanism.
   func getRecaptchaToken() -> Promise<String> {
-    recaptchaPromise!.then { client in
+    recaptchaPromise.then { client in
       Promise<String> { fulfill, reject in
         client.execute(withAction: self.action) { token, error in
           if let token = token {
             fulfill(token)
           } else {
-            reject(error!)
+            reject(error ?? GACAppCheckErrorUtil
+              .error(withFailureReason: "Failed to execute Recaptcha action"))
           }
         }
       }
