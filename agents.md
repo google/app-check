@@ -34,10 +34,14 @@ A successful task completion MUST produce:
 ## 💬 Communication Guidelines
 
 When reporting back to the user, prioritize scannability and clarity:
-1.  **Use Categorized Bullet Points**: Group findings and results into clear categories (e.g., "Build & Test Results", "Code Changes").
-2.  **Use Indicators**: Prefix status updates with checkmarks (✅) or caution symbols (⚠️) for immediate visual parsing.
-3.  **Be Concise**: Avoid conversational filler. Get straight to the results and next steps.
-4.  **Final Report**: Conclude the task with a concise summary of work and a recommended conventional commit message.
+1.  **Use Categorized Bullet Points**: Group findings and results into clear
+    categories (e.g., "Build & Test Results", "Code Changes").
+2.  **Use Indicators**: Prefix status updates with checkmarks (✅) or caution
+    symbols (⚠️) for immediate visual parsing.
+3.  **Be Concise**: Avoid conversational filler. Get straight to the results
+    and next steps.
+4.  **Final Report**: Conclude the task with a concise summary of work and a
+    recommended conventional commit message.
 
 ---
 
@@ -60,9 +64,11 @@ When reporting back to the user, prioritize scannability and clarity:
 ### Step 1: Test-Driven Development (TDD)
 - **Constraint**: You MUST write tests before writing implementation code.
 - **Action**:
-    1. Create or identify the correct test target in `Package.swift`. Keep Swift and Obj-C test targets separate.
+    1. Create or identify the correct test target in `Package.swift`. Keep
+       Swift and Obj-C test targets separate.
     2. Write a failing unit or integration test asserting the new behavior.
-    3. Verify it fails by running the appropriate test command (e.g., `swift test --filter <TargetName>`).
+    3. Verify it fails by running the appropriate test command (e.g., `swift
+       test --filter <TargetName>`).
 
 ### Step 2: Implementation
 - Implement the feature or fix.
@@ -97,18 +103,24 @@ When reporting back to the user, prioritize scannability and clarity:
 - **Requirement**: Identify and report any new public APIs created.
 - **Method**: Check for changes in public headers or symbols.
 
+### Step 5: Style Application
+- **Action**: You MUST run `<path_to_firebase_ios_sdk>/scripts/style.sh` to
+  maintain consistency.
+- **Constraint**: Since style changes are non-functional, you do NOT need to
+  re-run tests after applying style fixes.
+
+### Step 6: Documentation Formatting
+- **Requirement**: Wrap all documentation files (like `agents.md`) to be 80
+  characters or less (excluding code blocks). Remove all trailing whitespace.
+
 ---
 
 ## 🏆 Quality Gates & Best Practices
 
 - **Error Handling**: Test edge cases and error paths.
-- **Code Style**: You MUST run `<path_to_firebase_ios_sdk>/scripts/style.sh` to
-  maintain consistency. Since style changes are non-functional, you do NOT need
-  to re-run tests after applying style fixes.
 - **No Hardcoded Secrets**: Ensure no secrets are committed.
-- **Code Reuse & Refactoring**: Prioritize understanding existing structures
-  to reuse or extend them with minor refactors rather than adding redundant
-  code.
+- **Code Reuse & Refactoring**: Prioritize understanding existing structures to
+  reuse or extend them with minor refactors rather than adding redundant code.
 
 ---
 
@@ -128,7 +140,8 @@ When reporting back to the user, prioritize scannability and clarity:
 - **Commit Often**: Pause and commit work frequently.
 - **Scope**: Optimize for smaller commits that represent a complete piece of work
   or a specific milestone within a larger task.
-- **Convention**: Follow conventional commit practices (e.g. `feat:`, `fix:`, `refactor:`).
+- **Convention**: Follow conventional commit practices (e.g. `feat:`, `fix:`,
+  `refactor:`).
 
 ---
 
@@ -149,14 +162,23 @@ you may encounter the following blockers. Use these workarounds:
   local Ruby version by prefixing the command with `RBENV_VERSION=2.7.5`.
 - **Quality Gates**: Do not skip `style.sh` and `pod_lib_lint.rb`. They are
   critical for verification.
-- **Fixture Loading in Tests**: When running tests via `swift test` on macOS, `GACFixtureLoader` may fail to find JSON fixtures due to bundle resolution issues, causing tests to fail with `nil URL argument` exceptions. This is often an environment-specific issue with SPM resource bundles on macOS.
+- **Fixture Loading in Tests**: When running tests via `swift test` on macOS,
+  `GACFixtureLoader` may fail to find JSON fixtures due to bundle resolution
+  issues, causing tests to fail with `nil URL argument` exceptions. This is
+  often an environment-specific issue with SPM resource bundles on macOS.
 
 ### Swift / Objective-C Interoperability Pitfalls
 
-When working on mixed-language targets (e.g., Swift tests for Objective-C core code), you will encounter strict compiler bridging issues, particularly with generic classes like `FBLPromise`. To avoid build loop failures:
+When working on mixed-language targets (e.g., Swift tests for Objective-C core
+code), you will encounter strict compiler bridging issues, particularly with
+generic classes like `FBLPromise`. To avoid build loop failures:
 
-- **FBLPromise Instantiation**: `FBLPromise.init()` is `NS_UNAVAILABLE`. The standard Objective-C factory methods (`resolvedWith:` and `promiseWithError:`) bridge to Swift as **unlabeled** static methods that lose type inference.
-- **The Fix**: Do NOT attempt to specify generics on the receiver (e.g., `FBLPromise<Type>.resolved(...)` will fail). Instead, call the base method and force-cast the result:
+- **FBLPromise Instantiation**: `FBLPromise.init()` is `NS_UNAVAILABLE`. The
+  standard Objective-C factory methods (`resolvedWith:` and `promiseWithError:`)
+  bridge to Swift as **unlabeled** static methods that lose type inference.
+- **The Fix**: Do NOT attempt to specify generics on the receiver (e.g.,
+  `FBLPromise<Type>.resolved(...)` will fail). Instead, call the base method and
+  force-cast the result:
   ```swift
   // Success
   return FBLPromise.resolved(response) as! FBLPromise<GACURLSessionDataResponse>
@@ -164,7 +186,10 @@ When working on mixed-language targets (e.g., Swift tests for Objective-C core c
   // Failure (Must explicitly cast to NSError)
   return FBLPromise.resolved(error as NSError) as! FBLPromise<GACURLSessionDataResponse>
   ```
-- **Dynamic Dispatch fallback**: If Swift inference completely fails in test mocks, use Objective-C dynamic dispatch to bypass the compiler: `promiseClass.perform(NSSelectorFromString("resolvedWith:"), with: resolution)`.
+- **Dynamic Dispatch fallback**: If Swift inference completely fails in test
+  mocks, use Objective-C dynamic dispatch to bypass the compiler:
+  `promiseClass.perform(NSSelectorFromString("resolvedWith:"), with:
+  resolution)`.
 
 ---
 
@@ -177,4 +202,7 @@ The task is not done until a `walkthrough.md` artifact is created containing:
 ---
 
 ## 🧠 Post Change: Continuous Improvement
-Perform self-reflection after completing the task. You MUST update this file (`agents.md`) with any new learnings, context, or troubleshooting steps that were needed and will be needed again to refine the process for future agents. Alternatively, create or update a Knowledge Item.
+Perform self-reflection after completing the task. You MUST update this file
+(`agents.md`) with any new learnings, context, or troubleshooting steps that
+were needed and will be needed again to refine the process for future agents.
+Alternatively, create or update a Knowledge Item.
