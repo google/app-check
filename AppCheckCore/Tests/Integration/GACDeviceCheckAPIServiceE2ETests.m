@@ -29,8 +29,8 @@
 
 #import "FBLPromise+Testing.h"
 
-#import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
 #import "AppCheckCore/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAPIService.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
 // TODO: Replace with real resource name to run on CI

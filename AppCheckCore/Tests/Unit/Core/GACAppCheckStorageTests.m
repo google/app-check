@@ -35,7 +35,7 @@
 
 #import "AppCheckCore/Sources/Core/Storage/GACAppCheckStorage.h"
 
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
 static NSString *const kAppName = @"GACAppCheckStorageTestsApp";

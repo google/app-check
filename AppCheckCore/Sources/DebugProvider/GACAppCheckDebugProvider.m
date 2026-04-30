@@ -24,9 +24,9 @@
 
 #import <GoogleUtilities/GULUserDefaults.h>
 
-#import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
 #import "AppCheckCore/Sources/Core/GACAppCheckLogger+Internal.h"
 #import "AppCheckCore/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAPIService.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 

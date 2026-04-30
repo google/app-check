@@ -19,9 +19,9 @@
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h"
 #import "AppCheckCore/Sources/DeviceCheckProvider/GACDeviceCheckTokenGenerator.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACDeviceCheckProvider.h"
 

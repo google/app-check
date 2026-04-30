@@ -21,12 +21,12 @@
 
 #import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAPIService.h"
 #import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
-#import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
-#import "AppCheckCore/Sources/Core/APIService/GACURLSessionDataResponse.h"
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAPIService.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACURLSessionDataResponse.h"
 
 #import "AppCheckCore/Tests/Unit/Utils/GACFixtureLoader.h"
 #import "AppCheckCore/Tests/Utils/Date/GACDateTestUtils.h"

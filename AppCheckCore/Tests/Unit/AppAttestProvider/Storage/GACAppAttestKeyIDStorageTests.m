@@ -20,7 +20,7 @@
 
 #import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.h"
 
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
 
 static NSString *const kAppName = @"GACAppAttestKeyIDStorageTestsApp";
 static NSString *const kAppID = @"app_id";

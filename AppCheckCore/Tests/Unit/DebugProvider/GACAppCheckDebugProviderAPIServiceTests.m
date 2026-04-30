@@ -22,10 +22,10 @@
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheck.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
-#import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
-#import "AppCheckCore/Sources/Core/APIService/GACURLSessionDataResponse.h"
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAPIService.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACURLSessionDataResponse.h"
 
 #import "AppCheckCore/Tests/Utils/URLSession/GACURLSessionOCMockStub.h"
 
