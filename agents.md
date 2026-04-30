@@ -37,6 +37,7 @@ When reporting back to the user, prioritize scannability and clarity:
 1.  **Use Categorized Bullet Points**: Group findings and results into clear categories (e.g., "Build & Test Results", "Code Changes").
 2.  **Use Indicators**: Prefix status updates with checkmarks (✅) or caution symbols (⚠️) for immediate visual parsing.
 3.  **Be Concise**: Avoid conversational filler. Get straight to the results and next steps.
+4.  **Final Report**: Conclude the task with a concise summary of work and a recommended conventional commit message.
 
 ---
 
@@ -148,6 +149,7 @@ you may encounter the following blockers. Use these workarounds:
   local Ruby version by prefixing the command with `RBENV_VERSION=2.7.5`.
 - **Quality Gates**: Do not skip `style.sh` and `pod_lib_lint.rb`. They are
   critical for verification.
+- **Fixture Loading in Tests**: When running tests via `swift test` on macOS, `GACFixtureLoader` may fail to find JSON fixtures due to bundle resolution issues, causing tests to fail with `nil URL argument` exceptions. This is often an environment-specific issue with SPM resource bundles on macOS.
 
 ### Swift / Objective-C Interoperability Pitfalls
 
@@ -175,5 +177,4 @@ The task is not done until a `walkthrough.md` artifact is created containing:
 ---
 
 ## 🧠 Post Change: Continuous Improvement
-Perform self-reflection after completing the task and update this file or
-create/update a Knowledge Item to help future agents.
+Perform self-reflection after completing the task. You MUST update this file (`agents.md`) with any new learnings, context, or troubleshooting steps that were needed and will be needed again to refine the process for future agents. Alternatively, create or update a Knowledge Item.
