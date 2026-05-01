@@ -31,8 +31,8 @@
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
 #import "AppCheckCore/Sources/AppAttestProvider/Errors/GACAppAttestRejectionError.h"
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
 
 #import "AppCheckCore/Tests/Utils/AppCheckBackoffWrapperFake/GACAppCheckBackoffWrapperFake.h"
 

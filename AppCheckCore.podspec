@@ -37,6 +37,9 @@ Pod::Spec.new do |s|
   s.source_files = [
     base_dir + 'Sources/**/*.[mh]',
   ]
+  s.ios.source_files = [
+    'RecaptchaEnterpriseProvider/Sources/**/*.swift',
+  ]
   s.public_header_files = base_dir + 'Sources/Public/AppCheckCore/*.h'
 
   s.ios.weak_framework = 'DeviceCheck'
@@ -44,8 +47,10 @@ Pod::Spec.new do |s|
   s.tvos.weak_framework = 'DeviceCheck'
 
   s.dependency 'PromisesObjC', '~> 2.4'
+  s.dependency 'PromisesSwift', '~> 2.4'
   s.dependency 'GoogleUtilities/Environment', '~> 8.0'
   s.dependency 'GoogleUtilities/UserDefaults', '~> 8.0'
+  s.ios.dependency 'RecaptchaInterop', '~> 101.0'
 
   s.pod_target_xcconfig = {
     'GCC_C_LANGUAGE_STANDARD' => 'c99',

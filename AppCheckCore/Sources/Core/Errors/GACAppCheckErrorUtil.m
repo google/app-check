@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
 
 #import <DeviceCheck/DeviceCheck.h>
 

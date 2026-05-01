@@ -25,6 +25,12 @@ let package = Package(
       name: "AppCheckCore",
       targets: ["AppCheckCore"]
     ),
+
+    .library(
+      name: "RecaptchaEnterpriseProvider",
+      targets: ["RecaptchaEnterpriseProvider"]
+    ),
+
   ],
   dependencies: [
     .package(
@@ -38,6 +44,11 @@ let package = Package(
     .package(
       url: "https://github.com/erikdoe/ocmock.git",
       revision: "2c0bfd373289f4a7716db5d6db471640f91a6507"
+    ),
+    .package(
+      url: "https://github.com/google/interop-ios-for-google-sdks.git",
+      // TODO(ncooke3): Is this the correct supported version window?
+      "101.0.0" ..< "102.0.0"
     ),
   ],
   targets: [
@@ -58,6 +69,13 @@ let package = Package(
                 .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .appCheckVisionOS])
               ),
             ]),
+    .target(name: "RecaptchaEnterpriseProvider",
+            dependencies: [
+              "AppCheckCore",
+              .product(name: "RecaptchaInterop", package: "interop-ios-for-google-sdks"),
+              .product(name: "Promises", package: "Promises"),
+            ],
+            path: "RecaptchaEnterpriseProvider/Sources"),
     .testTarget(
       name: "AppCheckCoreUnit",
       dependencies: [
@@ -81,6 +99,17 @@ let package = Package(
       name: "AppCheckCoreUnitSwift",
       dependencies: ["AppCheckCore"],
       path: "AppCheckCore/Tests/Unit/Swift",
+      cSettings: [
+        .headerSearchPath("../.."),
+      ]
+    ),
+    .testTarget(
+      name: "RecaptchaEnterpriseProviderUnit",
+      dependencies: [
+        "RecaptchaEnterpriseProvider",
+        .product(name: "OCMock", package: "ocmock"),
+      ],
+      path: "RecaptchaEnterpriseProvider/Tests",
       cSettings: [
         .headerSearchPath("../.."),
       ]

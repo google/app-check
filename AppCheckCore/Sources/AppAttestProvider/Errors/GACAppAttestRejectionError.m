@@ -18,7 +18,7 @@
 
 #import "AppCheckCore/Sources/AppAttestProvider/Errors/GACAppAttestRejectionError.h"
 
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
 
 @implementation GACAppAttestRejectionError
 

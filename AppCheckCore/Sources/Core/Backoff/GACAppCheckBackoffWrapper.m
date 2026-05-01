@@ -22,8 +22,8 @@
 #import "FBLPromises.h"
 #endif
 
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
