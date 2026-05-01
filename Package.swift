@@ -23,7 +23,7 @@ let package = Package(
   products: [
     .library(
       name: "AppCheckCore",
-      targets: ["AppCheckCore"]
+      targets: ["AppCheckCore", "RecaptchaEnterpriseProvider"]
     ),
   ],
   dependencies: [

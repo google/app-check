@@ -26,6 +26,8 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
   override func setUp() {
     super.setUp()
     mockAction = MockRCAAction(customAction: "test_action")
+    MockRecaptcha.mockClient = nil
+    MockRecaptcha.mockError = nil
   }
 
   func testGetRecaptchaTokenWithoutSDK() {
@@ -45,20 +47,84 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
 
     waitForExpectations(timeout: 1.0)
   }
-}
 
-// MARK: - Mocks
+  func testGetRecaptchaTokenSuccess() {
+    // Arrange
+    let mockClient = MockRecaptchaClient(dummy: ())
+    mockClient.mockToken = "valid-recaptcha-token"
+    MockRecaptcha.mockClient = mockClient
 
-private class MockRCAAction: NSObject, RCAActionProtocol {
-  var action: String { return customAction }
+    let generator = RecaptchaEnterpriseTokenGenerator(
+      siteKey: testSiteKey,
+      action: mockAction,
+      recaptchaClass: MockRecaptcha.self
+    )
 
-  static var login: RCAActionProtocol { return MockRCAAction(customAction: "login") }
-  static var signup: RCAActionProtocol { return MockRCAAction(customAction: "signup") }
+    let expectation = self.expectation(description: "Generates token successfully")
 
-  let customAction: String
+    // Act
+    generator.getRecaptchaToken().then { token in
+      // Assert
+      XCTAssertEqual(token, "valid-recaptcha-token")
+      expectation.fulfill()
+    }.catch { error in
+      XCTFail("Unexpected error: \(error)")
+    }
 
-  required init(customAction: String) {
-    self.customAction = customAction
-    super.init()
+    waitForExpectations(timeout: 1.0)
+  }
+
+  func testGetRecaptchaTokenFetchClientFailure() {
+    // Arrange
+    let expectedError = NSError(domain: "test", code: -1, userInfo: nil)
+    MockRecaptcha.mockError = expectedError
+
+    let generator = RecaptchaEnterpriseTokenGenerator(
+      siteKey: testSiteKey,
+      action: mockAction,
+      recaptchaClass: MockRecaptcha.self
+    )
+
+    let expectation = self.expectation(description: "Fails when fetchClient fails")
+
+    // Act
+    generator.getRecaptchaToken().then { token in
+      XCTFail("Should not succeed when fetchClient fails")
+    }.catch { error in
+      // Assert
+      XCTAssertEqual((error as NSError).domain, expectedError.domain)
+      XCTAssertEqual((error as NSError).code, expectedError.code)
+      expectation.fulfill()
+    }
+
+    waitForExpectations(timeout: 1.0)
+  }
+
+  func testGetRecaptchaTokenExecutionFailure() {
+    // Arrange
+    let mockClient = MockRecaptchaClient(dummy: ())
+    let expectedError = NSError(domain: "test", code: -2, userInfo: nil)
+    mockClient.mockError = expectedError
+    MockRecaptcha.mockClient = mockClient
+
+    let generator = RecaptchaEnterpriseTokenGenerator(
+      siteKey: testSiteKey,
+      action: mockAction,
+      recaptchaClass: MockRecaptcha.self
+    )
+
+    let expectation = self.expectation(description: "Fails when execute fails")
+
+    // Act
+    generator.getRecaptchaToken().then { token in
+      XCTFail("Should not succeed when execute fails")
+    }.catch { error in
+      // Assert
+      XCTAssertEqual((error as NSError).domain, expectedError.domain)
+      XCTAssertEqual((error as NSError).code, expectedError.code)
+      expectation.fulfill()
+    }
+
+    waitForExpectations(timeout: 1.0)
   }
 }

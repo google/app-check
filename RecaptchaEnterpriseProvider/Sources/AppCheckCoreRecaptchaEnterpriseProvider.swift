@@ -24,8 +24,8 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
   private var tokenGenerator: RecaptchaEnterpriseTokenGenerator?
   private let apiService: RecaptchaEnterpriseAPIService
 
-  public init(siteKey: String, resourceName: String, APIKey: String,
-              requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? = nil) {
+  @objc public init(siteKey: String, resourceName: String, APIKey: String,
+                    requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? = nil) {
     let recaptchaAction =
       NSClassFromString("RecaptchaEnterprise.RCAAction") as? RCAActionProtocol.Type
     let action = recaptchaAction?.init(customAction: "app_check_ios")
@@ -45,6 +45,13 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
       APIService: appCheckAPIService,
       resourceName: resourceName
     )
+  }
+
+  init(tokenGenerator: RecaptchaEnterpriseTokenGenerator?,
+       apiService: RecaptchaEnterpriseAPIService) {
+    self.tokenGenerator = tokenGenerator
+    self.apiService = apiService
+    super.init()
   }
 
   @objc(getTokenWithCompletion:)

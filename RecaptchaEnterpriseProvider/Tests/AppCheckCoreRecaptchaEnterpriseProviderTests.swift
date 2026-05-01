@@ -75,4 +75,47 @@ final class AppCheckCoreRecaptchaEnterpriseProviderTests: XCTestCase {
 
     waitForExpectations(timeout: 1.0)
   }
+
+  func testGetTokenSuccess() {
+    // Arrange
+    let mockClient = MockRecaptchaClient(dummy: ())
+    mockClient.mockToken = "valid-recaptcha-token"
+    MockRecaptcha.mockClient = mockClient
+
+    let tokenGenerator = RecaptchaEnterpriseTokenGenerator(
+      siteKey: testSiteKey,
+      action: MockRCAAction(customAction: "app_check_ios"),
+      recaptchaClass: MockRecaptcha.self
+    )
+
+    let mockCoreAPIService = MockAppCheckCoreAPIService()
+    let expectedAppCheckToken = AppCheckCoreToken(
+      token: "app-check-token-456",
+      expirationDate: Date(timeIntervalSinceNow: 3600)
+    )
+    mockCoreAPIService.expectedToken = expectedAppCheckToken
+
+    let apiService = RecaptchaEnterpriseAPIService(
+      APIService: mockCoreAPIService,
+      resourceName: testResourceName
+    )
+
+    let providerWithMocks = AppCheckCoreRecaptchaEnterpriseProvider(
+      tokenGenerator: tokenGenerator,
+      apiService: apiService
+    )
+
+    let expectation = self.expectation(description: "Get token succeeds")
+
+    // Act
+    providerWithMocks.getToken { token, error in
+      // Assert
+      XCTAssertNotNil(token)
+      XCTAssertNil(error)
+      XCTAssertEqual(token?.token, expectedAppCheckToken.token)
+      expectation.fulfill()
+    }
+
+    waitForExpectations(timeout: 1.0)
+  }
 }
