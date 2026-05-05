@@ -34,6 +34,8 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
     let recaptchaAction =
       NSClassFromString(Self.recaptchaActionClassName) as? RCAActionProtocol.Type
     if recaptchaAction == nil {
+      // Fail fast in Debug (-Onone) builds to alert the developer.
+      // In Release (-O) builds, this falls back to returning an error in getToken.
       assertionFailure(
         "The reCAPTCHA Enterprise SDK is not linked. See https://cloud.google.com/recaptcha/docs/instrument-ios-apps#prepare-environment"
       )
