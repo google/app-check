@@ -21,6 +21,10 @@ import RecaptchaInterop
 
 @objc(GACRecaptchaEnterpriseProvider)
 public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCoreProvider {
+  private static let recaptchaActionClassName = "RecaptchaEnterprise.RCAAction"
+  private static let appCheckActionName = "app_check_ios"
+  private static let providerName = "RecaptchaEnterprise"
+
   private let tokenGenerator: RecaptchaEnterpriseTokenGenerator?
   private let apiService: RecaptchaEnterpriseAPIService
 
@@ -28,11 +32,13 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
                                 requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? =
                                   nil) {
     let recaptchaAction =
-      NSClassFromString("RecaptchaEnterprise.RCAAction") as? RCAActionProtocol.Type
+      NSClassFromString(Self.recaptchaActionClassName) as? RCAActionProtocol.Type
     if recaptchaAction == nil {
-      assertionFailure("The reCAPTCHA SDK is not linked. Please see the documentation.")
+      assertionFailure(
+        "The reCAPTCHA Enterprise SDK is not linked. See https://cloud.google.com/recaptcha/docs/instrument-ios-apps#prepare-environment"
+      )
     }
-    let action = recaptchaAction?.init(customAction: "app_check_ios")
+    let action = recaptchaAction?.init(customAction: Self.appCheckActionName)
 
     let tokenGenerator: RecaptchaEnterpriseTokenGenerator?
     if let action {
@@ -84,7 +90,7 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
 
   private func getToken(limitedUse: Bool) -> Promise<AppCheckCoreToken> {
     guard let tokenGenerator = tokenGenerator else {
-      return Promise(GACAppCheckErrorUtil.unsupportedAttestationProvider("RecaptchaEnterprise"))
+      return Promise(GACAppCheckErrorUtil.unsupportedAttestationProvider(Self.providerName))
     }
     return tokenGenerator.getRecaptchaToken()
       .then { recaptchaToken in
