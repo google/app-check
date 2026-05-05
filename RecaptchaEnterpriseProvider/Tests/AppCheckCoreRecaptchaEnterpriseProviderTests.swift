@@ -26,11 +26,14 @@ final class AppCheckCoreRecaptchaEnterpriseProviderTests: XCTestCase {
 
   override func setUp() {
     super.setUp()
+    let mockCoreAPIService = MockAppCheckCoreAPIService()
+    let apiService = RecaptchaEnterpriseAPIService(
+      APIService: mockCoreAPIService,
+      resourceName: testResourceName
+    )
     provider = AppCheckCoreRecaptchaEnterpriseProvider(
-      siteKey: testSiteKey,
-      resourceName: testResourceName,
-      APIKey: testAPIKey,
-      requestHooks: nil
+      tokenGenerator: nil,
+      apiService: apiService
     )
   }
 

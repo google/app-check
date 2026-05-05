@@ -29,6 +29,9 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
                                   nil) {
     let recaptchaAction =
       NSClassFromString("RecaptchaEnterprise.RCAAction") as? RCAActionProtocol.Type
+    if recaptchaAction == nil {
+      assertionFailure("The reCAPTCHA SDK is not linked. Please see the documentation.")
+    }
     let action = recaptchaAction?.init(customAction: "app_check_ios")
 
     let tokenGenerator: RecaptchaEnterpriseTokenGenerator?
