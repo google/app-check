@@ -21,16 +21,18 @@ import RecaptchaInterop
 
 @objc(GACRecaptchaEnterpriseProvider)
 public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCoreProvider {
-  private var tokenGenerator: RecaptchaEnterpriseTokenGenerator?
+  private let tokenGenerator: RecaptchaEnterpriseTokenGenerator?
   private let apiService: RecaptchaEnterpriseAPIService
 
-  @objc public init(siteKey: String, resourceName: String, APIKey: String,
-                    requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? = nil) {
+  @objc public convenience init(siteKey: String, resourceName: String, APIKey: String,
+                                requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? =
+                                  nil) {
     let recaptchaAction =
       NSClassFromString("RecaptchaEnterprise.RCAAction") as? RCAActionProtocol.Type
     let action = recaptchaAction?.init(customAction: "app_check_ios")
 
-    if let action = action {
+    let tokenGenerator: RecaptchaEnterpriseTokenGenerator?
+    if let action {
       tokenGenerator = RecaptchaEnterpriseTokenGenerator(siteKey: siteKey, action: action)
     } else {
       tokenGenerator = nil
@@ -41,10 +43,12 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
                                                     baseURL: nil,
                                                     apiKey: APIKey,
                                                     requestHooks: requestHooks)
-    apiService = RecaptchaEnterpriseAPIService(
+    let apiService = RecaptchaEnterpriseAPIService(
       APIService: appCheckAPIService,
       resourceName: resourceName
     )
+
+    self.init(tokenGenerator: tokenGenerator, apiService: apiService)
   }
 
   init(tokenGenerator: RecaptchaEnterpriseTokenGenerator?,
