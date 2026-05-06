@@ -32,11 +32,11 @@ final class RecaptchaEnterpriseTokenGenerator {
     recaptchaPromise = Promise<RCARecaptchaClientProtocol> { fulfill, reject in
       let recaptcha = recaptchaClass ??
         NSClassFromString("RecaptchaEnterprise.RCARecaptcha") as? RCARecaptchaProtocol.Type
-      guard let recaptcha = recaptcha else {
+      guard let recaptcha else {
         throw GACAppCheckErrorUtil.unsupportedAttestationProvider("RecaptchaEnterprise")
       }
       recaptcha.fetchClient(withSiteKey: siteKey) { client, error in
-        if let client = client {
+        if let client {
           fulfill(client)
         } else {
           reject(error ?? GACAppCheckErrorUtil
