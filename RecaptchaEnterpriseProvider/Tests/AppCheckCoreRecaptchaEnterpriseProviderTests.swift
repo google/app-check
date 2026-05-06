@@ -28,7 +28,7 @@ final class AppCheckCoreRecaptchaEnterpriseProviderTests: XCTestCase {
     super.setUp()
     let mockCoreAPIService = MockAppCheckCoreAPIService()
     let apiService = RecaptchaEnterpriseAPIService(
-      APIService: mockCoreAPIService,
+      apiService: mockCoreAPIService,
       resourceName: testResourceName
     )
     provider = AppCheckCoreRecaptchaEnterpriseProvider(
@@ -87,7 +87,7 @@ final class AppCheckCoreRecaptchaEnterpriseProviderTests: XCTestCase {
 
     let tokenGenerator = RecaptchaEnterpriseTokenGenerator(
       siteKey: testSiteKey,
-      action: MockRCAAction(customAction: "app_check_ios"),
+      recaptchaAction: MockRCAAction(customAction: "app_check_ios"),
       recaptchaClass: MockRecaptcha.self
     )
 
@@ -99,7 +99,7 @@ final class AppCheckCoreRecaptchaEnterpriseProviderTests: XCTestCase {
     mockCoreAPIService.expectedToken = expectedAppCheckToken
 
     let apiService = RecaptchaEnterpriseAPIService(
-      APIService: mockCoreAPIService,
+      apiService: mockCoreAPIService,
       resourceName: testResourceName
     )
 

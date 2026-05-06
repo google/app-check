@@ -44,7 +44,7 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
 
     let tokenGenerator: RecaptchaEnterpriseTokenGenerator?
     if let action {
-      tokenGenerator = RecaptchaEnterpriseTokenGenerator(siteKey: siteKey, action: action)
+      tokenGenerator = RecaptchaEnterpriseTokenGenerator(siteKey: siteKey, recaptchaAction: action)
     } else {
       tokenGenerator = nil
     }
@@ -55,7 +55,7 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
                                                     apiKey: APIKey,
                                                     requestHooks: requestHooks)
     let apiService = RecaptchaEnterpriseAPIService(
-      APIService: appCheckAPIService,
+      apiService: appCheckAPIService,
       resourceName: resourceName
     )
 

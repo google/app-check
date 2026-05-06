@@ -21,15 +21,15 @@ import RecaptchaInterop
 
 final class RecaptchaEnterpriseTokenGenerator {
   private let siteKey: String
-  private let action: RCAActionProtocol
+  private let recaptchaAction: RCAActionProtocol
 
-  private let recaptchaPromise: Promise<RCARecaptchaClientProtocol>
+  private let recaptchaClient: Promise<RCARecaptchaClientProtocol>
 
-  init(siteKey: String, action: RCAActionProtocol,
+  init(siteKey: String, recaptchaAction: RCAActionProtocol,
        recaptchaClass: RCARecaptchaProtocol.Type? = nil) {
     self.siteKey = siteKey
-    self.action = action
-    recaptchaPromise = Promise<RCARecaptchaClientProtocol> { fulfill, reject in
+    self.recaptchaAction = recaptchaAction
+    recaptchaClient = Promise<RCARecaptchaClientProtocol> { fulfill, reject in
       let recaptcha = recaptchaClass ??
         NSClassFromString("RecaptchaEnterprise.RCARecaptcha") as? RCARecaptchaProtocol.Type
       guard let recaptcha else {
@@ -48,9 +48,9 @@ final class RecaptchaEnterpriseTokenGenerator {
 
   // TODO(ncooke3): Investigate whether we need a backoff mechanism.
   func getRecaptchaToken() -> Promise<String> {
-    recaptchaPromise.then { client in
+    recaptchaClient.then { client in
       Promise<String> { fulfill, reject in
-        client.execute(withAction: self.action) { token, error in
+        client.execute(withAction: self.recaptchaAction) { token, error in
           if let token = token {
             fulfill(token)
           } else {

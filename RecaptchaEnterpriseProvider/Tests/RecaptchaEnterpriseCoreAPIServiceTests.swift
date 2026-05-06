@@ -28,7 +28,7 @@ final class RecaptchaEnterpriseCoreAPIServiceTests: XCTestCase {
     super.setUp()
     mockCoreAPIService = MockAppCheckCoreAPIService()
     apiService = RecaptchaEnterpriseAPIService(
-      APIService: mockCoreAPIService,
+      apiService: mockCoreAPIService,
       resourceName: testResourceName
     )
   }

@@ -31,7 +31,10 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
   }
 
   func testGetRecaptchaTokenWithoutSDK() {
-    let generator = RecaptchaEnterpriseTokenGenerator(siteKey: testSiteKey, action: mockAction)
+    let generator = RecaptchaEnterpriseTokenGenerator(
+      siteKey: testSiteKey,
+      recaptchaAction: mockAction
+    )
 
     let expectation = self.expectation(description: "Fails to generate token without Recaptcha SDK")
 
@@ -56,7 +59,7 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
 
     let generator = RecaptchaEnterpriseTokenGenerator(
       siteKey: testSiteKey,
-      action: mockAction,
+      recaptchaAction: mockAction,
       recaptchaClass: MockRecaptcha.self
     )
 
@@ -81,7 +84,7 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
 
     let generator = RecaptchaEnterpriseTokenGenerator(
       siteKey: testSiteKey,
-      action: mockAction,
+      recaptchaAction: mockAction,
       recaptchaClass: MockRecaptcha.self
     )
 
@@ -109,7 +112,7 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
 
     let generator = RecaptchaEnterpriseTokenGenerator(
       siteKey: testSiteKey,
-      action: mockAction,
+      recaptchaAction: mockAction,
       recaptchaClass: MockRecaptcha.self
     )
 
