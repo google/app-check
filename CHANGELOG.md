@@ -1,3 +1,6 @@
+# 11.3.0
+- [changed] Added Recaptcha Enterprise attestation provider.
+
 # 11.2.0
 - [changed] To prevent reusing expired artifacts, skip local cache when making
   network requests.
