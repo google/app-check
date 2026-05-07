@@ -34,5 +34,6 @@
 
 // Internal headers exposed for interop with the Swift implementation.
 #import "GACAppCheckAPIService.h"
+#import "GACAppCheckBackoffWrapper.h"
 #import "GACAppCheckErrorUtil.h"
 #import "GACURLSessionDataResponse.h"

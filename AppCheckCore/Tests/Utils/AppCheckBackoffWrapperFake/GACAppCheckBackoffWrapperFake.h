@@ -18,7 +18,13 @@
 
 #import <XCTest/XCTest.h>
 
-#import "AppCheckCore/Sources/Core/Backoff/GACAppCheckBackoffWrapper.h"
+#if __has_include(<FBLPromises/FBLPromises.h>)
+#import <FBLPromises/FBLPromises.h>
+#else
+#import "FBLPromises.h"
+#endif
+
+#import <AppCheckCore/GACAppCheckBackoffWrapper.h>
 
 NS_ASSUME_NONNULL_BEGIN
 

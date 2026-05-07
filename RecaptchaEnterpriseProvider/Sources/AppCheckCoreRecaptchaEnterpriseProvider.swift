@@ -44,7 +44,12 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
 
     let tokenGenerator: RecaptchaEnterpriseTokenGenerator?
     if let action {
-      tokenGenerator = RecaptchaEnterpriseTokenGenerator(siteKey: siteKey, recaptchaAction: action)
+      let backoffWrapper = GACAppCheckBackoffWrapper()
+      tokenGenerator = RecaptchaEnterpriseTokenGenerator(
+        siteKey: siteKey,
+        recaptchaAction: action,
+        backoffWrapper: backoffWrapper
+      )
     } else {
       tokenGenerator = nil
     }

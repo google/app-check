@@ -23,7 +23,7 @@
 #import "FBLPromises.h"
 #endif
 
-#import "AppCheckCore/Sources/Core/Backoff/GACAppCheckBackoffWrapper.h"
+#import <AppCheckCore/GACAppCheckBackoffWrapper.h>
 
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
 

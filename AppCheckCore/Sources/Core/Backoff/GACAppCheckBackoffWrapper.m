@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Sources/Core/Backoff/GACAppCheckBackoffWrapper.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckBackoffWrapper.h"
 
 #if __has_include(<FBLPromises/FBLPromises.h>)
 #import <FBLPromises/FBLPromises.h>
