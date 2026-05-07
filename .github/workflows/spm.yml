@@ -32,4 +32,4 @@ jobs:
     - name: Initialize xcodebuild
       run: xcodebuild -list
     - name: iOS Unit Tests
-      run: scripts/third_party/travis/retry.sh scripts/build.sh AppCheck ${{ matrix.platform }} spm
+      run: scripts/third_party/travis/retry.sh scripts/build.sh AppCheck-Package ${{ matrix.platform }} spm
