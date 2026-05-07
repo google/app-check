@@ -231,7 +231,11 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
   func testGetRecaptchaTokenMapsNetworkErrorToServerUnreachable() {
     // Arrange
     let mockClient = MockRecaptchaClient(dummy: ())
-    let recaptchaError = NSError(domain: "RecaptchaErrorDomain", code: 1, userInfo: nil)
+    let recaptchaError = NSError(
+      domain: "RecaptchaErrorDomain",
+      code: RecaptchaEnterpriseTokenGenerator.networkErrorCode,
+      userInfo: nil
+    )
     mockClient.mockError = recaptchaError
     MockRecaptcha.mockClient = mockClient
 
@@ -263,7 +267,11 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
   func testGetRecaptchaTokenMapsInternalErrorToServerUnreachable() {
     // Arrange
     let mockClient = MockRecaptchaClient(dummy: ())
-    let recaptchaError = NSError(domain: "RecaptchaErrorDomain", code: 100, userInfo: nil)
+    let recaptchaError = NSError(
+      domain: "RecaptchaErrorDomain",
+      code: RecaptchaEnterpriseTokenGenerator.internalErrorCode,
+      userInfo: nil
+    )
     mockClient.mockError = recaptchaError
     MockRecaptcha.mockClient = mockClient
 

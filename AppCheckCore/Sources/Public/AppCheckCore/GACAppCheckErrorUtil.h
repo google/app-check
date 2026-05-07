@@ -49,6 +49,8 @@ void GACAppCheckSetErrorToPointer(NSError *error, NSError **pointer);
 
 + (NSError *)unsupportedAttestationProvider:(NSString *)providerName;
 
++ (NSError *)missingRecaptchaSDKError;
+
 // MARK: - App Attest Errors
 
 + (NSError *)appAttestKeyIDNotFound;

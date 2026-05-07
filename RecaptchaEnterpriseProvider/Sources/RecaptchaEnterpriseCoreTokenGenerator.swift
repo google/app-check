@@ -21,6 +21,9 @@ import Promises
 import RecaptchaInterop
 
 final class RecaptchaEnterpriseTokenGenerator {
+  static let networkErrorCode = 1
+  static let internalErrorCode = 100
+
   private let siteKey: String
   private let recaptchaAction: RCAActionProtocol
 
@@ -109,8 +112,9 @@ final class RecaptchaEnterpriseTokenGenerator {
       return GACAppCheckErrorUtil.error(withFailureReason: "Failed to execute Recaptcha action")
     }
 
-    // Map RecaptchaErrorNetworkError (1) and RecaptchaErrorCodeInternalError (100)
-    if error.code == 1 || error.code == 100 {
+    // Map RecaptchaErrorNetworkError and RecaptchaErrorCodeInternalError.
+    // See https://docs.cloud.google.com/recaptcha/docs/reference/ios/client/api/Enums/RecaptchaErrorCode.html
+    if error.code == Self.networkErrorCode || error.code == Self.internalErrorCode {
       return GACAppCheckErrorUtil.apiError(withNetworkError: error)
     }
 

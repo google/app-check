@@ -108,6 +108,15 @@
                      underlyingError:nil];
 }
 
++ (NSError *)missingRecaptchaSDKError {
+  NSString *failureReason =
+      @"The reCAPTCHA Enterprise SDK is not linked. See "
+      @"https://cloud.google.com/recaptcha/docs/instrument-ios-apps#prepare-environment";
+  return [self appCheckErrorWithCode:GACAppCheckErrorCodeUnsupported
+                       failureReason:failureReason
+                     underlyingError:nil];
+}
+
 + (NSError *)errorWithFailureReason:(NSString *)failureReason {
   return [self appCheckErrorWithCode:GACAppCheckErrorCodeUnknown
                        failureReason:failureReason

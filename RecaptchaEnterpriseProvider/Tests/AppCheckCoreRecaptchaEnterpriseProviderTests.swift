@@ -55,6 +55,10 @@ final class AppCheckCoreRecaptchaEnterpriseProviderTests: XCTestCase {
       let nsError = error as NSError?
       XCTAssertEqual(nsError?.domain, AppCheckCoreErrorDomain)
       XCTAssertEqual(nsError?.code, AppCheckCoreErrorCode.unsupported.rawValue)
+      XCTAssertEqual(
+        nsError?.localizedFailureReason,
+        "The reCAPTCHA Enterprise SDK is not linked. See https://cloud.google.com/recaptcha/docs/instrument-ios-apps#prepare-environment"
+      )
 
       expectation.fulfill()
     }
@@ -72,6 +76,10 @@ final class AppCheckCoreRecaptchaEnterpriseProviderTests: XCTestCase {
       let nsError = error as NSError?
       XCTAssertEqual(nsError?.domain, AppCheckCoreErrorDomain)
       XCTAssertEqual(nsError?.code, AppCheckCoreErrorCode.unsupported.rawValue)
+      XCTAssertEqual(
+        nsError?.localizedFailureReason,
+        "The reCAPTCHA Enterprise SDK is not linked. See https://cloud.google.com/recaptcha/docs/instrument-ios-apps#prepare-environment"
+      )
 
       expectation.fulfill()
     }
