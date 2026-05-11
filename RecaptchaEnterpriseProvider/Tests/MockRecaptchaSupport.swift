@@ -98,24 +98,35 @@ class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
       additionalHeaders: additionalHeaders
     )
 
-    let resolution: Any = (expectedError as NSError?) ??
-      (expectedResponse ?? GACURLSessionDataResponse(
+    let promise = Promise<GACURLSessionDataResponse>.pending()
+
+    if let error = expectedError {
+      promise.reject(error)
+    } else {
+      let response = expectedResponse ?? GACURLSessionDataResponse(
         response: HTTPURLResponse(),
         httpBody: Data()
-      ))
-    let promiseClass = NSClassFromString("FBLPromise") as! NSObject.Type
-    let unmanaged = promiseClass.perform(NSSelectorFromString("resolvedWith:"), with: resolution)!
-    return unmanaged.takeUnretainedValue() as! FBLPromise<GACURLSessionDataResponse>
+      )
+      promise.fulfill(response)
+    }
+
+    return promise.asObjCPromise()
   }
 
   func appCheckToken(withAPIResponse response: GACURLSessionDataResponse)
     -> FBLPromise<AppCheckCoreToken> {
-    let resolution: Any = (expectedError as NSError?) ?? (expectedToken ?? AppCheckCoreToken(
-      token: "dummy",
-      expirationDate: Date()
-    ))
-    let promiseClass = NSClassFromString("FBLPromise") as! NSObject.Type
-    let unmanaged = promiseClass.perform(NSSelectorFromString("resolvedWith:"), with: resolution)!
-    return unmanaged.takeUnretainedValue() as! FBLPromise<AppCheckCoreToken>
+    let promise = Promise<AppCheckCoreToken>.pending()
+
+    if let error = expectedError {
+      promise.reject(error)
+    } else {
+      let token = expectedToken ?? AppCheckCoreToken(
+        token: "dummy",
+        expirationDate: Date()
+      )
+      promise.fulfill(token)
+    }
+
+    return promise.asObjCPromise()
   }
 }

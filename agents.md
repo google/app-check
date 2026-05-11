@@ -186,10 +186,14 @@ generic classes like `FBLPromise`. To avoid build loop failures:
   // Failure (Must explicitly cast to NSError)
   return FBLPromise.resolved(error as NSError) as! FBLPromise<GACURLSessionDataResponse>
   ```
-- **Dynamic Dispatch fallback**: If Swift inference completely fails in test
-  mocks, use Objective-C dynamic dispatch to bypass the compiler:
-  `promiseClass.perform(NSSelectorFromString("resolvedWith:"), with:
-  resolution)`.
+- **PromisesSwift Interoperability**: If you need to return an `FBLPromise` from
+  Swift (e.g., in test mocks), prefer creating a Swift `Promise` and converting
+  it using `asObjCPromise()` rather than using reflection or dynamic dispatch:
+  ```swift
+  let promise = Promise<GACURLSessionDataResponse>.pending()
+  // ... fulfill or reject ...
+  return promise.asObjCPromise()
+  ```
 
 ---
 
