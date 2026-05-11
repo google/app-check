@@ -28,8 +28,6 @@ final class RecaptchaEnterpriseTokenGenerator {
   // See https://docs.cloud.google.com/recaptcha/docs/reference/ios/client/api/Enums/RecaptchaErrorCode.html#recaptchaerrorcodeinternalerror
   static let internalErrorCode = 100
 
-  private static let recaptchaClassName = "RecaptchaEnterprise.RCARecaptcha"
-
   private let siteKey: String
   private let recaptchaAction: RCAActionProtocol
 
@@ -38,18 +36,13 @@ final class RecaptchaEnterpriseTokenGenerator {
   private let backoffWrapper: GACAppCheckBackoffWrapperProtocol?
 
   init(siteKey: String, recaptchaAction: RCAActionProtocol,
-       recaptchaClass: RCARecaptchaProtocol.Type? = nil,
+       recaptchaClass: RCARecaptchaProtocol.Type,
        backoffWrapper: GACAppCheckBackoffWrapperProtocol? = nil) {
     self.siteKey = siteKey
     self.recaptchaAction = recaptchaAction
     self.backoffWrapper = backoffWrapper
     recaptchaClient = Promise<RCARecaptchaClientProtocol> { fulfill, reject in
-      let recaptcha = recaptchaClass ??
-        NSClassFromString(Self.recaptchaClassName) as? RCARecaptchaProtocol.Type
-      guard let recaptcha else {
-        throw GACAppCheckErrorUtil.unsupportedAttestationProvider("RecaptchaEnterprise")
-      }
-      recaptcha.fetchClient(withSiteKey: siteKey) { client, error in
+      recaptchaClass.fetchClient(withSiteKey: siteKey) { client, error in
         if let client {
           fulfill(client)
         } else {

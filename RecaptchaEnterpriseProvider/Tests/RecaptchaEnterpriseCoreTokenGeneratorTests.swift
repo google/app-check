@@ -60,27 +60,6 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
     MockRecaptcha.mockError = nil
   }
 
-  func testGetRecaptchaTokenWithoutSDK() {
-    let generator = RecaptchaEnterpriseTokenGenerator(
-      siteKey: testSiteKey,
-      recaptchaAction: mockAction
-    )
-
-    let expectation = self.expectation(description: "Fails to generate token without Recaptcha SDK")
-
-    generator.getRecaptchaToken().then { token in
-      XCTFail("Should not succeed without SDK")
-    }.catch { error in
-      XCTAssertNotNil(error)
-      let nsError = error as NSError
-      XCTAssertEqual(nsError.domain, AppCheckCoreErrorDomain)
-      XCTAssertEqual(nsError.code, AppCheckCoreErrorCode.unsupported.rawValue)
-      expectation.fulfill()
-    }
-
-    waitForExpectations(timeout: 1.0)
-  }
-
   func testGetRecaptchaTokenSuccess() {
     // Arrange
     let mockClient = MockRecaptchaClient(dummy: ())

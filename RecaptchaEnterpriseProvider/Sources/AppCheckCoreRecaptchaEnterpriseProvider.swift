@@ -37,24 +37,19 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
   @objc public convenience init(siteKey: String, resourceName: String, APIKey: String,
                                 requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? =
                                   nil) {
-    let recaptchaAction =
-      NSClassFromString(Self.recaptchaActionClassName) as? RCAActionProtocol.Type
-    if recaptchaAction == nil {
-      // Fail fast in Debug (-Onone) builds to alert the developer.
-      // In Release (-O) builds, this falls back to returning an error in getToken.
-      assertionFailure(Self.missingSDKMessage)
-    }
-    let action = recaptchaAction?.init(customAction: Self.appCheckActionName)
-
     let tokenGenerator: RecaptchaEnterpriseTokenGenerator?
-    if let action {
+
+    if let sdk = RecaptchaEnterpriseSDK(customAction: Self.appCheckActionName) {
       let backoffWrapper = GACAppCheckBackoffWrapper()
+
       tokenGenerator = RecaptchaEnterpriseTokenGenerator(
         siteKey: siteKey,
-        recaptchaAction: action,
+        recaptchaAction: sdk.action,
+        recaptchaClass: sdk.recaptchaClass,
         backoffWrapper: backoffWrapper
       )
     } else {
+      assertionFailure(Self.missingSDKMessage)
       tokenGenerator = nil
     }
 
@@ -110,5 +105,26 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
           limitedUse: limitedUse
         )
       }
+  }
+}
+
+private struct RecaptchaEnterpriseSDK {
+  private static let recaptchaActionClassName = "RecaptchaEnterprise.RCAAction"
+  private static let recaptchaClassName = "RecaptchaEnterprise.RCARecaptcha"
+
+  let action: RCAActionProtocol
+  let recaptchaClass: RCARecaptchaProtocol.Type
+
+  init?(customAction: String) {
+    let actionObj: AnyClass? = NSClassFromString(Self.recaptchaActionClassName)
+    let recaptchaObj: AnyClass? = NSClassFromString(Self.recaptchaClassName)
+
+    guard let actionClass = actionObj as? RCAActionProtocol.Type,
+          let recaptchaClass = recaptchaObj as? RCARecaptchaProtocol.Type else {
+      return nil
+    }
+
+    action = actionClass.init(customAction: customAction)
+    self.recaptchaClass = recaptchaClass
   }
 }
