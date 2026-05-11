@@ -23,6 +23,7 @@ private enum Constants {
   static let jsonContentType = "application/json"
   static let recaptchaTokenField = "recaptcha_enterprise_token"
   static let limitedUseField = "limited_use"
+  // This endpoint should never change without coordination with the backend.
   static let exchangeEndpoint = "exchangeRecaptchaEnterpriseToken"
   static let httpMethodPost = "POST"
 }
