@@ -21,7 +21,6 @@ import RecaptchaInterop
 
 @objc(GACRecaptchaEnterpriseProvider)
 public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCoreProvider {
-  private static let recaptchaActionClassName = "RecaptchaEnterprise.RCAAction"
   // This action name should never change without coordination with the backend.
   private static let appCheckActionName = "app_check_ios"
   private static let providerName = "RecaptchaEnterprise"
