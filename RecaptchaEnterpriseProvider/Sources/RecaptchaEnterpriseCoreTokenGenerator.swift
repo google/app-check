@@ -21,8 +21,14 @@ import Promises
 import RecaptchaInterop
 
 final class RecaptchaEnterpriseTokenGenerator {
+  // Corresponds to RecaptchaErrorNetworkError. These codes are not in the interop.
+  // See https://docs.cloud.google.com/recaptcha/docs/reference/ios/client/api/Enums/RecaptchaErrorCode.html#recaptchaerrornetworkerror
   static let networkErrorCode = 1
+  // Corresponds to RecaptchaErrorCodeInternalError. These codes are not in the interop.
+  // See https://docs.cloud.google.com/recaptcha/docs/reference/ios/client/api/Enums/RecaptchaErrorCode.html#recaptchaerrorcodeinternalerror
   static let internalErrorCode = 100
+
+  private static let recaptchaClassName = "RecaptchaEnterprise.RCARecaptcha"
 
   private let siteKey: String
   private let recaptchaAction: RCAActionProtocol
@@ -39,7 +45,7 @@ final class RecaptchaEnterpriseTokenGenerator {
     self.backoffWrapper = backoffWrapper
     recaptchaClient = Promise<RCARecaptchaClientProtocol> { fulfill, reject in
       let recaptcha = recaptchaClass ??
-        NSClassFromString("RecaptchaEnterprise.RCARecaptcha") as? RCARecaptchaProtocol.Type
+        NSClassFromString(Self.recaptchaClassName) as? RCARecaptchaProtocol.Type
       guard let recaptcha else {
         throw GACAppCheckErrorUtil.unsupportedAttestationProvider("RecaptchaEnterprise")
       }

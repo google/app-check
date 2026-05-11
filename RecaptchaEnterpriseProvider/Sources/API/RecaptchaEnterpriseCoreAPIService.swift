@@ -23,9 +23,11 @@ private enum Constants {
   static let jsonContentType = "application/json"
   static let recaptchaTokenField = "recaptcha_enterprise_token"
   static let limitedUseField = "limited_use"
+  static let exchangeEndpoint = "exchangeRecaptchaEnterpriseToken"
+  static let httpMethodPost = "POST"
 }
 
-@objc(GARecaptchaEnterpriseAPIService)
+@objc(GACRecaptchaEnterpriseAPIService)
 final class RecaptchaEnterpriseAPIService: NSObject {
   private let apiService: AppCheckCoreAPIServiceProtocol
   private let resourceName: String
@@ -37,15 +39,17 @@ final class RecaptchaEnterpriseAPIService: NSObject {
 
   func appCheckToken(withRecaptchaToken recaptchaToken: String,
                      limitedUse: Bool) -> Promise<AppCheckCoreToken> {
-    let urlString = "\(apiService.baseURL)/\(resourceName):exchangeRecaptchaEnterpriseToken"
+    let urlString = "\(apiService.baseURL)/\(resourceName):\(Constants.exchangeEndpoint)"
     guard let url = URL(string: urlString) else {
-      return Promise(GACAppCheckErrorUtil.error(withFailureReason: "Invalid URL string"))
+      return Promise(GACAppCheckErrorUtil
+        .error(withFailureReason: "Invalid URL string: \(urlString)"))
     }
 
     return httpBody(withRecaptchaToken: recaptchaToken, limitedUse: limitedUse)
       .then { httpBody in
         Promise<GACURLSessionDataResponse>(self.apiService.sendRequest(with: url,
-                                                                       httpMethod: "POST",
+                                                                       httpMethod: Constants
+                                                                         .httpMethodPost,
                                                                        body: httpBody,
                                                                        additionalHeaders: [Constants
                                                                          .contentTypeKey: Constants

@@ -22,12 +22,18 @@ import RecaptchaInterop
 @objc(GACRecaptchaEnterpriseProvider)
 public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCoreProvider {
   private static let recaptchaActionClassName = "RecaptchaEnterprise.RCAAction"
+  // This action name should never change without coordination with the backend.
   private static let appCheckActionName = "app_check_ios"
   private static let providerName = "RecaptchaEnterprise"
+  private static let missingSDKMessage =
+    "The reCAPTCHA Enterprise SDK is not linked. See https://cloud.google.com/recaptcha/docs/instrument-ios-apps#prepare-environment"
 
   private let tokenGenerator: RecaptchaEnterpriseTokenGenerator?
   private let apiService: RecaptchaEnterpriseAPIService
 
+  // `@convention(block)` is required because the Swift compiler cannot automatically
+  // bridge collections of closures (like an Array) to Objective-C blocks. This attribute
+  // changes the closure's representation to match the Objective-C block heap layout.
   @objc public convenience init(siteKey: String, resourceName: String, APIKey: String,
                                 requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? =
                                   nil) {
@@ -36,9 +42,7 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
     if recaptchaAction == nil {
       // Fail fast in Debug (-Onone) builds to alert the developer.
       // In Release (-O) builds, this falls back to returning an error in getToken.
-      assertionFailure(
-        "The reCAPTCHA Enterprise SDK is not linked. See https://cloud.google.com/recaptcha/docs/instrument-ios-apps#prepare-environment"
-      )
+      assertionFailure(Self.missingSDKMessage)
     }
     let action = recaptchaAction?.init(customAction: Self.appCheckActionName)
 
