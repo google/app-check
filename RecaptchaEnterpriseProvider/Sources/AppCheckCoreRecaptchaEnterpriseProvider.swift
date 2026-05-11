@@ -106,7 +106,7 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
     return tokenGenerator.getRecaptchaToken()
       .then { recaptchaToken in
         self.apiService.appCheckToken(
-          withRecaptchaToken: recaptchaToken,
+          with: recaptchaToken,
           limitedUse: limitedUse
         )
       }

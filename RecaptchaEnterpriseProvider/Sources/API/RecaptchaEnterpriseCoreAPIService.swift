@@ -38,7 +38,7 @@ final class RecaptchaEnterpriseAPIService: NSObject {
     self.resourceName = resourceName
   }
 
-  func appCheckToken(withRecaptchaToken recaptchaToken: String,
+  func appCheckToken(with recaptchaToken: String,
                      limitedUse: Bool) -> Promise<AppCheckCoreToken> {
     let urlString = "\(apiService.baseURL)/\(resourceName):\(Constants.exchangeEndpoint)"
     guard let url = URL(string: urlString) else {
@@ -46,7 +46,7 @@ final class RecaptchaEnterpriseAPIService: NSObject {
         .error(withFailureReason: "Invalid URL string: \(urlString)"))
     }
 
-    return httpBody(withRecaptchaToken: recaptchaToken, limitedUse: limitedUse)
+    return httpBody(with: recaptchaToken, limitedUse: limitedUse)
       .then { httpBody in
         Promise<GACURLSessionDataResponse>(self.apiService.sendRequest(with: url,
                                                                        httpMethod: Constants
@@ -60,7 +60,7 @@ final class RecaptchaEnterpriseAPIService: NSObject {
       }
   }
 
-  private func httpBody(withRecaptchaToken recaptchaToken: String,
+  private func httpBody(with recaptchaToken: String,
                         limitedUse: Bool) -> Promise<Data> {
     guard !recaptchaToken.isEmpty else {
       return Promise(GACAppCheckErrorUtil

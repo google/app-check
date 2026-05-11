@@ -50,7 +50,7 @@ final class RecaptchaEnterpriseCoreAPIServiceTests: XCTestCase {
     let expectation = self.expectation(description: "Token exchange completes successfully")
 
     // Act
-    apiService.appCheckToken(withRecaptchaToken: testRecaptchaToken, limitedUse: false)
+    apiService.appCheckToken(with: testRecaptchaToken, limitedUse: false)
       .then { token in
         // Assert
         XCTAssertEqual(token.token, expectedAppCheckToken.token)
@@ -97,7 +97,7 @@ final class RecaptchaEnterpriseCoreAPIServiceTests: XCTestCase {
       .expectation(description: "Limited use token exchange completes successfully")
 
     // Act
-    apiService.appCheckToken(withRecaptchaToken: testRecaptchaToken, limitedUse: true)
+    apiService.appCheckToken(with: testRecaptchaToken, limitedUse: true)
       .then { token in
         // Assert
         guard let request = self.mockCoreAPIService.lastRequest, let body = request.body else {
@@ -119,7 +119,7 @@ final class RecaptchaEnterpriseCoreAPIServiceTests: XCTestCase {
   func testAppCheckTokenEmptyRecaptchaToken() {
     let expectation = self.expectation(description: "Token exchange fails with empty token")
 
-    apiService.appCheckToken(withRecaptchaToken: "", limitedUse: false).then { token in
+    apiService.appCheckToken(with: "", limitedUse: false).then { token in
       XCTFail("Should not succeed with empty token")
     }.catch { error in
       XCTAssertNotNil(error)
