@@ -19,6 +19,10 @@ import Foundation
 import Promises
 import RecaptchaInterop
 
+/// Firebase App Check provider that verifies app integrity using the
+/// [reCAPTCHA Enterprise](https://cloud.google.com/recaptcha/docs/instrument-ios-apps)
+/// API. This class is available on all platforms for select OS versions. See
+/// https://firebase.google.com/docs/ios/learn-more for more details.
 @objc(GACRecaptchaEnterpriseProvider)
 public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCoreProvider {
   // This action name should never change without coordination with the backend.
@@ -30,6 +34,13 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
   private let tokenGenerator: RecaptchaEnterpriseTokenGenerator?
   private let apiService: RecaptchaEnterpriseAPIService
 
+  /// The default initializer.
+  /// - Parameters:
+  ///   - siteKey: The reCAPTCHA site key.
+  ///   - resourceName: The name of the resource protected by App Check; for a Firebase App this is
+  ///     "projects/{project_id}/apps/{app_id}".
+  ///   - APIKey: The Google Cloud Platform API key.
+  ///   - requestHooks: Hooks that will be invoked on requests through this service.
   // `@convention(block)` is required because the Swift compiler cannot automatically
   // bridge collections of closures (like an Array) to Objective-C blocks. This attribute
   // changes the closure's representation to match the Objective-C block heap layout.
