@@ -37,8 +37,8 @@ class MockBackoffWrapper: NSObject, GACAppCheckBackoffWrapperProtocol {
       let swiftPromise = Promise<AnyObject>(error as Error)
       return swiftPromise.asObjCPromise()
     }
-    if let result = mockResult {
-      let swiftPromise = Promise<AnyObject>(result as AnyObject)
+    if let mockResult {
+      let swiftPromise = Promise<AnyObject>(mockResult as AnyObject)
       return swiftPromise.asObjCPromise()
     }
     return operationProvider()

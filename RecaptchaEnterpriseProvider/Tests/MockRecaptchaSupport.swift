@@ -43,8 +43,8 @@ final class MockRecaptcha: NSObject, RCARecaptchaProtocol {
 
   static func fetchClient(withSiteKey siteKey: String,
                           completion: @escaping (RCARecaptchaClientProtocol?, Error?) -> Void) {
-    if let error = mockError {
-      completion(nil, error)
+    if let mockError {
+      completion(nil, mockError)
     } else {
       completion(mockClient, nil)
     }
@@ -61,8 +61,8 @@ final class MockRecaptchaClient: NSObject, RCARecaptchaClientProtocol {
 
   func execute(withAction action: RCAActionProtocol,
                completion: @escaping (String?, Error?) -> Void) {
-    if let error = mockError {
-      completion(nil, error)
+    if let mockError {
+      completion(nil, mockError)
     } else {
       completion(mockToken, nil)
     }
@@ -100,8 +100,8 @@ class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
 
     let promise = Promise<GACURLSessionDataResponse>.pending()
 
-    if let error = expectedError {
-      promise.reject(error)
+    if let expectedError {
+      promise.reject(expectedError)
     } else {
       let response = expectedResponse ?? GACURLSessionDataResponse(
         response: HTTPURLResponse(),
@@ -117,8 +117,8 @@ class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
     -> FBLPromise<AppCheckCoreToken> {
     let promise = Promise<AppCheckCoreToken>.pending()
 
-    if let error = expectedError {
-      promise.reject(error)
+    if let expectedError {
+      promise.reject(expectedError)
     } else {
       let token = expectedToken ?? AppCheckCoreToken(
         token: "dummy",
