@@ -24,6 +24,10 @@
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
 
+NSString *const kGACAppCheckMissingRecaptchaSDKMessage =
+    @"The reCAPTCHA Enterprise SDK is not linked. See "
+    @"https://cloud.google.com/recaptcha/docs/instrument-ios-apps#prepare-environment";
+
 @implementation GACAppCheckErrorUtil
 
 + (NSError *)publicDomainErrorWithError:(NSError *)error {
@@ -109,11 +113,8 @@
 }
 
 + (NSError *)missingRecaptchaSDKError {
-  NSString *failureReason =
-      @"The reCAPTCHA Enterprise SDK is not linked. See "
-      @"https://cloud.google.com/recaptcha/docs/instrument-ios-apps#prepare-environment";
   return [self appCheckErrorWithCode:GACAppCheckErrorCodeUnsupported
-                       failureReason:failureReason
+                       failureReason:kGACAppCheckMissingRecaptchaSDKMessage
                      underlyingError:nil];
 }
 

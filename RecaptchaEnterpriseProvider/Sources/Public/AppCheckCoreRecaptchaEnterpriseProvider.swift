@@ -28,8 +28,6 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
   // This action name should never change without coordination with the backend.
   private static let appCheckActionName = "app_check_ios"
   private static let providerName = "RecaptchaEnterprise"
-  private static let missingSDKMessage =
-    "The reCAPTCHA Enterprise SDK is not linked. See https://cloud.google.com/recaptcha/docs/instrument-ios-apps#prepare-environment"
 
   private let tokenGenerator: RecaptchaEnterpriseTokenGenerator?
   private let apiService: RecaptchaEnterpriseAPIService
@@ -59,7 +57,7 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
         backoffWrapper: backoffWrapper
       )
     } else {
-      assertionFailure(Self.missingSDKMessage)
+      assertionFailure(missingRecaptchaSDKMessage)
       tokenGenerator = nil
     }
 

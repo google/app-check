@@ -20,6 +20,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+extern NSString *const kGACAppCheckMissingRecaptchaSDKMessage NS_SWIFT_NAME(missingRecaptchaSDKMessage);
+
 void GACAppCheckSetErrorToPointer(NSError *error, NSError **pointer);
 
 @interface GACAppCheckErrorUtil : NSObject
