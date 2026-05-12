@@ -87,9 +87,9 @@ final class AppCheckCoreRecaptchaEnterpriseProviderTests: XCTestCase {
     waitForExpectations(timeout: 1.0)
   }
 
-  func testGetTokenSuccess() {
-    // Arrange
-    let mockClient = MockRecaptchaClient(dummy: ())
+  private func createProviderWithMocks(expectedToken: AppCheckCoreToken)
+    -> AppCheckCoreRecaptchaEnterpriseProvider {
+    let mockClient = MockRecaptchaClient()
     mockClient.mockToken = "valid-recaptcha-token"
     MockRecaptcha.mockClient = mockClient
 
@@ -100,26 +100,53 @@ final class AppCheckCoreRecaptchaEnterpriseProviderTests: XCTestCase {
     )
 
     let mockCoreAPIService = MockAppCheckCoreAPIService()
-    let expectedAppCheckToken = AppCheckCoreToken(
-      token: "app-check-token-456",
-      expirationDate: Date(timeIntervalSinceNow: 3600)
-    )
-    mockCoreAPIService.expectedToken = expectedAppCheckToken
+    mockCoreAPIService.expectedToken = expectedToken
 
     let apiService = RecaptchaEnterpriseAPIService(
       apiService: mockCoreAPIService,
       resourceName: testResourceName
     )
 
-    let providerWithMocks = AppCheckCoreRecaptchaEnterpriseProvider(
+    return AppCheckCoreRecaptchaEnterpriseProvider(
       tokenGenerator: tokenGenerator,
       apiService: apiService
     )
+  }
+
+  func testGetTokenSuccess() {
+    // Arrange
+    let expectedAppCheckToken = AppCheckCoreToken(
+      token: "app-check-token-456",
+      expirationDate: Date(timeIntervalSinceNow: 3600)
+    )
+    let providerWithMocks = createProviderWithMocks(expectedToken: expectedAppCheckToken)
 
     let expectation = self.expectation(description: "Get token succeeds")
 
     // Act
     providerWithMocks.getToken { token, error in
+      // Assert
+      XCTAssertNotNil(token)
+      XCTAssertNil(error)
+      XCTAssertEqual(token?.token, expectedAppCheckToken.token)
+      expectation.fulfill()
+    }
+
+    waitForExpectations(timeout: 1.0)
+  }
+
+  func testGetLimitedUseTokenSuccess() {
+    // Arrange
+    let expectedAppCheckToken = AppCheckCoreToken(
+      token: "app-check-token-456",
+      expirationDate: Date(timeIntervalSinceNow: 3600)
+    )
+    let providerWithMocks = createProviderWithMocks(expectedToken: expectedAppCheckToken)
+
+    let expectation = self.expectation(description: "Get limited use token succeeds")
+
+    // Act
+    providerWithMocks.getLimitedUseToken { token, error in
       // Assert
       XCTAssertNotNil(token)
       XCTAssertNil(error)

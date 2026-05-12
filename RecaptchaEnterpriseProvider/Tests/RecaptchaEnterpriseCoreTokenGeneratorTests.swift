@@ -62,7 +62,7 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
 
   func testGetRecaptchaTokenSuccess() {
     // Arrange
-    let mockClient = MockRecaptchaClient(dummy: ())
+    let mockClient = MockRecaptchaClient()
     mockClient.mockToken = "valid-recaptcha-token"
     MockRecaptcha.mockClient = mockClient
 
@@ -114,7 +114,7 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
 
   func testGetRecaptchaTokenExecutionFailure() {
     // Arrange
-    let mockClient = MockRecaptchaClient(dummy: ())
+    let mockClient = MockRecaptchaClient()
     let expectedError = NSError(domain: "test", code: -2, userInfo: nil)
     mockClient.mockError = expectedError
     MockRecaptcha.mockClient = mockClient
@@ -148,7 +148,7 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
 
   func testGetRecaptchaTokenCallsBackoffWrapper() {
     // Arrange
-    let mockClient = MockRecaptchaClient(dummy: ())
+    let mockClient = MockRecaptchaClient()
     mockClient.mockToken = "valid-recaptcha-token"
     MockRecaptcha.mockClient = mockClient
 
@@ -177,7 +177,7 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
 
   func testGetRecaptchaTokenBackoffWrapperError() {
     // Arrange
-    let mockClient = MockRecaptchaClient(dummy: ())
+    let mockClient = MockRecaptchaClient()
     MockRecaptcha.mockClient = mockClient
 
     let mockBackoffWrapper = MockBackoffWrapper()
@@ -209,7 +209,7 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
 
   func testGetRecaptchaTokenMapsNetworkErrorToServerUnreachable() {
     // Arrange
-    let mockClient = MockRecaptchaClient(dummy: ())
+    let mockClient = MockRecaptchaClient()
     let recaptchaError = NSError(
       domain: "RecaptchaErrorDomain",
       code: RecaptchaEnterpriseTokenGenerator.networkErrorCode,
@@ -245,7 +245,7 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
 
   func testGetRecaptchaTokenMapsInternalErrorToServerUnreachable() {
     // Arrange
-    let mockClient = MockRecaptchaClient(dummy: ())
+    let mockClient = MockRecaptchaClient()
     let recaptchaError = NSError(
       domain: "RecaptchaErrorDomain",
       code: RecaptchaEnterpriseTokenGenerator.internalErrorCode,
@@ -281,7 +281,7 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
 
   func testErrorHandlerTriggersBackoffForServerUnreachable() {
     // Arrange
-    let mockClient = MockRecaptchaClient(dummy: ())
+    let mockClient = MockRecaptchaClient()
     mockClient.mockToken = "valid-recaptcha-token"
     MockRecaptcha.mockClient = mockClient
 
@@ -319,7 +319,7 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
 
   func testErrorHandlerDoesNotTriggerBackoffForOtherErrors() {
     // Arrange
-    let mockClient = MockRecaptchaClient(dummy: ())
+    let mockClient = MockRecaptchaClient()
     mockClient.mockToken = "valid-recaptcha-token"
     MockRecaptcha.mockClient = mockClient
 
@@ -357,7 +357,7 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
 
   func testGetRecaptchaTokenExecutionNilNilFallback() {
     // Arrange
-    let mockClient = MockRecaptchaClient(dummy: ())
+    let mockClient = MockRecaptchaClient()
     MockRecaptcha.mockClient = mockClient
 
     let generator = RecaptchaEnterpriseTokenGenerator(
