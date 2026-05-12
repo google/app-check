@@ -27,7 +27,6 @@ import RecaptchaInterop
 public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCoreProvider {
   // This action name should never change without coordination with the backend.
   private static let appCheckActionName = "app_check_ios"
-  private static let providerName = "RecaptchaEnterprise"
 
   private let tokenGenerator: RecaptchaEnterpriseTokenGenerator?
   private let apiService: RecaptchaEnterpriseAPIService

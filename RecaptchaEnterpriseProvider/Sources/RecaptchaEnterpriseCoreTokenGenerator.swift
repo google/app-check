@@ -94,6 +94,7 @@ final class RecaptchaEnterpriseTokenGenerator {
     }
   }
 
+  // This fallback path is useful for testing when we don't want to involve the backoff wrapper.
   private func getRecaptchaTokenNoBackoff() -> Promise<String> {
     recaptchaClient.then { client in
       Promise<String> { fulfill, reject in

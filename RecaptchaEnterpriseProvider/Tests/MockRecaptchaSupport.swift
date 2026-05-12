@@ -22,6 +22,7 @@ import RecaptchaInterop
 class MockRCAAction: NSObject, RCAActionProtocol {
   var action: String { return customAction }
 
+  // The following properties are required by RCAActionProtocol but not used in these tests.
   static var login: RCAActionProtocol { return MockRCAAction(customAction: "login") }
   static var signup: RCAActionProtocol { return MockRCAAction(customAction: "signup") }
 
