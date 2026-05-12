@@ -57,6 +57,8 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
         backoffWrapper: backoffWrapper
       )
     } else {
+      // Fail fast in Debug (-Onone) builds to alert the developer.
+      // In Release (-O) builds, a nil tokenGenerator falls back to returning an error in getToken.
       assertionFailure(missingRecaptchaSDKMessage)
       tokenGenerator = nil
     }
