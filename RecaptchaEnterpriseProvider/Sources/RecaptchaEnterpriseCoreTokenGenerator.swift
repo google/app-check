@@ -54,7 +54,7 @@ final class RecaptchaEnterpriseTokenGenerator {
   }
 
   func getRecaptchaToken() -> Promise<String> {
-    guard let backoffWrapper = backoffWrapper else {
+    guard let backoffWrapper else {
       return getRecaptchaTokenNoBackoff()
     }
 
@@ -62,7 +62,7 @@ final class RecaptchaEnterpriseTokenGenerator {
       let operationProvider: GACAppCheckBackoffOperationProvider = {
         let swiftPromise = Promise<AnyObject> { fulfill, reject in
           client.execute(withAction: self.recaptchaAction) { token, error in
-            if let token = token {
+            if let token {
               fulfill(token as AnyObject)
             } else {
               reject(self.mapRecaptchaError(error))
@@ -96,7 +96,7 @@ final class RecaptchaEnterpriseTokenGenerator {
     recaptchaClient.then { client in
       Promise<String> { fulfill, reject in
         client.execute(withAction: self.recaptchaAction) { token, error in
-          if let token = token {
+          if let token {
             fulfill(token)
           } else {
             reject(self.mapRecaptchaError(error))
