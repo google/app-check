@@ -119,7 +119,11 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
 }
 
 private struct RecaptchaEnterpriseSDK {
+  // This symbol is specified in the RecaptchaEnterprise SDK.
+  // See https://github.com/GoogleCloudPlatform/recaptcha-enterprise-mobile-sdk/blob/18.9.0/Sources/RecaptchaEnterprise/RecaptchaInteropBidings.swift
   private static let recaptchaActionClassName = "RecaptchaEnterprise.RCAAction"
+  // This symbol is specified in the RecaptchaEnterprise SDK.
+  // See https://github.com/GoogleCloudPlatform/recaptcha-enterprise-mobile-sdk/blob/18.9.0/Sources/RecaptchaEnterprise/RecaptchaInteropBidings.swift
   private static let recaptchaClassName = "RecaptchaEnterprise.RCARecaptcha"
 
   let action: RCAActionProtocol
