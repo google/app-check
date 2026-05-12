@@ -95,7 +95,8 @@ final class AppCheckCoreRecaptchaEnterpriseProviderTests: XCTestCase {
     let tokenGenerator = RecaptchaEnterpriseTokenGenerator(
       siteKey: testSiteKey,
       recaptchaAction: MockRCAAction(customAction: "app_check_ios"),
-      recaptchaClass: MockRecaptcha.self
+      recaptchaClass: MockRecaptcha.self,
+      backoffWrapper: MockBackoffWrapper()
     )
 
     let mockCoreAPIService = MockAppCheckCoreAPIService()

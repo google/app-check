@@ -20,35 +20,6 @@ import Promises
 @testable import RecaptchaEnterpriseProvider
 import RecaptchaInterop
 
-class MockBackoffWrapper: NSObject, GACAppCheckBackoffWrapperProtocol {
-  var applyBackoffCalled = false
-  var shouldReturnError = false
-  var mockError: NSError?
-  var mockResult: Any?
-  var capturedErrorHandler: GACAppCheckBackoffErrorHandler?
-
-  func applyBackoff(toOperation operationProvider: @escaping GACAppCheckBackoffOperationProvider,
-                    errorHandler: @escaping GACAppCheckBackoffErrorHandler)
-    -> FBLPromise<AnyObject> {
-    applyBackoffCalled = true
-    capturedErrorHandler = errorHandler
-    if shouldReturnError {
-      let error = mockError ?? NSError(domain: "MockBackoffWrapper", code: -1, userInfo: nil)
-      let swiftPromise = Promise<AnyObject>(error as Error)
-      return swiftPromise.asObjCPromise()
-    }
-    if let mockResult {
-      let swiftPromise = Promise<AnyObject>(mockResult as AnyObject)
-      return swiftPromise.asObjCPromise()
-    }
-    return operationProvider()
-  }
-
-  func defaultAppCheckProviderErrorHandler() -> GACAppCheckBackoffErrorHandler {
-    return { error in .typeExponential }
-  }
-}
-
 final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
   private let testSiteKey = "test-site-key"
   private var mockAction: MockRCAAction!
@@ -69,7 +40,8 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
     let generator = RecaptchaEnterpriseTokenGenerator(
       siteKey: testSiteKey,
       recaptchaAction: mockAction,
-      recaptchaClass: MockRecaptcha.self
+      recaptchaClass: MockRecaptcha.self,
+      backoffWrapper: MockBackoffWrapper()
     )
 
     let expectation = self.expectation(description: "Generates token successfully")
@@ -94,7 +66,8 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
     let generator = RecaptchaEnterpriseTokenGenerator(
       siteKey: testSiteKey,
       recaptchaAction: mockAction,
-      recaptchaClass: MockRecaptcha.self
+      recaptchaClass: MockRecaptcha.self,
+      backoffWrapper: MockBackoffWrapper()
     )
 
     let expectation = self.expectation(description: "Fails when fetchClient fails")
@@ -122,7 +95,8 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
     let generator = RecaptchaEnterpriseTokenGenerator(
       siteKey: testSiteKey,
       recaptchaAction: mockAction,
-      recaptchaClass: MockRecaptcha.self
+      recaptchaClass: MockRecaptcha.self,
+      backoffWrapper: MockBackoffWrapper()
     )
 
     let expectation = self.expectation(description: "Fails when execute fails")
@@ -363,7 +337,8 @@ final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
     let generator = RecaptchaEnterpriseTokenGenerator(
       siteKey: testSiteKey,
       recaptchaAction: mockAction,
-      recaptchaClass: MockRecaptcha.self
+      recaptchaClass: MockRecaptcha.self,
+      backoffWrapper: MockBackoffWrapper()
     )
 
     let expectation = self

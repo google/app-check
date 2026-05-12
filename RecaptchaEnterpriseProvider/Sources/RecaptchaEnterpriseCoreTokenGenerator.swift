@@ -33,11 +33,11 @@ final class RecaptchaEnterpriseTokenGenerator {
 
   private let recaptchaClient: Promise<RCARecaptchaClientProtocol>
 
-  private let backoffWrapper: GACAppCheckBackoffWrapperProtocol?
+  private let backoffWrapper: GACAppCheckBackoffWrapperProtocol
 
   init(siteKey: String, recaptchaAction: RCAActionProtocol,
        recaptchaClass: RCARecaptchaProtocol.Type,
-       backoffWrapper: GACAppCheckBackoffWrapperProtocol? = nil) {
+       backoffWrapper: GACAppCheckBackoffWrapperProtocol) {
     self.siteKey = siteKey
     self.recaptchaAction = recaptchaAction
     self.backoffWrapper = backoffWrapper
@@ -54,10 +54,6 @@ final class RecaptchaEnterpriseTokenGenerator {
   }
 
   func getRecaptchaToken() -> Promise<String> {
-    guard let backoffWrapper else {
-      return getRecaptchaTokenNoBackoff()
-    }
-
     return recaptchaClient.then { client in
       let operationProvider: GACAppCheckBackoffOperationProvider = {
         let swiftPromise = Promise<AnyObject> { fulfill, reject in
@@ -81,7 +77,7 @@ final class RecaptchaEnterpriseTokenGenerator {
         return .typeNone
       }
 
-      let fblPromise = backoffWrapper.applyBackoff(
+      let fblPromise = self.backoffWrapper.applyBackoff(
         toOperation: operationProvider,
         errorHandler: errorHandler
       )
@@ -90,21 +86,6 @@ final class RecaptchaEnterpriseTokenGenerator {
         // Force cast is safe because the operation provider above returns a String
         // (the token) fulfilled as AnyObject to satisfy FBLPromise interop.
         result as! String
-      }
-    }
-  }
-
-  // This fallback path is useful for testing when we don't want to involve the backoff wrapper.
-  private func getRecaptchaTokenNoBackoff() -> Promise<String> {
-    recaptchaClient.then { client in
-      Promise<String> { fulfill, reject in
-        client.execute(withAction: self.recaptchaAction) { token, error in
-          if let token {
-            fulfill(token)
-          } else {
-            reject(self.mapRecaptchaError(error))
-          }
-        }
       }
     }
   }

@@ -135,3 +135,32 @@ class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
     return promise.asObjCPromise()
   }
 }
+
+class MockBackoffWrapper: NSObject, GACAppCheckBackoffWrapperProtocol {
+  var applyBackoffCalled = false
+  var shouldReturnError = false
+  var mockError: NSError?
+  var mockResult: Any?
+  var capturedErrorHandler: GACAppCheckBackoffErrorHandler?
+
+  func applyBackoff(toOperation operationProvider: @escaping GACAppCheckBackoffOperationProvider,
+                    errorHandler: @escaping GACAppCheckBackoffErrorHandler)
+    -> FBLPromise<AnyObject> {
+    applyBackoffCalled = true
+    capturedErrorHandler = errorHandler
+    if shouldReturnError {
+      let error = mockError ?? NSError(domain: "MockBackoffWrapper", code: -1, userInfo: nil)
+      let swiftPromise = Promise<AnyObject>(error as Error)
+      return swiftPromise.asObjCPromise()
+    }
+    if let mockResult {
+      let swiftPromise = Promise<AnyObject>(mockResult as AnyObject)
+      return swiftPromise.asObjCPromise()
+    }
+    return operationProvider()
+  }
+
+  func defaultAppCheckProviderErrorHandler() -> GACAppCheckBackoffErrorHandler {
+    return { error in .typeExponential }
+  }
+}
