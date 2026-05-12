@@ -37,7 +37,9 @@ final class MockRecaptcha: NSObject, RCARecaptchaProtocol {
   static var mockClient: MockRecaptchaClient?
   static var mockError: Error?
 
-  init(dummy: Void = ()) {
+  // This initializer bypasses the unavailable `init()` in the protocol.
+  // The unlabeled `Void` parameter carries no data and is purely to change the signature.
+  init(_: Void = ()) {
     super.init()
   }
 
@@ -55,7 +57,9 @@ final class MockRecaptchaClient: NSObject, RCARecaptchaClientProtocol {
   var mockToken: String?
   var mockError: Error?
 
-  init(dummy: Void = ()) {
+  // This initializer bypasses the unavailable `init()` in the protocol.
+  // The unlabeled `Void` parameter carries no data and is purely to change the signature.
+  init(_: Void = ()) {
     super.init()
   }
 
@@ -121,7 +125,7 @@ class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
       promise.reject(expectedError)
     } else {
       let token = expectedToken ?? AppCheckCoreToken(
-        token: "dummy",
+        token: "placeholder_app_check_token",
         expirationDate: Date()
       )
       promise.fulfill(token)
