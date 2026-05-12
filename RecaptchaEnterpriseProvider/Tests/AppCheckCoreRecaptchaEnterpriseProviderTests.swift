@@ -22,7 +22,6 @@ final class AppCheckCoreRecaptchaEnterpriseProviderTests: XCTestCase {
   private var provider: AppCheckCoreRecaptchaEnterpriseProvider!
   private let testSiteKey = "test-site-key"
   private let testResourceName = "projects/test-project/apps/test-app"
-  private let testAPIKey = "test-api-key"
 
   override func setUp() {
     super.setUp()
