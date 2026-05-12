@@ -87,6 +87,8 @@ final class RecaptchaEnterpriseTokenGenerator {
       )
 
       return Promise<AnyObject>(fblPromise).then { result in
+        // Force cast is safe because the operation provider above returns a String
+        // (the token) fulfilled as AnyObject to satisfy FBLPromise interop.
         result as! String
       }
     }
