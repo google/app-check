@@ -105,7 +105,7 @@ public final class AppCheckCoreRecaptchaEnterpriseProvider: NSObject, AppCheckCo
   }
 
   private func getToken(limitedUse: Bool) -> Promise<AppCheckCoreToken> {
-    guard let tokenGenerator = tokenGenerator else {
+    guard let tokenGenerator else {
       return Promise(GACAppCheckErrorUtil.missingRecaptchaSDKError())
     }
     return tokenGenerator.getRecaptchaToken()

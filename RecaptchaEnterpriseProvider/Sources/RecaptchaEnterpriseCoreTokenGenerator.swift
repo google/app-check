@@ -43,7 +43,7 @@ final class RecaptchaEnterpriseTokenGenerator {
     self.backoffWrapper = backoffWrapper
     recaptchaClient = Promise<RCARecaptchaClientProtocol> { fulfill, reject in
       recaptchaClass.fetchClient(withSiteKey: siteKey) { client, error in
-        if let client = client {
+        if let client {
           fulfill(client)
         } else {
           reject(error ?? GACAppCheckErrorUtil
