@@ -15,11 +15,11 @@
 import XCTest
 
 @testable import AppCheckCore
+@testable import AppCheckRecaptchaEnterpriseProvider
 import Promises
-@testable import RecaptchaEnterpriseProvider
 
-final class AppCheckCoreRecaptchaEnterpriseProviderTests: XCTestCase {
-  private var provider: AppCheckCoreRecaptchaEnterpriseProvider!
+final class AppCheckRecaptchaEnterpriseProviderTests: XCTestCase {
+  private var provider: AppCheckRecaptchaEnterpriseProvider!
   private let testSiteKey = "test-site-key"
   private let testResourceName = "projects/test-project/apps/test-app"
 
@@ -30,7 +30,7 @@ final class AppCheckCoreRecaptchaEnterpriseProviderTests: XCTestCase {
       apiService: mockCoreAPIService,
       resourceName: testResourceName
     )
-    provider = AppCheckCoreRecaptchaEnterpriseProvider(
+    provider = AppCheckRecaptchaEnterpriseProvider(
       tokenGenerator: nil,
       apiService: apiService
     )
@@ -87,7 +87,7 @@ final class AppCheckCoreRecaptchaEnterpriseProviderTests: XCTestCase {
   }
 
   private func createProviderWithMocks(expectedToken: AppCheckCoreToken)
-    -> AppCheckCoreRecaptchaEnterpriseProvider {
+    -> AppCheckRecaptchaEnterpriseProvider {
     let mockClient = MockRecaptchaClient()
     mockClient.mockToken = "valid-recaptcha-token"
     MockRecaptcha.mockClient = mockClient
@@ -107,7 +107,7 @@ final class AppCheckCoreRecaptchaEnterpriseProviderTests: XCTestCase {
       resourceName: testResourceName
     )
 
-    return AppCheckCoreRecaptchaEnterpriseProvider(
+    return AppCheckRecaptchaEnterpriseProvider(
       tokenGenerator: tokenGenerator,
       apiService: apiService
     )

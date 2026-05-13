@@ -27,8 +27,8 @@ let package = Package(
     ),
 
     .library(
-      name: "RecaptchaEnterpriseProvider",
-      targets: ["RecaptchaEnterpriseProvider"]
+      name: "AppCheckRecaptchaEnterpriseProvider",
+      targets: ["AppCheckRecaptchaEnterpriseProvider"]
     ),
 
   ],
@@ -68,13 +68,13 @@ let package = Package(
                 .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .appCheckVisionOS])
               ),
             ]),
-    .target(name: "RecaptchaEnterpriseProvider",
+    .target(name: "AppCheckRecaptchaEnterpriseProvider",
             dependencies: [
               "AppCheckCore",
               .product(name: "RecaptchaInterop", package: "interop-ios-for-google-sdks"),
               .product(name: "Promises", package: "Promises"),
             ],
-            path: "RecaptchaEnterpriseProvider/Sources"),
+            path: "AppCheckRecaptchaEnterpriseProvider/Sources"),
     .testTarget(
       name: "AppCheckCoreUnit",
       dependencies: [
@@ -103,12 +103,12 @@ let package = Package(
       ]
     ),
     .testTarget(
-      name: "RecaptchaEnterpriseProviderUnit",
+      name: "AppCheckRecaptchaEnterpriseProviderUnit",
       dependencies: [
-        "RecaptchaEnterpriseProvider",
+        "AppCheckRecaptchaEnterpriseProvider",
         .product(name: "OCMock", package: "ocmock"),
       ],
-      path: "RecaptchaEnterpriseProvider/Tests",
+      path: "AppCheckRecaptchaEnterpriseProvider/Tests",
       cSettings: [
         .headerSearchPath("../.."),
       ]

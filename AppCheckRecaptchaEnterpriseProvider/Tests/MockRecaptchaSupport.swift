@@ -13,10 +13,10 @@
 // limitations under the License.
 
 @testable import AppCheckCore
+@testable import AppCheckRecaptchaEnterpriseProvider
 import FBLPromises
 import Foundation
 import Promises
-@testable import RecaptchaEnterpriseProvider
 import RecaptchaInterop
 
 class MockRCAAction: NSObject, RCAActionProtocol {

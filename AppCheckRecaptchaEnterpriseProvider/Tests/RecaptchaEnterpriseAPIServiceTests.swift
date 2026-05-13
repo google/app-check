@@ -15,10 +15,10 @@
 import XCTest
 
 @testable import AppCheckCore
+@testable import AppCheckRecaptchaEnterpriseProvider
 import FBLPromises
-@testable import RecaptchaEnterpriseProvider
 
-final class RecaptchaEnterpriseCoreAPIServiceTests: XCTestCase {
+final class RecaptchaEnterpriseAPIServiceTests: XCTestCase {
   private var apiService: RecaptchaEnterpriseAPIService!
   private var mockCoreAPIService: MockAppCheckCoreAPIService!
   private let testResourceName = "projects/test-project/apps/test-app"

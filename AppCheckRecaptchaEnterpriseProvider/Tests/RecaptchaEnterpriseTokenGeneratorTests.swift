@@ -15,12 +15,12 @@
 import XCTest
 
 @testable import AppCheckCore
+@testable import AppCheckRecaptchaEnterpriseProvider
 import FBLPromises
 import Promises
-@testable import RecaptchaEnterpriseProvider
 import RecaptchaInterop
 
-final class RecaptchaEnterpriseCoreTokenGeneratorTests: XCTestCase {
+final class RecaptchaEnterpriseTokenGeneratorTests: XCTestCase {
   private let testSiteKey = "test-site-key"
   private var mockAction: MockRCAAction!
 
