@@ -19,6 +19,10 @@ import XCTest
 import FBLPromises
 
 @available(iOS 15.0, visionOS 1.0, *)
+@available(macOS, unavailable)
+@available(macCatalyst, unavailable)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
 final class RecaptchaEnterpriseAPIServiceTests: XCTestCase {
   private var apiService: RecaptchaEnterpriseAPIService!
   private var mockCoreAPIService: MockAppCheckCoreAPIService!

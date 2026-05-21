@@ -21,6 +21,10 @@ import Promises
 import RecaptchaInterop
 
 @available(iOS 15.0, visionOS 1.0, *)
+@available(macOS, unavailable)
+@available(macCatalyst, unavailable)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
 final class RecaptchaEnterpriseTokenGeneratorTests: XCTestCase {
   private let testSiteKey = "test-site-key"
   private var mockAction: MockRCAAction!
