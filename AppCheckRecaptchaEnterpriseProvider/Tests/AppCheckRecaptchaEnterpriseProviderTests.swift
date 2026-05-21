@@ -18,6 +18,7 @@ import XCTest
 @testable import AppCheckRecaptchaEnterpriseProvider
 import Promises
 
+@available(iOS 15.0, visionOS 1.0, *)
 final class AppCheckRecaptchaEnterpriseProviderTests: XCTestCase {
   private var provider: AppCheckRecaptchaEnterpriseProvider!
   private let testSiteKey = "test-site-key"

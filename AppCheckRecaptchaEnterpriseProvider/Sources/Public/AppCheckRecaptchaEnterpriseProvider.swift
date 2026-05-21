@@ -23,6 +23,11 @@ import RecaptchaInterop
 /// [reCAPTCHA Enterprise](https://cloud.google.com/recaptcha/docs/instrument-ios-apps)
 /// API. This class is available on all platforms for select OS versions. See
 /// https://firebase.google.com/docs/ios/learn-more for more details.
+@available(iOS 15.0, visionOS 1.0, *)
+@available(macOS, unavailable)
+@available(macCatalyst, unavailable)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
 @objc(GACRecaptchaEnterpriseProvider)
 public final class AppCheckRecaptchaEnterpriseProvider: NSObject, AppCheckCoreProvider {
   // This action name should never change without coordination with the backend.

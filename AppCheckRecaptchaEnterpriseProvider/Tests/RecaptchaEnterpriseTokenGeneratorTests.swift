@@ -20,6 +20,7 @@ import FBLPromises
 import Promises
 import RecaptchaInterop
 
+@available(iOS 15.0, visionOS 1.0, *)
 final class RecaptchaEnterpriseTokenGeneratorTests: XCTestCase {
   private let testSiteKey = "test-site-key"
   private var mockAction: MockRCAAction!

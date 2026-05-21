@@ -28,7 +28,11 @@ private enum Constants {
   static let httpMethodPost = "POST"
 }
 
-@objc(GACRecaptchaEnterpriseAPIService)
+@available(iOS 15.0, visionOS 1.0, *)
+@available(macOS, unavailable)
+@available(macCatalyst, unavailable)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
 final class RecaptchaEnterpriseAPIService: NSObject {
   private let apiService: AppCheckCoreAPIServiceProtocol
   private let resourceName: String

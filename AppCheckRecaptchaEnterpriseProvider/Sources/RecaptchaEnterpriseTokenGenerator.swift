@@ -20,6 +20,11 @@ import Foundation
 import Promises
 import RecaptchaInterop
 
+@available(iOS 15.0, visionOS 1.0, *)
+@available(macOS, unavailable)
+@available(macCatalyst, unavailable)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
 final class RecaptchaEnterpriseTokenGenerator {
   // Corresponds to RecaptchaErrorNetworkError. These codes are not in the interop.
   // See https://docs.cloud.google.com/recaptcha/docs/reference/ios/client/api/Enums/RecaptchaErrorCode.html#recaptchaerrornetworkerror

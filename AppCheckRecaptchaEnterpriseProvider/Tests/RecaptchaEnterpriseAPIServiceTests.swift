@@ -18,6 +18,7 @@ import XCTest
 @testable import AppCheckRecaptchaEnterpriseProvider
 import FBLPromises
 
+@available(iOS 15.0, visionOS 1.0, *)
 final class RecaptchaEnterpriseAPIServiceTests: XCTestCase {
   private var apiService: RecaptchaEnterpriseAPIService!
   private var mockCoreAPIService: MockAppCheckCoreAPIService!
