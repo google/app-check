@@ -106,7 +106,6 @@ let package = Package(
       name: "AppCheckRecaptchaEnterpriseProviderUnit",
       dependencies: [
         "AppCheckRecaptchaEnterpriseProvider",
-        .product(name: "OCMock", package: "ocmock"),
       ],
       path: "AppCheckRecaptchaEnterpriseProvider/Tests",
       cSettings: [
