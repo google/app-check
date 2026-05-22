@@ -107,10 +107,7 @@ let package = Package(
       dependencies: [
         "AppCheckRecaptchaEnterpriseProvider",
       ],
-      path: "AppCheckRecaptchaEnterpriseProvider/Tests",
-      cSettings: [
-        .headerSearchPath("../.."),
-      ]
+      path: "AppCheckRecaptchaEnterpriseProvider/Tests"
     ),
   ]
 )
