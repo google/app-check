@@ -35,6 +35,7 @@ NS_ASSUME_NONNULL_BEGIN
 static NSString *const kDebugTokenEnvKey = @"AppCheckDebugToken";
 static NSString *const kFirebaseDebugTokenEnvKey = @"FIRAAppCheckDebugToken";
 static NSString *const kDebugTokenUserDefaultsKey = @"GACAppCheckDebugToken";
+static NSString *const kDebugTokenRegisteredUserDefaultsKey = @"GACAppCheckDebugTokenRegistered";
 
 @interface GACAppCheckDebugProvider ()
 @property(nonatomic, readonly) id<GACAppCheckDebugProviderAPIServiceProtocol> APIService;
@@ -108,6 +109,8 @@ static NSString *const kDebugTokenUserDefaultsKey = @"GACAppCheckDebugToken";
         return [self.APIService appCheckTokenWithDebugToken:debugToken limitedUse:limitedUse];
       })
       .then(^id(GACAppCheckToken *appCheckToken) {
+        [[GULUserDefaults standardUserDefaults] setBool:YES
+                                                 forKey:kDebugTokenRegisteredUserDefaultsKey];
         handler(appCheckToken, nil);
         return nil;
       })
@@ -115,6 +118,10 @@ static NSString *const kDebugTokenUserDefaultsKey = @"GACAppCheckDebugToken";
         NSString *logMessage = [NSString
             stringWithFormat:@"Failed to exchange debug token to app check token: %@", error];
         GACAppCheckLogDebug(GACLoggerAppCheckMessageDebugProviderFailedExchange, logMessage);
+        if (error.code != GACAppCheckErrorCodeServerUnreachable) {
+          [[GULUserDefaults standardUserDefaults]
+              removeObjectForKey:kDebugTokenRegisteredUserDefaultsKey];
+        }
         handler(nil, error);
       });
 }
@@ -175,9 +182,14 @@ static NSString *_Nullable EnvironmentVariableDebugToken(void) {
 
     return firebaseEnvVariableValue;
   } else {
-    // Print only a locally generated token to avoid a valid token leak on CI.
-    GACAppCheckLog(GACLoggerAppCheckMessageLocalDebugToken, GACAppCheckLogLevelWarning,
-                   [NSString stringWithFormat:@"App Check debug token: '%@'.", LocalDebugToken()]);
+    BOOL isRegistered =
+        [[GULUserDefaults standardUserDefaults] boolForKey:kDebugTokenRegisteredUserDefaultsKey];
+    if (!isRegistered) {
+      // Print only a locally generated token to avoid a valid token leak on CI.
+      GACAppCheckLog(
+          GACLoggerAppCheckMessageLocalDebugToken, GACAppCheckLogLevelWarning,
+          [NSString stringWithFormat:@"App Check debug token: '%@'.", LocalDebugToken()]);
+    }
 
     return nil;
   }

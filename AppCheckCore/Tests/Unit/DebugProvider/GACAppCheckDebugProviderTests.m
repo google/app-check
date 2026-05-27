@@ -27,6 +27,7 @@
 static NSString *const kDebugTokenEnvKey = @"AppCheckDebugToken";
 static NSString *const kFirebaseDebugTokenEnvKey = @"FIRAAppCheckDebugToken";
 static NSString *const kDebugTokenUserDefaultsKey = @"GACAppCheckDebugToken";
+static NSString *const kDebugTokenRegisteredUserDefaultsKey = @"GACAppCheckDebugTokenRegistered";
 
 @interface GACAppCheckDebugProvider (Tests)
 
@@ -59,6 +60,8 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
   [self.processInfoMock stopMocking];
   self.processInfoMock = nil;
   [[GULUserDefaults standardUserDefaults] removeObjectForKey:kDebugTokenUserDefaultsKey];
+  [[GULUserDefaults standardUserDefaults] removeObjectForKey:kDebugTokenRegisteredUserDefaultsKey];
+  [super tearDown];
 }
 
 #pragma mark - Debug token generating/storing
@@ -222,6 +225,88 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
   }];
 
   // 3. Verify fakes.
+  OCMVerifyAll(self.fakeAPIService);
+}
+
+- (void)testGetTokenSuccessSetsRegisteredFlag {
+  // 1. Stub API service.
+  NSString *expectedDebugToken = [self.provider currentDebugToken];
+  GACAppCheckToken *validToken = [[GACAppCheckToken alloc] initWithToken:@"valid_token"
+                                                          expirationDate:[NSDate date]
+                                                          receivedAtDate:[NSDate date]];
+  OCMExpect([self.fakeAPIService appCheckTokenWithDebugToken:expectedDebugToken limitedUse:NO])
+      .andReturn([FBLPromise resolvedWith:validToken]);
+
+  // Ensure flag is not set.
+  [[GULUserDefaults standardUserDefaults] removeObjectForKey:kDebugTokenRegisteredUserDefaultsKey];
+
+  // 2. Validate get token.
+  [self validateGetToken:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
+    XCTAssertNil(error);
+    XCTAssertNotNil(token);
+  }];
+
+  // 3. Verify flag is now YES.
+  XCTAssertTrue(
+      [[GULUserDefaults standardUserDefaults] boolForKey:kDebugTokenRegisteredUserDefaultsKey]);
+
+  // 4. Verify fakes.
+  OCMVerifyAll(self.fakeAPIService);
+}
+
+- (void)testGetTokenPermanentFailureClearsRegisteredFlag {
+  // 1. Stub API service.
+  NSString *expectedDebugToken = [self.provider currentDebugToken];
+  NSError *APIError = [NSError errorWithDomain:@"testGetTokenPermanentFailureClearsRegisteredFlag"
+                                          code:-1
+                                      userInfo:nil];
+  FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
+  [rejectedPromise reject:APIError];
+  OCMExpect([self.fakeAPIService appCheckTokenWithDebugToken:expectedDebugToken limitedUse:NO])
+      .andReturn(rejectedPromise);
+
+  // Pre-populate flag to YES.
+  [[GULUserDefaults standardUserDefaults] setBool:YES forKey:kDebugTokenRegisteredUserDefaultsKey];
+
+  // 2. Validate get token.
+  [self validateGetToken:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
+    XCTAssertNotNil(error);
+    XCTAssertNil(token);
+  }];
+
+  // 3. Verify flag is cleared.
+  XCTAssertNil(
+      [[GULUserDefaults standardUserDefaults] objectForKey:kDebugTokenRegisteredUserDefaultsKey]);
+
+  // 4. Verify fakes.
+  OCMVerifyAll(self.fakeAPIService);
+}
+
+- (void)testGetTokenNetworkFailureDoesNotClearRegisteredFlag {
+  // 1. Stub API service.
+  NSString *expectedDebugToken = [self.provider currentDebugToken];
+  NSError *networkError = [NSError errorWithDomain:GACAppCheckErrorDomain
+                                              code:GACAppCheckErrorCodeServerUnreachable
+                                          userInfo:nil];
+  FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
+  [rejectedPromise reject:networkError];
+  OCMExpect([self.fakeAPIService appCheckTokenWithDebugToken:expectedDebugToken limitedUse:NO])
+      .andReturn(rejectedPromise);
+
+  // Pre-populate flag to YES.
+  [[GULUserDefaults standardUserDefaults] setBool:YES forKey:kDebugTokenRegisteredUserDefaultsKey];
+
+  // 2. Validate get token.
+  [self validateGetToken:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
+    XCTAssertNotNil(error);
+    XCTAssertNil(token);
+  }];
+
+  // 3. Verify flag is still YES.
+  XCTAssertTrue(
+      [[GULUserDefaults standardUserDefaults] boolForKey:kDebugTokenRegisteredUserDefaultsKey]);
+
+  // 4. Verify fakes.
   OCMVerifyAll(self.fakeAPIService);
 }
 
