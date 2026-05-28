@@ -51,7 +51,7 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
                                   nil) {
     let tokenGenerator: RecaptchaTokenGenerator?
 
-    if let sdk = RecaptchaSDK(customAction: Self.appCheckActionName) {
+    if let sdk = RecaptchaEnterpriseSDKLoader(customAction: Self.appCheckActionName) {
       let backoffWrapper = GACAppCheckBackoffWrapper()
 
       tokenGenerator = RecaptchaTokenGenerator(
@@ -122,7 +122,7 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
   }
 }
 
-private struct RecaptchaSDK {
+private struct RecaptchaEnterpriseSDKLoader {
   // This symbol is specified in the RecaptchaEnterprise SDK.
   // See https://github.com/GoogleCloudPlatform/recaptcha-enterprise-mobile-sdk/blob/18.9.0/Sources/RecaptchaEnterprise/RecaptchaInteropBidings.swift
   private static let recaptchaActionClassName = "RecaptchaEnterprise.RCAAction"
