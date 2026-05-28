@@ -15,7 +15,7 @@
 import XCTest
 
 @testable import AppCheckCore
-@testable import AppCheckRecaptchaEnterpriseProvider
+@testable import AppCheckRecaptchaProvider
 import FBLPromises
 
 @available(iOS 15.0, visionOS 1.0, *)
@@ -23,8 +23,8 @@ import FBLPromises
 @available(macCatalyst, unavailable)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
-final class RecaptchaEnterpriseAPIServiceTests: XCTestCase {
-  private var apiService: RecaptchaEnterpriseAPIService!
+final class RecaptchaAPIServiceTests: XCTestCase {
+  private var apiService: RecaptchaAPIService!
   private var mockCoreAPIService: MockAppCheckCoreAPIService!
   private let testResourceName = "projects/test-project/apps/test-app"
   private let testRecaptchaToken = "recaptcha-token-123"
@@ -32,7 +32,7 @@ final class RecaptchaEnterpriseAPIServiceTests: XCTestCase {
   override func setUp() {
     super.setUp()
     mockCoreAPIService = MockAppCheckCoreAPIService()
-    apiService = RecaptchaEnterpriseAPIService(
+    apiService = RecaptchaAPIService(
       apiService: mockCoreAPIService,
       resourceName: testResourceName
     )

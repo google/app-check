@@ -15,7 +15,7 @@
 import XCTest
 
 @testable import AppCheckCore
-@testable import AppCheckRecaptchaEnterpriseProvider
+@testable import AppCheckRecaptchaProvider
 import FBLPromises
 import Promises
 import RecaptchaInterop
@@ -25,7 +25,7 @@ import RecaptchaInterop
 @available(macCatalyst, unavailable)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
-final class RecaptchaEnterpriseTokenGeneratorTests: XCTestCase {
+final class RecaptchaTokenGeneratorTests: XCTestCase {
   private let testSiteKey = "test-site-key"
   private var mockAction: MockRCAAction!
 
@@ -42,7 +42,7 @@ final class RecaptchaEnterpriseTokenGeneratorTests: XCTestCase {
     mockClient.mockToken = "valid-recaptcha-token"
     MockRecaptcha.mockClient = mockClient
 
-    let generator = RecaptchaEnterpriseTokenGenerator(
+    let generator = RecaptchaTokenGenerator(
       siteKey: testSiteKey,
       recaptchaAction: mockAction,
       recaptchaClass: MockRecaptcha.self,
@@ -68,7 +68,7 @@ final class RecaptchaEnterpriseTokenGeneratorTests: XCTestCase {
     let expectedError = NSError(domain: "test", code: -1, userInfo: nil)
     MockRecaptcha.mockError = expectedError
 
-    let generator = RecaptchaEnterpriseTokenGenerator(
+    let generator = RecaptchaTokenGenerator(
       siteKey: testSiteKey,
       recaptchaAction: mockAction,
       recaptchaClass: MockRecaptcha.self,
@@ -97,7 +97,7 @@ final class RecaptchaEnterpriseTokenGeneratorTests: XCTestCase {
     mockClient.mockError = expectedError
     MockRecaptcha.mockClient = mockClient
 
-    let generator = RecaptchaEnterpriseTokenGenerator(
+    let generator = RecaptchaTokenGenerator(
       siteKey: testSiteKey,
       recaptchaAction: mockAction,
       recaptchaClass: MockRecaptcha.self,
@@ -133,7 +133,7 @@ final class RecaptchaEnterpriseTokenGeneratorTests: XCTestCase {
 
     let mockBackoffWrapper = MockBackoffWrapper()
 
-    let generator = RecaptchaEnterpriseTokenGenerator(
+    let generator = RecaptchaTokenGenerator(
       siteKey: testSiteKey,
       recaptchaAction: mockAction,
       recaptchaClass: MockRecaptcha.self,
@@ -164,7 +164,7 @@ final class RecaptchaEnterpriseTokenGeneratorTests: XCTestCase {
     let expectedError = NSError(domain: "test", code: -3, userInfo: nil)
     mockBackoffWrapper.mockError = expectedError
 
-    let generator = RecaptchaEnterpriseTokenGenerator(
+    let generator = RecaptchaTokenGenerator(
       siteKey: testSiteKey,
       recaptchaAction: mockAction,
       recaptchaClass: MockRecaptcha.self,
@@ -191,7 +191,7 @@ final class RecaptchaEnterpriseTokenGeneratorTests: XCTestCase {
     let mockClient = MockRecaptchaClient()
     let recaptchaError = NSError(
       domain: "RecaptchaErrorDomain",
-      code: RecaptchaEnterpriseTokenGenerator.networkErrorCode,
+      code: RecaptchaTokenGenerator.networkErrorCode,
       userInfo: nil
     )
     mockClient.mockError = recaptchaError
@@ -199,7 +199,7 @@ final class RecaptchaEnterpriseTokenGeneratorTests: XCTestCase {
 
     let mockBackoffWrapper = MockBackoffWrapper()
 
-    let generator = RecaptchaEnterpriseTokenGenerator(
+    let generator = RecaptchaTokenGenerator(
       siteKey: testSiteKey,
       recaptchaAction: mockAction,
       recaptchaClass: MockRecaptcha.self,
@@ -227,7 +227,7 @@ final class RecaptchaEnterpriseTokenGeneratorTests: XCTestCase {
     let mockClient = MockRecaptchaClient()
     let recaptchaError = NSError(
       domain: "RecaptchaErrorDomain",
-      code: RecaptchaEnterpriseTokenGenerator.internalErrorCode,
+      code: RecaptchaTokenGenerator.internalErrorCode,
       userInfo: nil
     )
     mockClient.mockError = recaptchaError
@@ -235,7 +235,7 @@ final class RecaptchaEnterpriseTokenGeneratorTests: XCTestCase {
 
     let mockBackoffWrapper = MockBackoffWrapper()
 
-    let generator = RecaptchaEnterpriseTokenGenerator(
+    let generator = RecaptchaTokenGenerator(
       siteKey: testSiteKey,
       recaptchaAction: mockAction,
       recaptchaClass: MockRecaptcha.self,
@@ -266,7 +266,7 @@ final class RecaptchaEnterpriseTokenGeneratorTests: XCTestCase {
 
     let mockBackoffWrapper = MockBackoffWrapper()
 
-    let generator = RecaptchaEnterpriseTokenGenerator(
+    let generator = RecaptchaTokenGenerator(
       siteKey: testSiteKey,
       recaptchaAction: mockAction,
       recaptchaClass: MockRecaptcha.self,
@@ -304,7 +304,7 @@ final class RecaptchaEnterpriseTokenGeneratorTests: XCTestCase {
 
     let mockBackoffWrapper = MockBackoffWrapper()
 
-    let generator = RecaptchaEnterpriseTokenGenerator(
+    let generator = RecaptchaTokenGenerator(
       siteKey: testSiteKey,
       recaptchaAction: mockAction,
       recaptchaClass: MockRecaptcha.self,
@@ -339,7 +339,7 @@ final class RecaptchaEnterpriseTokenGeneratorTests: XCTestCase {
     let mockClient = MockRecaptchaClient()
     MockRecaptcha.mockClient = mockClient
 
-    let generator = RecaptchaEnterpriseTokenGenerator(
+    let generator = RecaptchaTokenGenerator(
       siteKey: testSiteKey,
       recaptchaAction: mockAction,
       recaptchaClass: MockRecaptcha.self,

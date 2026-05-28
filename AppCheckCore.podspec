@@ -38,7 +38,7 @@ Pod::Spec.new do |s|
     base_dir + 'Sources/**/*.[mh]',
   ]
   s.ios.source_files = [
-    'AppCheckRecaptchaEnterpriseProvider/Sources/**/*.swift',
+    'AppCheckRecaptchaProvider/Sources/**/*.swift',
   ]
   s.public_header_files = base_dir + 'Sources/Public/AppCheckCore/*.h'
 

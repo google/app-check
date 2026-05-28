@@ -25,7 +25,7 @@ import RecaptchaInterop
 @available(macCatalyst, unavailable)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
-final class RecaptchaEnterpriseTokenGenerator {
+final class RecaptchaTokenGenerator {
   // Corresponds to RecaptchaErrorNetworkError. These codes are not in the interop.
   // See https://docs.cloud.google.com/recaptcha/docs/reference/ios/client/api/Enums/RecaptchaErrorCode.html#recaptchaerrornetworkerror
   static let networkErrorCode = 1

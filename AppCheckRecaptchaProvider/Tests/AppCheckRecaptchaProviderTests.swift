@@ -15,7 +15,7 @@
 import XCTest
 
 @testable import AppCheckCore
-@testable import AppCheckRecaptchaEnterpriseProvider
+@testable import AppCheckRecaptchaProvider
 import Promises
 
 @available(iOS 15.0, visionOS 1.0, *)
@@ -23,19 +23,19 @@ import Promises
 @available(macCatalyst, unavailable)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
-final class AppCheckRecaptchaEnterpriseProviderTests: XCTestCase {
-  private var provider: AppCheckRecaptchaEnterpriseProvider!
+final class AppCheckRecaptchaProviderTests: XCTestCase {
+  private var provider: AppCheckRecaptchaProvider!
   private let testSiteKey = "test-site-key"
   private let testResourceName = "projects/test-project/apps/test-app"
 
   override func setUp() {
     super.setUp()
     let mockCoreAPIService = MockAppCheckCoreAPIService()
-    let apiService = RecaptchaEnterpriseAPIService(
+    let apiService = RecaptchaAPIService(
       apiService: mockCoreAPIService,
       resourceName: testResourceName
     )
-    provider = AppCheckRecaptchaEnterpriseProvider(
+    provider = AppCheckRecaptchaProvider(
       tokenGenerator: nil,
       apiService: apiService
     )
@@ -92,12 +92,12 @@ final class AppCheckRecaptchaEnterpriseProviderTests: XCTestCase {
   }
 
   private func createProviderWithMocks(expectedToken: AppCheckCoreToken)
-    -> AppCheckRecaptchaEnterpriseProvider {
+    -> AppCheckRecaptchaProvider {
     let mockClient = MockRecaptchaClient()
     mockClient.mockToken = "valid-recaptcha-token"
     MockRecaptcha.mockClient = mockClient
 
-    let tokenGenerator = RecaptchaEnterpriseTokenGenerator(
+    let tokenGenerator = RecaptchaTokenGenerator(
       siteKey: testSiteKey,
       recaptchaAction: MockRCAAction(customAction: "app_check_ios"),
       recaptchaClass: MockRecaptcha.self,
@@ -107,12 +107,12 @@ final class AppCheckRecaptchaEnterpriseProviderTests: XCTestCase {
     let mockCoreAPIService = MockAppCheckCoreAPIService()
     mockCoreAPIService.expectedToken = expectedToken
 
-    let apiService = RecaptchaEnterpriseAPIService(
+    let apiService = RecaptchaAPIService(
       apiService: mockCoreAPIService,
       resourceName: testResourceName
     )
 
-    return AppCheckRecaptchaEnterpriseProvider(
+    return AppCheckRecaptchaProvider(
       tokenGenerator: tokenGenerator,
       apiService: apiService
     )

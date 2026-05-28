@@ -13,7 +13,7 @@
 // limitations under the License.
 
 @testable import AppCheckCore
-@testable import AppCheckRecaptchaEnterpriseProvider
+@testable import AppCheckRecaptchaProvider
 import FBLPromises
 import Foundation
 import Promises

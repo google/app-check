@@ -28,13 +28,13 @@ import RecaptchaInterop
 @available(macCatalyst, unavailable)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
-@objc(GACRecaptchaEnterpriseProvider)
-public final class AppCheckRecaptchaEnterpriseProvider: NSObject, AppCheckCoreProvider {
+@objc(GACRecaptchaProvider)
+public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
   // This action name should never change without coordination with the backend.
   private static let appCheckActionName = "app_check_ios"
 
-  private let tokenGenerator: RecaptchaEnterpriseTokenGenerator?
-  private let apiService: RecaptchaEnterpriseAPIService
+  private let tokenGenerator: RecaptchaTokenGenerator?
+  private let apiService: RecaptchaAPIService
 
   /// The default initializer.
   /// - Parameters:
@@ -49,12 +49,12 @@ public final class AppCheckRecaptchaEnterpriseProvider: NSObject, AppCheckCorePr
   @objc public convenience init(siteKey: String, resourceName: String, APIKey: String,
                                 requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? =
                                   nil) {
-    let tokenGenerator: RecaptchaEnterpriseTokenGenerator?
+    let tokenGenerator: RecaptchaTokenGenerator?
 
-    if let sdk = RecaptchaEnterpriseSDK(customAction: Self.appCheckActionName) {
+    if let sdk = RecaptchaSDK(customAction: Self.appCheckActionName) {
       let backoffWrapper = GACAppCheckBackoffWrapper()
 
-      tokenGenerator = RecaptchaEnterpriseTokenGenerator(
+      tokenGenerator = RecaptchaTokenGenerator(
         siteKey: siteKey,
         recaptchaAction: sdk.action,
         recaptchaClass: sdk.recaptchaClass,
@@ -72,7 +72,7 @@ public final class AppCheckRecaptchaEnterpriseProvider: NSObject, AppCheckCorePr
                                                     baseURL: nil,
                                                     apiKey: APIKey,
                                                     requestHooks: requestHooks)
-    let apiService = RecaptchaEnterpriseAPIService(
+    let apiService = RecaptchaAPIService(
       apiService: appCheckAPIService,
       resourceName: resourceName
     )
@@ -80,8 +80,8 @@ public final class AppCheckRecaptchaEnterpriseProvider: NSObject, AppCheckCorePr
     self.init(tokenGenerator: tokenGenerator, apiService: apiService)
   }
 
-  init(tokenGenerator: RecaptchaEnterpriseTokenGenerator?,
-       apiService: RecaptchaEnterpriseAPIService) {
+  init(tokenGenerator: RecaptchaTokenGenerator?,
+       apiService: RecaptchaAPIService) {
     self.tokenGenerator = tokenGenerator
     self.apiService = apiService
     super.init()
@@ -122,7 +122,7 @@ public final class AppCheckRecaptchaEnterpriseProvider: NSObject, AppCheckCorePr
   }
 }
 
-private struct RecaptchaEnterpriseSDK {
+private struct RecaptchaSDK {
   // This symbol is specified in the RecaptchaEnterprise SDK.
   // See https://github.com/GoogleCloudPlatform/recaptcha-enterprise-mobile-sdk/blob/18.9.0/Sources/RecaptchaEnterprise/RecaptchaInteropBidings.swift
   private static let recaptchaActionClassName = "RecaptchaEnterprise.RCAAction"

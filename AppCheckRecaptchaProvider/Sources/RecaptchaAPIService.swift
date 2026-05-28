@@ -33,7 +33,7 @@ private enum Constants {
 @available(macCatalyst, unavailable)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
-final class RecaptchaEnterpriseAPIService: NSObject {
+final class RecaptchaAPIService: NSObject {
   private let apiService: AppCheckCoreAPIServiceProtocol
   private let resourceName: String
 
