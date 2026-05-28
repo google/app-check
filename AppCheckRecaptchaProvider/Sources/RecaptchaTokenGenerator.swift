@@ -88,9 +88,13 @@ final class RecaptchaTokenGenerator {
       )
 
       return Promise<AnyObject>(fblPromise).then { result in
-        // Force cast is safe because the operation provider above returns a String
-        // (the token) fulfilled as AnyObject to satisfy FBLPromise interop.
-        result as! String
+        guard let token = result as? String else {
+          throw GACAppCheckErrorUtil
+            .error(
+              withFailureReason: "Unexpected result type from reCAPTCHA token exchange: \(type(of: result)). Expected String."
+            )
+        }
+        return token
       }
     }
   }
