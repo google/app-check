@@ -50,43 +50,40 @@ final class RecaptchaAPIService: NSObject {
         .error(withFailureReason: "Invalid URL string: \(urlString)"))
     }
 
-    return httpBody(with: recaptchaToken, limitedUse: limitedUse)
-      .then { httpBody in
-        Promise<GACURLSessionDataResponse>(self.apiService.sendRequest(with: url,
-                                                                       httpMethod: Constants
-                                                                         .httpMethodPost,
-                                                                       body: httpBody,
-                                                                       additionalHeaders: [Constants
-                                                                         .contentTypeKey: Constants
-                                                                         .jsonContentType]))
-      }.then { response in
+    let httpBody: Data
+    do {
+      httpBody = try self.httpBody(with: recaptchaToken, limitedUse: limitedUse)
+    } catch {
+      return Promise(error)
+    }
+
+    return Promise<GACURLSessionDataResponse>(apiService.sendRequest(with: url,
+                                                                     httpMethod: Constants
+                                                                       .httpMethodPost,
+                                                                     body: httpBody,
+                                                                     additionalHeaders: [Constants
+                                                                       .contentTypeKey: Constants
+                                                                       .jsonContentType]))
+      .then { response in
         Promise<AppCheckCoreToken>(self.apiService.appCheckToken(withAPIResponse: response))
       }
   }
 
   private func httpBody(with recaptchaToken: String,
-                        limitedUse: Bool) -> Promise<Data> {
+                        limitedUse: Bool) throws -> Data {
     guard !recaptchaToken.isEmpty else {
-      return Promise(GACAppCheckErrorUtil
-        .error(withFailureReason: "Recaptcha token cannot be empty"))
+      throw GACAppCheckErrorUtil.error(withFailureReason: "Recaptcha token cannot be empty")
     }
 
-    return Promise(on: backgroundQueue()) {
-      let payload: [String: Any] = [
-        Constants.recaptchaTokenField: recaptchaToken,
-        Constants.limitedUseField: limitedUse,
-      ]
+    let payload: [String: Any] = [
+      Constants.recaptchaTokenField: recaptchaToken,
+      Constants.limitedUseField: limitedUse,
+    ]
 
-      do {
-        let jsonData = try JSONSerialization.data(withJSONObject: payload, options: [])
-        return jsonData
-      } catch {
-        throw GACAppCheckErrorUtil.jsonSerializationError(error)
-      }
+    do {
+      return try JSONSerialization.data(withJSONObject: payload, options: [])
+    } catch {
+      throw GACAppCheckErrorUtil.jsonSerializationError(error)
     }
-  }
-
-  private func backgroundQueue() -> DispatchQueue {
-    return DispatchQueue.global(qos: .utility)
   }
 }
