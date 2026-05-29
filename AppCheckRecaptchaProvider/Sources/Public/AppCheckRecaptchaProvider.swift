@@ -35,10 +35,7 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
 
   // TODO(ncooke3): Consider if this check should be expanded to handle runtime OS availability checking.
   @objc public static func isRecaptchaEnterpriseSDKLinked() -> Bool {
-    let actionObj: AnyClass? = NSClassFromString("RecaptchaEnterprise.RCAAction")
-    let recaptchaObj: AnyClass? = NSClassFromString("RecaptchaEnterprise.RCARecaptcha")
-    return actionObj as? RCAActionProtocol.Type != nil && recaptchaObj as? RCARecaptchaProtocol
-      .Type != nil
+    return RecaptchaEnterpriseSDKLoader.isLinked
   }
 
   private let tokenGenerator: RecaptchaTokenGenerator?
@@ -125,22 +122,23 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
 }
 
 private struct RecaptchaEnterpriseSDKLoader {
-  // This symbol is specified in the RecaptchaEnterprise SDK.
+  // These symbols are specified in the RecaptchaEnterprise SDK.
   // See https://github.com/GoogleCloudPlatform/recaptcha-enterprise-mobile-sdk/blob/18.9.0/Sources/RecaptchaEnterprise/RecaptchaInteropBidings.swift
-  private static let recaptchaActionClassName = "RecaptchaEnterprise.RCAAction"
-  // This symbol is specified in the RecaptchaEnterprise SDK.
-  // See https://github.com/GoogleCloudPlatform/recaptcha-enterprise-mobile-sdk/blob/18.9.0/Sources/RecaptchaEnterprise/RecaptchaInteropBidings.swift
-  private static let recaptchaClassName = "RecaptchaEnterprise.RCARecaptcha"
+  private static let actionClass =
+    NSClassFromString("RecaptchaEnterprise.RCAAction") as? RCAActionProtocol.Type
+  private static let recaptchaClass =
+    NSClassFromString("RecaptchaEnterprise.RCARecaptcha") as? RCARecaptchaProtocol.Type
+
+  static var isLinked: Bool {
+    return actionClass != nil && recaptchaClass != nil
+  }
 
   let action: RCAActionProtocol
   let recaptchaClass: RCARecaptchaProtocol.Type
 
   init?(customAction: String) {
-    let actionObj: AnyClass? = NSClassFromString(Self.recaptchaActionClassName)
-    let recaptchaObj: AnyClass? = NSClassFromString(Self.recaptchaClassName)
-
-    guard let actionClass = actionObj as? RCAActionProtocol.Type,
-          let recaptchaClass = recaptchaObj as? RCARecaptchaProtocol.Type else {
+    guard let actionClass = Self.actionClass,
+          let recaptchaClass = Self.recaptchaClass else {
       return nil
     }
 
