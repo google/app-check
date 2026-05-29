@@ -33,7 +33,6 @@ final class RecaptchaTokenGenerator {
   // See https://docs.cloud.google.com/recaptcha/docs/reference/ios/client/api/Enums/RecaptchaErrorCode.html#recaptchaerrorcodeinternalerror
   static let internalErrorCode = 100
 
-  private let siteKey: String
   private let recaptchaAction: RCAActionProtocol
 
   private let recaptchaClient: Promise<RCARecaptchaClientProtocol>
@@ -43,7 +42,6 @@ final class RecaptchaTokenGenerator {
   init(siteKey: String, recaptchaAction: RCAActionProtocol,
        recaptchaClass: RCARecaptchaProtocol.Type,
        backoffWrapper: _GACAppCheckBackoffWrapperProtocol) {
-    self.siteKey = siteKey
     self.recaptchaAction = recaptchaAction
     self.backoffWrapper = backoffWrapper
     recaptchaClient = Promise<RCARecaptchaClientProtocol> { fulfill, reject in
