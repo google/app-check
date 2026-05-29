@@ -24,7 +24,7 @@
 #import "FBLPromises.h"
 #endif
 
-#import <AppCheckCore/GACAppCheckBackoffWrapper.h>
+#import <AppCheckCore/_GACAppCheckBackoffWrapper.h>
 
 NS_ASSUME_NONNULL_BEGIN
 

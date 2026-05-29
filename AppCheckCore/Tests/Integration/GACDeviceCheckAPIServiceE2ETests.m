@@ -30,8 +30,8 @@
 #import "FBLPromise+Testing.h"
 
 #import "AppCheckCore/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAPIService.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckAPIService.h"
 
 // TODO: Replace with real resource name to run on CI
 static NSString *const kResourceName = @"projects/test-project-id/google-app-id";
