@@ -44,6 +44,11 @@ final class RecaptchaTokenGenerator {
        backoffWrapper: _GACAppCheckBackoffWrapperProtocol) {
     self.recaptchaAction = recaptchaAction
     self.backoffWrapper = backoffWrapper
+    // Note: `fetchClient` is called only once and its result (including
+    // failure) is cached. reCAPTCHA engineers have confirmed that
+    // `fetchClient` handles transient errors internally and only fails on
+    // permanent integration errors (e.g., invalid site key). Therefore,
+    // retrying `fetchClient` on failure is unnecessary and not recommended.
     recaptchaClient = Promise<RCARecaptchaClientProtocol> { fulfill, reject in
       recaptchaClass.fetchClient(withSiteKey: siteKey) { client, error in
         if let client {
