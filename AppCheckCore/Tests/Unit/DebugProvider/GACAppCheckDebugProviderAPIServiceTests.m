@@ -23,9 +23,9 @@
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
 #import "AppCheckCore/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAPIService.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACURLSessionDataResponse.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckAPIService.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACURLSessionDataResponse.h"
 
 #import "AppCheckCore/Tests/Utils/URLSession/GACURLSessionOCMockStub.h"
 
@@ -42,7 +42,7 @@ static NSString *const kResourceName = @"projects/test_project_id/apps/test_app_
 - (void)setUp {
   [super setUp];
 
-  self.mockAPIService = OCMProtocolMock(@protocol(GACAppCheckAPIServiceProtocol));
+  self.mockAPIService = OCMProtocolMock(@protocol(_GACAppCheckAPIServiceProtocol));
   OCMStub([self.mockAPIService baseURL]).andReturn(@"https://test.appcheck.url.com/alpha");
 
   self.debugAPIService =
@@ -84,8 +84,8 @@ static NSString *const kResourceName = @"projects/test_project_id/apps/test_app_
                                                             limitedUse:limitedUse];
   NSData *fakeResponseData = [@"fake response" dataUsingEncoding:NSUTF8StringEncoding];
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:200];
-  GACURLSessionDataResponse *APIResponse =
-      [[GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:fakeResponseData];
+  _GACURLSessionDataResponse *APIResponse =
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:fakeResponseData];
 
   OCMExpect([self.mockAPIService sendRequestWithURL:URLValidationArg
                                          HTTPMethod:@"POST"
@@ -132,8 +132,8 @@ static NSString *const kResourceName = @"projects/test_project_id/apps/test_app_
   id HTTPBodyValidationArg = [self HTTPBodyValidationArgWithDebugToken:debugToken limitedUse:NO];
   NSData *fakeResponseData = [@"fake response" dataUsingEncoding:NSUTF8StringEncoding];
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:200];
-  GACURLSessionDataResponse *APIResponse =
-      [[GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:fakeResponseData];
+  _GACURLSessionDataResponse *APIResponse =
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:fakeResponseData];
 
   OCMExpect([self.mockAPIService sendRequestWithURL:URLValidationArg
                                          HTTPMethod:@"POST"

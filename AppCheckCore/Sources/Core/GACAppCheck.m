@@ -33,7 +33,7 @@
 #import "AppCheckCore/Sources/Core/Storage/GACAppCheckStorage.h"
 #import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefreshResult.h"
 #import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefresher.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -166,19 +166,19 @@ typedef void (^GACAppCheckTokenHandler)(GACAppCheckTokenResult *result);
 - (FBLPromise<GACAppCheckToken *> *)getCachedValidTokenForcingRefresh:(BOOL)forcingRefresh {
   if (forcingRefresh) {
     FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
-    [rejectedPromise reject:[GACAppCheckErrorUtil cachedTokenNotFound]];
+    [rejectedPromise reject:[_GACAppCheckErrorUtil cachedTokenNotFound]];
     return rejectedPromise;
   }
 
   return [self.storage getToken].then(^id(GACAppCheckToken *_Nullable token) {
     if (token == nil) {
-      return [GACAppCheckErrorUtil cachedTokenNotFound];
+      return [_GACAppCheckErrorUtil cachedTokenNotFound];
     }
 
     BOOL isTokenExpiredOrExpiresSoon =
         [token.expirationDate timeIntervalSinceNow] < kTokenExpirationThreshold;
     if (isTokenExpiredOrExpiresSoon) {
-      return [GACAppCheckErrorUtil cachedTokenExpired];
+      return [_GACAppCheckErrorUtil cachedTokenExpired];
     }
 
     return token;

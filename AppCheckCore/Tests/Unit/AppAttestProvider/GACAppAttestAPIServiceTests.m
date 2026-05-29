@@ -22,11 +22,11 @@
 #import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAPIService.h"
 #import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAPIService.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACURLSessionDataResponse.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckAPIService.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACURLSessionDataResponse.h"
 
 #import "AppCheckCore/Tests/Unit/Utils/GACFixtureLoader.h"
 #import "AppCheckCore/Tests/Utils/Date/GACDateTestUtils.h"
@@ -48,7 +48,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
 - (void)setUp {
   [super setUp];
 
-  self.mockAPIService = OCMProtocolMock(@protocol(GACAppCheckAPIServiceProtocol));
+  self.mockAPIService = OCMProtocolMock(@protocol(_GACAppCheckAPIServiceProtocol));
   OCMStub([self.mockAPIService baseURL]).andReturn(kBaseURL);
 
   self.appAttestAPIService = [[GACAppAttestAPIService alloc] initWithAPIService:self.mockAPIService
@@ -68,8 +68,8 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
 - (void)testGetRandomChallengeWhenAPIResponseValid {
   // 1. Prepare API response.
   NSData *responseBody = [GACFixtureLoader loadFixtureNamed:@"AppAttestResponseSuccess.json"];
-  GACURLSessionDataResponse *validAPIResponse = [self APIResponseWithCode:200
-                                                             responseBody:responseBody];
+  _GACURLSessionDataResponse *validAPIResponse = [self APIResponseWithCode:200
+                                                              responseBody:responseBody];
   // 2. Stub API Service Request to return prepared API response.
   [self stubMockAPIServiceRequestForChallengeRequestWithResponse:validAPIResponse];
 
@@ -93,11 +93,11 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   // 1. Prepare API response.
   NSString *responseBodyString = @"Generate challenge failed with invalid format.";
   NSData *responseBody = [responseBodyString dataUsingEncoding:NSUTF8StringEncoding];
-  GACURLSessionDataResponse *invalidAPIResponse = [self APIResponseWithCode:300
-                                                               responseBody:responseBody];
+  _GACURLSessionDataResponse *invalidAPIResponse = [self APIResponseWithCode:300
+                                                                responseBody:responseBody];
   GACAppCheckHTTPError *APIError =
-      [GACAppCheckErrorUtil APIErrorWithHTTPResponse:invalidAPIResponse.HTTPResponse
-                                                data:invalidAPIResponse.HTTPBody];
+      [_GACAppCheckErrorUtil APIErrorWithHTTPResponse:invalidAPIResponse.HTTPResponse
+                                                 data:invalidAPIResponse.HTTPBody];
   // 2. Stub API Service Request to return prepared API response.
   [self stubMockAPIServiceRequestForChallengeRequestWithResponse:APIError];
 
@@ -123,8 +123,8 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
 - (void)testGetRandomChallengeWhenAPIResponseEmpty {
   // 1. Prepare API response.
   NSData *responseBody = [NSData data];
-  GACURLSessionDataResponse *emptyAPIResponse = [self APIResponseWithCode:200
-                                                             responseBody:responseBody];
+  _GACURLSessionDataResponse *emptyAPIResponse = [self APIResponseWithCode:200
+                                                              responseBody:responseBody];
   // 2. Stub API Service Request to return prepared API response.
   [self stubMockAPIServiceRequestForChallengeRequestWithResponse:emptyAPIResponse];
 
@@ -146,8 +146,8 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   // 1. Prepare API response.
   NSString *responseBodyString = @"Generate challenge failed with invalid format.";
   NSData *responseBody = [responseBodyString dataUsingEncoding:NSUTF8StringEncoding];
-  GACURLSessionDataResponse *validAPIResponse = [self APIResponseWithCode:200
-                                                             responseBody:responseBody];
+  _GACURLSessionDataResponse *validAPIResponse = [self APIResponseWithCode:200
+                                                              responseBody:responseBody];
   // 2. Stub API Service Request to return prepared API response.
   [self stubMockAPIServiceRequestForChallengeRequestWithResponse:validAPIResponse];
 
@@ -174,8 +174,8 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
                               missingField:(NSString *)fieldName {
   // 1. Prepare API response.
   NSData *missingFieldBody = [GACFixtureLoader loadFixtureNamed:fixtureName];
-  GACURLSessionDataResponse *incompleteAPIResponse = [self APIResponseWithCode:200
-                                                                  responseBody:missingFieldBody];
+  _GACURLSessionDataResponse *incompleteAPIResponse = [self APIResponseWithCode:200
+                                                                   responseBody:missingFieldBody];
   // 2. Stub API Service Request to return prepared API response.
   [self stubMockAPIServiceRequestForChallengeRequestWithResponse:incompleteAPIResponse];
 
@@ -216,8 +216,8 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   // 1. Prepare response.
   NSData *responseBody =
       [GACFixtureLoader loadFixtureNamed:@"FACTokenExchangeResponseSuccess.json"];
-  GACURLSessionDataResponse *validAPIResponse = [self APIResponseWithCode:200
-                                                             responseBody:responseBody];
+  _GACURLSessionDataResponse *validAPIResponse = [self APIResponseWithCode:200
+                                                              responseBody:responseBody];
 
   // 2. Stub API Service
   // 2.1. Return prepared response.
@@ -260,8 +260,8 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   // 1. Prepare response.
   NSData *responseBody =
       [GACFixtureLoader loadFixtureNamed:@"FACTokenExchangeResponseSuccess.json"];
-  GACURLSessionDataResponse *validAPIResponse = [self APIResponseWithCode:200
-                                                             responseBody:responseBody];
+  _GACURLSessionDataResponse *validAPIResponse = [self APIResponseWithCode:200
+                                                              responseBody:responseBody];
 
   // 2. Stub API Service
   // 2.1. Return prepared response.
@@ -296,8 +296,8 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   // 1. Prepare response.
   NSData *responseBody =
       [GACFixtureLoader loadFixtureNamed:@"DeviceCheckResponseMissingToken.json"];
-  GACURLSessionDataResponse *validAPIResponse = [self APIResponseWithCode:200
-                                                             responseBody:responseBody];
+  _GACURLSessionDataResponse *validAPIResponse = [self APIResponseWithCode:200
+                                                              responseBody:responseBody];
 
   // 2. Stub API Service
   // 2.1. Return prepared response.
@@ -343,8 +343,8 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   // 1. Prepare response.
   NSData *responseBody =
       [GACFixtureLoader loadFixtureNamed:@"AppAttestAttestationResponseSuccess.json"];
-  GACURLSessionDataResponse *validAPIResponse = [self APIResponseWithCode:200
-                                                             responseBody:responseBody];
+  _GACURLSessionDataResponse *validAPIResponse = [self APIResponseWithCode:200
+                                                              responseBody:responseBody];
 
   // 2. Stub API Service
   // 2.1. Return prepared response.
@@ -418,8 +418,8 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   // 1. Prepare unexpected response.
   NSData *responseBody =
       [GACFixtureLoader loadFixtureNamed:@"FACTokenExchangeResponseSuccess.json"];
-  GACURLSessionDataResponse *validAPIResponse = [self APIResponseWithCode:200
-                                                             responseBody:responseBody];
+  _GACURLSessionDataResponse *validAPIResponse = [self APIResponseWithCode:200
+                                                              responseBody:responseBody];
 
   // 2. Stub API Service
   // 2.1. Return prepared response.
@@ -448,12 +448,12 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
 
 #pragma mark - Helpers
 
-- (GACURLSessionDataResponse *)APIResponseWithCode:(NSInteger)code
-                                      responseBody:(NSData *)responseBody {
+- (_GACURLSessionDataResponse *)APIResponseWithCode:(NSInteger)code
+                                       responseBody:(NSData *)responseBody {
   XCTAssertNotNil(responseBody);
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:code];
-  GACURLSessionDataResponse *APIResponse =
-      [[GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
+  _GACURLSessionDataResponse *APIResponse =
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
   return APIResponse;
 }
 
@@ -493,7 +493,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
                                 challenge:(NSData *)challenge
                                 assertion:(NSData *)assertion
                                limitedUse:(BOOL)limitedUse
-                                 response:(nullable GACURLSessionDataResponse *)response
+                                 response:(nullable _GACURLSessionDataResponse *)response
                                     error:(nullable NSError *)error {
   id URLValidationArg = [self URLValidationArgumentWithCustomMethod:@"exchangeAppAttestAssertion"];
 
@@ -549,7 +549,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
       .andReturn(responsePromise);
 }
 
-- (void)expectTokenWithAPIReponse:(nonnull GACURLSessionDataResponse *)response
+- (void)expectTokenWithAPIReponse:(nonnull _GACURLSessionDataResponse *)response
                     toReturnToken:(nullable GACAppCheckToken *)token {
   FBLPromise *tokenPromise = [FBLPromise pendingPromise];
   if (token) {
@@ -565,7 +565,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
                                         keyID:(NSString *)keyID
                                     challenge:(NSData *)challenge
                                    limitedUse:(BOOL)limitedUse
-                                     response:(nullable GACURLSessionDataResponse *)response
+                                     response:(nullable _GACURLSessionDataResponse *)response
                                         error:(nullable NSError *)error {
   id URLValidationArg =
       [self URLValidationArgumentWithCustomMethod:@"exchangeAppAttestAttestation"];

@@ -34,7 +34,7 @@
 #import "FBLPromise+Testing.h"
 
 #import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestArtifactStorage.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 static NSString *const kAppName = @"GACAppAttestArtifactStorageTests";
 static NSString *const kAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa";
@@ -152,7 +152,7 @@ static NSString *const kAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa";
   XCTAssert(FBLWaitForPromisesWithTimeout(0.5));
   XCTAssertNotNil(getPromise.error);
   XCTAssertEqualObjects(getPromise.error,
-                        [GACAppCheckErrorUtil keychainErrorWithError:gulsKeychainError]);
+                        [_GACAppCheckErrorUtil keychainErrorWithError:gulsKeychainError]);
 
   // 4. Verify storage mock.
   OCMVerifyAll(mockKeychainStorage);
@@ -179,7 +179,7 @@ static NSString *const kAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa";
   XCTAssert(FBLWaitForPromisesWithTimeout(0.5));
   XCTAssertNotNil(setPromise.error);
   XCTAssertEqualObjects(setPromise.error,
-                        [GACAppCheckErrorUtil keychainErrorWithError:gulsKeychainError]);
+                        [_GACAppCheckErrorUtil keychainErrorWithError:gulsKeychainError]);
 
   // 4. Verify storage mock.
   OCMVerifyAll(mockKeychainStorage);
@@ -205,7 +205,7 @@ static NSString *const kAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa";
   XCTAssert(FBLWaitForPromisesWithTimeout(0.5));
   XCTAssertNotNil(setPromise.error);
   XCTAssertEqualObjects(setPromise.error,
-                        [GACAppCheckErrorUtil keychainErrorWithError:gulsKeychainError]);
+                        [_GACAppCheckErrorUtil keychainErrorWithError:gulsKeychainError]);
 
   // 4. Verify storage mock.
   OCMVerifyAll(mockKeychainStorage);

@@ -28,7 +28,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface GACAppCheckBackoffWrapperFake : NSObject <GACAppCheckBackoffWrapperProtocol>
+@interface GACAppCheckBackoffWrapperFake : NSObject <_GACAppCheckBackoffWrapperProtocol>
 
 /// If `YES` then the next operation passed to `[backoff:errorHandler:]` method will be performed.
 /// If `NO` then it will fail with a backoff error.

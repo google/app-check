@@ -38,11 +38,11 @@ final class RecaptchaTokenGenerator {
 
   private let recaptchaClient: Promise<RCARecaptchaClientProtocol>
 
-  private let backoffWrapper: GACAppCheckBackoffWrapperProtocol
+  private let backoffWrapper: _GACAppCheckBackoffWrapperProtocol
 
   init(siteKey: String, recaptchaAction: RCAActionProtocol,
        recaptchaClass: RCARecaptchaProtocol.Type,
-       backoffWrapper: GACAppCheckBackoffWrapperProtocol) {
+       backoffWrapper: _GACAppCheckBackoffWrapperProtocol) {
     self.siteKey = siteKey
     self.recaptchaAction = recaptchaAction
     self.backoffWrapper = backoffWrapper
@@ -51,7 +51,7 @@ final class RecaptchaTokenGenerator {
         if let client {
           fulfill(client)
         } else {
-          reject(error ?? GACAppCheckErrorUtil
+          reject(error ?? _GACAppCheckErrorUtil
             .error(withFailureReason: "Failed to fetch Recaptcha client"))
         }
       }
@@ -89,7 +89,7 @@ final class RecaptchaTokenGenerator {
 
       return Promise<AnyObject>(fblPromise).then { result in
         guard let token = result as? String else {
-          throw GACAppCheckErrorUtil
+          throw _GACAppCheckErrorUtil
             .error(
               withFailureReason: "Unexpected result type from reCAPTCHA token exchange: \(type(of: result)). Expected String."
             )
@@ -101,13 +101,13 @@ final class RecaptchaTokenGenerator {
 
   private func mapRecaptchaError(_ error: Error?) -> Error {
     guard let error = error as NSError? else {
-      return GACAppCheckErrorUtil.error(withFailureReason: "Failed to execute Recaptcha action")
+      return _GACAppCheckErrorUtil.error(withFailureReason: "Failed to execute Recaptcha action")
     }
 
     // Map RecaptchaErrorNetworkError and RecaptchaErrorCodeInternalError.
     // See https://docs.cloud.google.com/recaptcha/docs/reference/ios/client/api/Enums/RecaptchaErrorCode.html
     if error.code == Self.networkErrorCode || error.code == Self.internalErrorCode {
-      return GACAppCheckErrorUtil.apiError(withNetworkError: error)
+      return _GACAppCheckErrorUtil.apiError(withNetworkError: error)
     }
 
     // Preserve underlying error for others

@@ -22,7 +22,7 @@
 #import "FBLPromises.h"
 #endif
 
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 static NSString *const kResponseFieldToken = @"token";
 static NSString *const kResponseFieldTTL = @"ttl";
@@ -34,7 +34,7 @@ static NSString *const kResponseFieldTTL = @"ttl";
                                                  error:(NSError **)outError {
   if (response.length <= 0) {
     GACAppCheckSetErrorToPointer(
-        [GACAppCheckErrorUtil errorWithFailureReason:@"Empty server response body."], outError);
+        [_GACAppCheckErrorUtil errorWithFailureReason:@"Empty server response body."], outError);
     return nil;
   }
 
@@ -44,7 +44,8 @@ static NSString *const kResponseFieldTTL = @"ttl";
                                                                  error:&JSONError];
 
   if (![responseDict isKindOfClass:[NSDictionary class]]) {
-    GACAppCheckSetErrorToPointer([GACAppCheckErrorUtil JSONSerializationError:JSONError], outError);
+    GACAppCheckSetErrorToPointer([_GACAppCheckErrorUtil JSONSerializationError:JSONError],
+                                 outError);
     return nil;
   }
 
@@ -57,7 +58,7 @@ static NSString *const kResponseFieldTTL = @"ttl";
   NSString *token = responseDict[kResponseFieldToken];
   if (![token isKindOfClass:[NSString class]]) {
     GACAppCheckSetErrorToPointer(
-        [GACAppCheckErrorUtil appCheckTokenResponseErrorWithMissingField:kResponseFieldToken],
+        [_GACAppCheckErrorUtil appCheckTokenResponseErrorWithMissingField:kResponseFieldToken],
         outError);
     return nil;
   }
@@ -65,7 +66,7 @@ static NSString *const kResponseFieldTTL = @"ttl";
   NSString *timeToLiveString = responseDict[kResponseFieldTTL];
   if (![token isKindOfClass:[NSString class]] || token.length <= 0) {
     GACAppCheckSetErrorToPointer(
-        [GACAppCheckErrorUtil appCheckTokenResponseErrorWithMissingField:kResponseFieldTTL],
+        [_GACAppCheckErrorUtil appCheckTokenResponseErrorWithMissingField:kResponseFieldTTL],
         outError);
     return nil;
   }
@@ -77,7 +78,7 @@ static NSString *const kResponseFieldTTL = @"ttl";
 
   if (secondsToLive == 0) {
     GACAppCheckSetErrorToPointer(
-        [GACAppCheckErrorUtil appCheckTokenResponseErrorWithMissingField:kResponseFieldTTL],
+        [_GACAppCheckErrorUtil appCheckTokenResponseErrorWithMissingField:kResponseFieldTTL],
         outError);
     return nil;
   }

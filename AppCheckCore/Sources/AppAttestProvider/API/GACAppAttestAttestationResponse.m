@@ -17,7 +17,7 @@
 #import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
 
 #import "AppCheckCore/Sources/Core/APIService/GACAppCheckToken+APIResponse.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 static NSString *const kResponseFieldAppCheckTokenDict = @"appCheckToken";
 static NSString *const kResponseFieldArtifact = @"artifact";
@@ -38,7 +38,7 @@ static NSString *const kResponseFieldArtifact = @"artifact";
                                         error:(NSError **)outError {
   if (response.length <= 0) {
     GACAppCheckSetErrorToPointer(
-        [GACAppCheckErrorUtil
+        [_GACAppCheckErrorUtil
             errorWithFailureReason:
                 @"Failed to parse the initial handshake response. Empty server response body."],
         outError);
@@ -51,14 +51,15 @@ static NSString *const kResponseFieldArtifact = @"artifact";
                                                                  error:&JSONError];
 
   if (![responseDict isKindOfClass:[NSDictionary class]]) {
-    GACAppCheckSetErrorToPointer([GACAppCheckErrorUtil JSONSerializationError:JSONError], outError);
+    GACAppCheckSetErrorToPointer([_GACAppCheckErrorUtil JSONSerializationError:JSONError],
+                                 outError);
     return nil;
   }
 
   NSString *artifactBase64String = responseDict[kResponseFieldArtifact];
   if (![artifactBase64String isKindOfClass:[NSString class]]) {
     GACAppCheckSetErrorToPointer(
-        [GACAppCheckErrorUtil
+        [_GACAppCheckErrorUtil
             appAttestAttestationResponseErrorWithMissingField:kResponseFieldArtifact],
         outError);
     return nil;
@@ -67,7 +68,7 @@ static NSString *const kResponseFieldArtifact = @"artifact";
                                                              options:0];
   if (artifactData == nil) {
     GACAppCheckSetErrorToPointer(
-        [GACAppCheckErrorUtil
+        [_GACAppCheckErrorUtil
             appAttestAttestationResponseErrorWithMissingField:kResponseFieldArtifact],
         outError);
     return nil;
@@ -76,7 +77,7 @@ static NSString *const kResponseFieldArtifact = @"artifact";
   NSDictionary *appCheckTokenDict = responseDict[kResponseFieldAppCheckTokenDict];
   if (![appCheckTokenDict isKindOfClass:[NSDictionary class]]) {
     GACAppCheckSetErrorToPointer(
-        [GACAppCheckErrorUtil
+        [_GACAppCheckErrorUtil
             appAttestAttestationResponseErrorWithMissingField:kResponseFieldAppCheckTokenDict],
         outError);
     return nil;

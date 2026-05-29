@@ -60,11 +60,11 @@ static NSString *const kDebugTokenUserDefaultsKey = @"GACAppCheckDebugToken";
   NSURLSession *URLSession = [NSURLSession
       sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration]];
 
-  GACAppCheckAPIService *APIService =
-      [[GACAppCheckAPIService alloc] initWithURLSession:URLSession
-                                                baseURL:baseURL
-                                                 APIKey:APIKey
-                                           requestHooks:requestHooks];
+  _GACAppCheckAPIService *APIService =
+      [[_GACAppCheckAPIService alloc] initWithURLSession:URLSession
+                                                 baseURL:baseURL
+                                                  APIKey:APIKey
+                                            requestHooks:requestHooks];
 
   GACAppCheckDebugProviderAPIService *debugAPIService =
       [[GACAppCheckDebugProviderAPIService alloc] initWithAPIService:APIService

@@ -31,19 +31,19 @@
 #import "AppCheckCore/Sources/DeviceCheckProvider/DCDevice+GACDeviceCheckTokenGenerator.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAPIService.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckBackoffWrapper.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface GACDeviceCheckProvider ()
 @property(nonatomic, readonly) id<GACDeviceCheckAPIServiceProtocol> APIService;
 @property(nonatomic, readonly) id<GACDeviceCheckTokenGenerator> deviceTokenGenerator;
-@property(nonatomic, readonly) id<GACAppCheckBackoffWrapperProtocol> backoffWrapper;
+@property(nonatomic, readonly) id<_GACAppCheckBackoffWrapperProtocol> backoffWrapper;
 
 - (instancetype)initWithAPIService:(id<GACDeviceCheckAPIServiceProtocol>)APIService
               deviceTokenGenerator:(id<GACDeviceCheckTokenGenerator>)deviceTokenGenerator
-                    backoffWrapper:(id<GACAppCheckBackoffWrapperProtocol>)backoffWrapper
+                    backoffWrapper:(id<_GACAppCheckBackoffWrapperProtocol>)backoffWrapper
     NS_DESIGNATED_INITIALIZER;
 
 @end
@@ -52,7 +52,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype)initWithAPIService:(id<GACDeviceCheckAPIServiceProtocol>)APIService
               deviceTokenGenerator:(id<GACDeviceCheckTokenGenerator>)deviceTokenGenerator
-                    backoffWrapper:(id<GACAppCheckBackoffWrapperProtocol>)backoffWrapper {
+                    backoffWrapper:(id<_GACAppCheckBackoffWrapperProtocol>)backoffWrapper {
   self = [super init];
   if (self) {
     _APIService = APIService;
@@ -63,7 +63,7 @@ NS_ASSUME_NONNULL_BEGIN
 }
 
 - (instancetype)initWithAPIService:(id<GACDeviceCheckAPIServiceProtocol>)APIService {
-  GACAppCheckBackoffWrapper *backoffWrapper = [[GACAppCheckBackoffWrapper alloc] init];
+  _GACAppCheckBackoffWrapper *backoffWrapper = [[_GACAppCheckBackoffWrapper alloc] init];
   return [self initWithAPIService:APIService
              deviceTokenGenerator:[DCDevice currentDevice]
                    backoffWrapper:backoffWrapper];
@@ -76,11 +76,11 @@ NS_ASSUME_NONNULL_BEGIN
   NSURLSession *URLSession = [NSURLSession
       sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration]];
 
-  GACAppCheckAPIService *APIService =
-      [[GACAppCheckAPIService alloc] initWithURLSession:URLSession
-                                                baseURL:nil
-                                                 APIKey:APIKey
-                                           requestHooks:requestHooks];
+  _GACAppCheckAPIService *APIService =
+      [[_GACAppCheckAPIService alloc] initWithURLSession:URLSession
+                                                 baseURL:nil
+                                                  APIKey:APIKey
+                                            requestHooks:requestHooks];
 
   GACDeviceCheckAPIService *deviceCheckAPIService =
       [[GACDeviceCheckAPIService alloc] initWithAPIService:APIService resourceName:resourceName];
@@ -146,7 +146,7 @@ NS_ASSUME_NONNULL_BEGIN
   if (self.deviceTokenGenerator.isSupported) {
     return [FBLPromise resolvedWith:[NSNull null]];
   } else {
-    NSError *error = [GACAppCheckErrorUtil unsupportedAttestationProvider:@"DeviceCheckProvider"];
+    NSError *error = [_GACAppCheckErrorUtil unsupportedAttestationProvider:@"DeviceCheckProvider"];
     FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
     [rejectedPromise reject:error];
     return rejectedPromise;

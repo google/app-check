@@ -37,3 +37,7 @@
 #import "GACAppCheckBackoffWrapper.h"
 #import "GACAppCheckErrorUtil.h"
 #import "GACURLSessionDataResponse.h"
+#import "_GACAppCheckAPIService.h"
+#import "_GACAppCheckBackoffWrapper.h"
+#import "_GACAppCheckErrorUtil.h"
+#import "_GACURLSessionDataResponse.h"

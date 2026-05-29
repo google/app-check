@@ -79,7 +79,7 @@ final class MockRecaptchaClient: NSObject, RCARecaptchaClientProtocol {
   }
 }
 
-class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
+class MockAppCheckCoreAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
   var baseURL: String = "https://test.com"
 
   struct RequestData {
@@ -90,12 +90,12 @@ class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
   }
 
   var lastRequest: RequestData?
-  var expectedResponse: GACURLSessionDataResponse?
+  var expectedResponse: _GACURLSessionDataResponse?
   var expectedToken: AppCheckCoreToken?
   var expectedError: Error?
 
   func sendRequest(with url: URL, httpMethod: String, body: Data?,
-                   additionalHeaders: [String: String]?) -> FBLPromise<GACURLSessionDataResponse> {
+                   additionalHeaders: [String: String]?) -> FBLPromise<_GACURLSessionDataResponse> {
     lastRequest = RequestData(
       url: url,
       httpMethod: httpMethod,
@@ -103,12 +103,12 @@ class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
       additionalHeaders: additionalHeaders
     )
 
-    let promise = Promise<GACURLSessionDataResponse>.pending()
+    let promise = Promise<_GACURLSessionDataResponse>.pending()
 
     if let expectedError {
       promise.reject(expectedError)
     } else {
-      let response = expectedResponse ?? GACURLSessionDataResponse(
+      let response = expectedResponse ?? _GACURLSessionDataResponse(
         response: HTTPURLResponse(),
         httpBody: Data()
       )
@@ -118,7 +118,7 @@ class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
     return promise.asObjCPromise()
   }
 
-  func appCheckToken(withAPIResponse response: GACURLSessionDataResponse)
+  func appCheckToken(withAPIResponse response: _GACURLSessionDataResponse)
     -> FBLPromise<AppCheckCoreToken> {
     let promise = Promise<AppCheckCoreToken>.pending()
 
@@ -136,7 +136,7 @@ class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
   }
 }
 
-class MockBackoffWrapper: NSObject, GACAppCheckBackoffWrapperProtocol {
+class MockBackoffWrapper: NSObject, _GACAppCheckBackoffWrapperProtocol {
   var applyBackoffCalled = false
   var shouldReturnError = false
   var mockError: NSError?

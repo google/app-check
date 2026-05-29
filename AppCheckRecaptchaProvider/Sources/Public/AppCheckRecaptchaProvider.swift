@@ -33,6 +33,14 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
   // This action name should never change without coordination with the backend.
   private static let appCheckActionName = "app_check_ios"
 
+  // TODO(ncooke3): Consider if this check should be expanded to handle runtime OS availability checking.
+  @objc public static func isRecaptchaEnterpriseSDKLinked() -> Bool {
+    let actionObj: AnyClass? = NSClassFromString("RecaptchaEnterprise.RCAAction")
+    let recaptchaObj: AnyClass? = NSClassFromString("RecaptchaEnterprise.RCARecaptcha")
+    return actionObj as? RCAActionProtocol.Type != nil && recaptchaObj as? RCARecaptchaProtocol
+      .Type != nil
+  }
+
   private let tokenGenerator: RecaptchaTokenGenerator?
   private let apiService: RecaptchaAPIService
 
@@ -46,29 +54,23 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
   // `@convention(block)` is required because the Swift compiler cannot automatically
   // bridge collections of closures (like an Array) to Objective-C blocks. This attribute
   // changes the closure's representation to match the Objective-C block heap layout.
-  @objc public convenience init(siteKey: String, resourceName: String, APIKey: String,
-                                requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? =
-                                  nil) {
-    let tokenGenerator: RecaptchaTokenGenerator?
-
-    if let sdk = RecaptchaEnterpriseSDKLoader(customAction: Self.appCheckActionName) {
-      let backoffWrapper = GACAppCheckBackoffWrapper()
-
-      tokenGenerator = RecaptchaTokenGenerator(
-        siteKey: siteKey,
-        recaptchaAction: sdk.action,
-        recaptchaClass: sdk.recaptchaClass,
-        backoffWrapper: backoffWrapper
-      )
-    } else {
-      // Fail fast in Debug (-Onone) builds to alert the developer.
-      // In Release (-O) builds, a nil tokenGenerator falls back to returning an error in getToken.
-      assertionFailure(missingRecaptchaSDKMessage)
-      tokenGenerator = nil
+  @objc public convenience init?(siteKey: String, resourceName: String, APIKey: String,
+                                 requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? =
+                                   nil) {
+    guard let sdk = RecaptchaEnterpriseSDKLoader(customAction: Self.appCheckActionName) else {
+      return nil
     }
 
+    let backoffWrapper = _GACAppCheckBackoffWrapper()
+    let tokenGenerator = RecaptchaTokenGenerator(
+      siteKey: siteKey,
+      recaptchaAction: sdk.action,
+      recaptchaClass: sdk.recaptchaClass,
+      backoffWrapper: backoffWrapper
+    )
+
     let urlSession = URLSession(configuration: .ephemeral)
-    let appCheckAPIService = AppCheckCoreAPIService(urlSession: urlSession,
+    let appCheckAPIService = _GACAppCheckAPIService(urlSession: urlSession,
                                                     baseURL: nil,
                                                     apiKey: APIKey,
                                                     requestHooks: requestHooks)
@@ -110,7 +112,7 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
 
   private func getToken(limitedUse: Bool) -> Promise<AppCheckCoreToken> {
     guard let tokenGenerator else {
-      return Promise(GACAppCheckErrorUtil.missingRecaptchaSDKError())
+      return Promise(_GACAppCheckErrorUtil.missingRecaptchaSDKError())
     }
     return tokenGenerator.getRecaptchaToken()
       .then { recaptchaToken in

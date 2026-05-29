@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACURLSessionDataResponse.h"
+#import <Foundation/Foundation.h>
 
-@implementation _GACURLSessionDataResponse
+NS_ASSUME_NONNULL_BEGIN
 
-- (instancetype)initWithResponse:(NSHTTPURLResponse *)response HTTPBody:(NSData *)body {
-  self = [super init];
-  if (self) {
-    _HTTPResponse = response;
-    _HTTPBody = body;
-  }
-  return self;
-}
+// This header is for internal use within Google SDKs (Firebase, Google Sign-In).
+// It is not intended for use by external developers and may change without notice.
+
+/** The class represents HTTP response received from `NSURLSession`. */
+@interface _GACURLSessionDataResponse : NSObject
+
+@property(nonatomic, readonly) NSHTTPURLResponse *HTTPResponse;
+@property(nonatomic, nullable, readonly) NSData *HTTPBody;
+
+- (instancetype)initWithResponse:(NSHTTPURLResponse *)response HTTPBody:(nullable NSData *)body;
 
 @end
+
+NS_ASSUME_NONNULL_END

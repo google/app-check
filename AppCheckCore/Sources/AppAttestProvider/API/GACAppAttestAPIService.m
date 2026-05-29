@@ -24,8 +24,8 @@
 
 #import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckAPIService.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACURLSessionDataResponse.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -46,7 +46,7 @@ static NSString *const kHTTPMethodPost = @"POST";
 
 @interface GACAppAttestAPIService ()
 
-@property(nonatomic, readonly) id<GACAppCheckAPIServiceProtocol> APIService;
+@property(nonatomic, readonly) id<_GACAppCheckAPIServiceProtocol> APIService;
 
 @property(nonatomic, readonly) NSString *resourceName;
 
@@ -54,7 +54,7 @@ static NSString *const kHTTPMethodPost = @"POST";
 
 @implementation GACAppAttestAPIService
 
-- (instancetype)initWithAPIService:(id<GACAppCheckAPIServiceProtocol>)APIService
+- (instancetype)initWithAPIService:(id<_GACAppCheckAPIServiceProtocol>)APIService
                       resourceName:(NSString *)resourceName {
   self = [super init];
   if (self) {
@@ -76,13 +76,13 @@ static NSString *const kHTTPMethodPost = @"POST";
                           challenge:challenge
                           assertion:assertion
                          limitedUse:limitedUse]
-      .then(^FBLPromise<GACURLSessionDataResponse *> *(NSData *HTTPBody) {
+      .then(^FBLPromise<_GACURLSessionDataResponse *> *(NSData *HTTPBody) {
         return [self.APIService sendRequestWithURL:URL
                                         HTTPMethod:kHTTPMethodPost
                                               body:HTTPBody
                                  additionalHeaders:@{kContentTypeKey : kJSONContentType}];
       })
-      .then(^id _Nullable(GACURLSessionDataResponse *_Nullable response) {
+      .then(^id _Nullable(_GACURLSessionDataResponse *_Nullable response) {
         return [self.APIService appCheckTokenWithAPIResponse:response];
       });
 }
@@ -99,14 +99,14 @@ static NSString *const kHTTPMethodPost = @"POST";
                                                                   body:nil
                                                      additionalHeaders:nil];
                           }]
-      .then(^id _Nullable(GACURLSessionDataResponse *_Nullable response) {
+      .then(^id _Nullable(_GACURLSessionDataResponse *_Nullable response) {
         return [self randomChallengeWithAPIResponse:response];
       });
 }
 
 #pragma mark - Challenge response parsing
 
-- (FBLPromise<NSData *> *)randomChallengeWithAPIResponse:(GACURLSessionDataResponse *)response {
+- (FBLPromise<NSData *> *)randomChallengeWithAPIResponse:(_GACURLSessionDataResponse *)response {
   return [FBLPromise onQueue:[self backgroundQueue]
                           do:^id _Nullable {
                             NSError *error;
@@ -122,7 +122,7 @@ static NSString *const kHTTPMethodPost = @"POST";
 - (nullable NSData *)randomChallengeFromResponseBody:(NSData *)response error:(NSError **)outError {
   if (response.length <= 0) {
     GACAppCheckSetErrorToPointer(
-        [GACAppCheckErrorUtil errorWithFailureReason:@"Empty server response body."], outError);
+        [_GACAppCheckErrorUtil errorWithFailureReason:@"Empty server response body."], outError);
     return nil;
   }
 
@@ -132,14 +132,15 @@ static NSString *const kHTTPMethodPost = @"POST";
                                                                  error:&JSONError];
 
   if (![responseDict isKindOfClass:[NSDictionary class]]) {
-    GACAppCheckSetErrorToPointer([GACAppCheckErrorUtil JSONSerializationError:JSONError], outError);
+    GACAppCheckSetErrorToPointer([_GACAppCheckErrorUtil JSONSerializationError:JSONError],
+                                 outError);
     return nil;
   }
 
   NSString *challenge = responseDict[@"challenge"];
   if (![challenge isKindOfClass:[NSString class]]) {
     GACAppCheckSetErrorToPointer(
-        [GACAppCheckErrorUtil appCheckTokenResponseErrorWithMissingField:@"challenge"], outError);
+        [_GACAppCheckErrorUtil appCheckTokenResponseErrorWithMissingField:@"challenge"], outError);
     return nil;
   }
 
@@ -159,14 +160,14 @@ static NSString *const kHTTPMethodPost = @"POST";
                                  keyID:keyID
                              challenge:challenge
                             limitedUse:limitedUse]
-      .then(^FBLPromise<GACURLSessionDataResponse *> *(NSData *HTTPBody) {
+      .then(^FBLPromise<_GACURLSessionDataResponse *> *(NSData *HTTPBody) {
         return [self.APIService sendRequestWithURL:URL
                                         HTTPMethod:kHTTPMethodPost
                                               body:HTTPBody
                                  additionalHeaders:@{kContentTypeKey : kJSONContentType}];
       })
       .thenOn(
-          [self backgroundQueue], ^id _Nullable(GACURLSessionDataResponse *_Nullable URLResponse) {
+          [self backgroundQueue], ^id _Nullable(_GACURLSessionDataResponse *_Nullable URLResponse) {
             NSError *error;
 
             __auto_type response =
@@ -186,7 +187,7 @@ static NSString *const kHTTPMethodPost = @"POST";
                                     limitedUse:(BOOL)limitedUse {
   if (artifact.length <= 0 || challenge.length <= 0 || assertion.length <= 0) {
     FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
-    [rejectedPromise reject:[GACAppCheckErrorUtil
+    [rejectedPromise reject:[_GACAppCheckErrorUtil
                                 errorWithFailureReason:@"Missing or empty request parameter."]];
     return rejectedPromise;
   }
@@ -210,7 +211,7 @@ static NSString *const kHTTPMethodPost = @"POST";
                                        limitedUse:(BOOL)limitedUse {
   if (attestation.length <= 0 || keyID.length <= 0 || challenge.length <= 0) {
     FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
-    [rejectedPromise reject:[GACAppCheckErrorUtil
+    [rejectedPromise reject:[_GACAppCheckErrorUtil
                                 errorWithFailureReason:@"Missing or empty request parameter."]];
     return rejectedPromise;
   }
@@ -237,7 +238,7 @@ static NSString *const kHTTPMethodPost = @"POST";
   if (payloadJSON) {
     [HTTPBodyPromise fulfill:payloadJSON];
   } else {
-    [HTTPBodyPromise reject:[GACAppCheckErrorUtil JSONSerializationError:encodingError]];
+    [HTTPBodyPromise reject:[_GACAppCheckErrorUtil JSONSerializationError:encodingError]];
   }
   return HTTPBodyPromise;
 }

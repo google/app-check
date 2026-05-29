@@ -99,7 +99,7 @@ static double const kMaxExponentialBackoffInterval = 4 * 60 * 60;  // 4 hours.
 
 @end
 
-@interface GACAppCheckBackoffWrapper ()
+@interface _GACAppCheckBackoffWrapper ()
 
 /// Current date provider. Is used instead of `+[NSDate date]` for testability.
 @property(nonatomic, readonly) GACAppCheckDateProvider dateProvider;
@@ -109,10 +109,10 @@ static double const kMaxExponentialBackoffInterval = 4 * 60 * 60;  // 4 hours.
 
 @end
 
-@implementation GACAppCheckBackoffWrapper
+@implementation _GACAppCheckBackoffWrapper
 
 - (instancetype)init {
-  return [self initWithDateProvider:[GACAppCheckBackoffWrapper currentDateProvider]];
+  return [self initWithDateProvider:[_GACAppCheckBackoffWrapper currentDateProvider]];
 }
 
 - (instancetype)initWithDateProvider:(GACAppCheckDateProvider)dateProvider {
@@ -202,7 +202,7 @@ static double const kMaxExponentialBackoffInterval = 4 * 60 * 60;  // 4 hours.
   NSString *reason =
       [NSString stringWithFormat:@"Too many attempts. Underlying error: %@",
                                  error.localizedDescription ?: error.localizedFailureReason];
-  NSError *retryDisallowedError = [GACAppCheckErrorUtil errorWithFailureReason:reason];
+  NSError *retryDisallowedError = [_GACAppCheckErrorUtil errorWithFailureReason:reason];
   FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
   [rejectedPromise reject:retryDisallowedError];
   return rejectedPromise;

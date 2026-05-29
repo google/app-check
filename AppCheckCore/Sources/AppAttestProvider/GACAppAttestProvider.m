@@ -39,8 +39,8 @@
 
 #import "AppCheckCore/Sources/AppAttestProvider/Errors/GACAppAttestRejectionError.h"
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -108,7 +108,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) id<GACAppAttestService> appAttestService;
 @property(nonatomic, readonly) id<GACAppAttestKeyIDStorageProtocol> keyIDStorage;
 @property(nonatomic, readonly) id<GACAppAttestArtifactStorageProtocol> artifactStorage;
-@property(nonatomic, readonly) id<GACAppCheckBackoffWrapperProtocol> backoffWrapper;
+@property(nonatomic, readonly) id<_GACAppCheckBackoffWrapperProtocol> backoffWrapper;
 
 @property(nonatomic, nullable) FBLPromise<GACAppCheckToken *> *ongoingGetTokenOperation;
 @property(nonatomic, assign) BOOL ongoingGetTokenOperationLimitedUse;
@@ -123,7 +123,7 @@ NS_ASSUME_NONNULL_BEGIN
                               APIService:(id<GACAppAttestAPIServiceProtocol>)APIService
                             keyIDStorage:(id<GACAppAttestKeyIDStorageProtocol>)keyIDStorage
                          artifactStorage:(id<GACAppAttestArtifactStorageProtocol>)artifactStorage
-                          backoffWrapper:(id<GACAppCheckBackoffWrapperProtocol>)backoffWrapper {
+                          backoffWrapper:(id<_GACAppCheckBackoffWrapperProtocol>)backoffWrapper {
   self = [super init];
   if (self) {
     _appAttestService = appAttestService;
@@ -151,11 +151,11 @@ NS_ASSUME_NONNULL_BEGIN
   GACAppAttestKeyIDStorage *keyIDStorage =
       [[GACAppAttestKeyIDStorage alloc] initWithKeySuffix:storageKeySuffix];
 
-  GACAppCheckAPIService *APIService =
-      [[GACAppCheckAPIService alloc] initWithURLSession:URLSession
-                                                baseURL:baseURL
-                                                 APIKey:APIKey
-                                           requestHooks:requestHooks];
+  _GACAppCheckAPIService *APIService =
+      [[_GACAppCheckAPIService alloc] initWithURLSession:URLSession
+                                                 baseURL:baseURL
+                                                  APIKey:APIKey
+                                            requestHooks:requestHooks];
 
   GACAppAttestAPIService *appAttestAPIService =
       [[GACAppAttestAPIService alloc] initWithAPIService:APIService resourceName:resourceName];
@@ -164,7 +164,7 @@ NS_ASSUME_NONNULL_BEGIN
       [[GACAppAttestArtifactStorage alloc] initWithKeySuffix:storageKeySuffix
                                                  accessGroup:accessGroup];
 
-  GACAppCheckBackoffWrapper *backoffWrapper = [[GACAppCheckBackoffWrapper alloc] init];
+  _GACAppCheckBackoffWrapper *backoffWrapper = [[_GACAppCheckBackoffWrapper alloc] init];
 
   return [self initWithAppAttestService:DCAppAttestService.sharedService
                              APIService:appAttestAPIService
@@ -341,9 +341,10 @@ NS_ASSUME_NONNULL_BEGIN
                                             completionHandler:handler];
                            }]
                     .recoverOn(self.queue, ^id(NSError *error) {
-                      return [GACAppCheckErrorUtil appAttestAttestKeyFailedWithError:error
-                                                                               keyId:keyID
-                                                                      clientDataHash:challengeHash];
+                      return
+                          [_GACAppCheckErrorUtil appAttestAttestKeyFailedWithError:error
+                                                                             keyId:keyID
+                                                                    clientDataHash:challengeHash];
                     });
               })
       .thenOn(self.queue, ^FBLPromise<GACAppAttestKeyAttestationResult *> *(NSData *attestation) {
@@ -488,7 +489,7 @@ NS_ASSUME_NONNULL_BEGIN
                                                 completionHandler:handler];
                        }]
                 .recoverOn(self.queue, ^id(NSError *appAttestError) {
-                  NSError *error = [GACAppCheckErrorUtil
+                  NSError *error = [_GACAppCheckErrorUtil
                       appAttestGenerateAssertionFailedWithError:appAttestError
                                                           keyId:keyID
                                                  clientDataHash:statementHash];
@@ -570,7 +571,7 @@ NS_ASSUME_NONNULL_BEGIN
   if (self.appAttestService.isSupported) {
     return [FBLPromise resolvedWith:[NSNull null]];
   } else {
-    NSError *error = [GACAppCheckErrorUtil unsupportedAttestationProvider:@"AppAttestProvider"];
+    NSError *error = [_GACAppCheckErrorUtil unsupportedAttestationProvider:@"AppAttestProvider"];
     FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
     [rejectedPromise reject:error];
     return rejectedPromise;
@@ -596,7 +597,7 @@ NS_ASSUME_NONNULL_BEGIN
              }]
       .recoverOn(self.queue,
                  ^id(NSError *error) {
-                   return [GACAppCheckErrorUtil appAttestGenerateKeyFailedWithError:error];
+                   return [_GACAppCheckErrorUtil appAttestGenerateKeyFailedWithError:error];
                  })
       .thenOn(self.queue, ^FBLPromise<NSString *> *(NSString *keyID) {
         return [self.keyIDStorage setAppAttestKeyID:keyID];

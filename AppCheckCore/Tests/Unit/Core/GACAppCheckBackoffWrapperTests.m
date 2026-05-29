@@ -23,13 +23,13 @@
 #import "FBLPromises.h"
 #endif
 
-#import <AppCheckCore/GACAppCheckBackoffWrapper.h>
+#import <AppCheckCore/_GACAppCheckBackoffWrapper.h>
 
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
 
-@interface GACAppCheckBackoffWrapperTests : XCTestCase
+@interface _GACAppCheckBackoffWrapperTests : XCTestCase
 
-@property(nonatomic, nullable) GACAppCheckBackoffWrapper *backoffWrapper;
+@property(nonatomic, nullable) _GACAppCheckBackoffWrapper *backoffWrapper;
 
 @property(nonatomic) NSDate *currentDate;
 
@@ -50,13 +50,13 @@
 
 @end
 
-@implementation GACAppCheckBackoffWrapperTests
+@implementation _GACAppCheckBackoffWrapperTests
 
 - (void)setUp {
   [super setUp];
 
   __auto_type __weak weakSelf = self;
-  self.backoffWrapper = [[GACAppCheckBackoffWrapper alloc] initWithDateProvider:^NSDate *_Nonnull {
+  self.backoffWrapper = [[_GACAppCheckBackoffWrapper alloc] initWithDateProvider:^NSDate *_Nonnull {
     return weakSelf.currentDate ?: [NSDate date];
   }];
 }

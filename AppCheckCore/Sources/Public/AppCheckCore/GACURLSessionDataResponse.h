@@ -14,18 +14,4 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
-
-NS_ASSUME_NONNULL_BEGIN
-
-/** The class represents HTTP response received from `NSURLSession`. */
-@interface GACURLSessionDataResponse : NSObject
-
-@property(nonatomic, readonly) NSHTTPURLResponse *HTTPResponse;
-@property(nonatomic, nullable, readonly) NSData *HTTPBody;
-
-- (instancetype)initWithResponse:(NSHTTPURLResponse *)response HTTPBody:(nullable NSData *)body;
-
-@end
-
-NS_ASSUME_NONNULL_END
+#import "_GACURLSessionDataResponse.h"

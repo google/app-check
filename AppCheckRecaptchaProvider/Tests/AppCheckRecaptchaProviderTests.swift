@@ -46,6 +46,10 @@ final class AppCheckRecaptchaProviderTests: XCTestCase {
     super.tearDown()
   }
 
+  func testIsRecaptchaEnterpriseSDKLinkedReturnsFalse() {
+    XCTAssertFalse(AppCheckRecaptchaProvider.isRecaptchaEnterpriseSDKLinked())
+  }
+
   func testGetTokenWithoutRecaptchaSDK() {
     // When the Recaptcha SDK is not linked, the tokenGenerator will be nil.
     // We should expect an unsupported attestation provider error.
@@ -89,6 +93,16 @@ final class AppCheckRecaptchaProviderTests: XCTestCase {
     }
 
     waitForExpectations(timeout: 1.0)
+  }
+
+  func testInitReturnsNilWithoutRecaptchaSDK() {
+    // When the Recaptcha SDK is not linked, the convenience initializer should return nil.
+    let provider = AppCheckRecaptchaProvider(
+      siteKey: testSiteKey,
+      resourceName: testResourceName,
+      APIKey: "test-api-key"
+    )
+    XCTAssertNil(provider)
   }
 
   private func createProviderWithMocks(expectedToken: AppCheckCoreToken)

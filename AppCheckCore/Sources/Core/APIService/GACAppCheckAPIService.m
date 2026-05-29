@@ -24,10 +24,10 @@
 #import "AppCheckCore/Sources/Core/APIService/GACAppCheckToken+APIResponse.h"
 #import "AppCheckCore/Sources/Core/APIService/NSURLSession+GACPromises.h"
 #import "AppCheckCore/Sources/Core/GACAppCheckLogger+Internal.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckLogger.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACURLSessionDataResponse.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -36,7 +36,7 @@ static NSString *const kBundleIdKey = @"X-Ios-Bundle-Identifier";
 
 static NSString *const kDefaultBaseURL = @"https://firebaseappcheck.googleapis.com/v1";
 
-@interface GACAppCheckAPIService ()
+@interface _GACAppCheckAPIService ()
 
 @property(nonatomic, readonly) NSURLSession *URLSession;
 @property(nonatomic, readonly, nullable) NSString *APIKey;
@@ -44,7 +44,7 @@ static NSString *const kDefaultBaseURL = @"https://firebaseappcheck.googleapis.c
 
 @end
 
-@implementation GACAppCheckAPIService
+@implementation _GACAppCheckAPIService
 
 // Synthesize properties declared in a protocol.
 @synthesize baseURL = _baseURL;
@@ -63,7 +63,7 @@ static NSString *const kDefaultBaseURL = @"https://firebaseappcheck.googleapis.c
   return self;
 }
 
-- (FBLPromise<GACURLSessionDataResponse *> *)
+- (FBLPromise<_GACURLSessionDataResponse *> *)
     sendRequestWithURL:(NSURL *)requestURL
             HTTPMethod:(NSString *)HTTPMethod
                   body:(nullable NSData *)body
@@ -75,7 +75,7 @@ static NSString *const kDefaultBaseURL = @"https://firebaseappcheck.googleapis.c
       .then(^id _Nullable(NSURLRequest *_Nullable request) {
         return [self sendURLRequest:request];
       })
-      .then(^id _Nullable(GACURLSessionDataResponse *_Nullable response) {
+      .then(^id _Nullable(_GACURLSessionDataResponse *_Nullable response) {
         return [self validateHTTPResponseStatusCode:response];
       });
 }
@@ -116,19 +116,19 @@ static NSString *const kDefaultBaseURL = @"https://firebaseappcheck.googleapis.c
            }];
 }
 
-- (FBLPromise<GACURLSessionDataResponse *> *)sendURLRequest:(NSURLRequest *)request {
+- (FBLPromise<_GACURLSessionDataResponse *> *)sendURLRequest:(NSURLRequest *)request {
   return [self.URLSession gac_dataTaskPromiseWithRequest:request]
       .recover(^id(NSError *networkError) {
         // Wrap raw network error into App Check domain error.
-        return [GACAppCheckErrorUtil APIErrorWithNetworkError:networkError];
+        return [_GACAppCheckErrorUtil APIErrorWithNetworkError:networkError];
       })
-      .then(^id _Nullable(GACURLSessionDataResponse *response) {
+      .then(^id _Nullable(_GACURLSessionDataResponse *response) {
         return [self validateHTTPResponseStatusCode:response];
       });
 }
 
-- (FBLPromise<GACURLSessionDataResponse *> *)validateHTTPResponseStatusCode:
-    (GACURLSessionDataResponse *)response {
+- (FBLPromise<_GACURLSessionDataResponse *> *)validateHTTPResponseStatusCode:
+    (_GACURLSessionDataResponse *)response {
   NSInteger statusCode = response.HTTPResponse.statusCode;
   return [FBLPromise do:^id _Nullable {
     if (statusCode < 200 || statusCode >= 300) {
@@ -137,15 +137,15 @@ static NSString *const kDefaultBaseURL = @"https://firebaseappcheck.googleapis.c
                            [[NSString alloc] initWithData:response.HTTPBody
                                                  encoding:NSUTF8StringEncoding]];
       GACAppCheckLogDebug(GACLoggerAppCheckMessageCodeUnexpectedHTTPCode, logMessage);
-      return [GACAppCheckErrorUtil APIErrorWithHTTPResponse:response.HTTPResponse
-                                                       data:response.HTTPBody];
+      return [_GACAppCheckErrorUtil APIErrorWithHTTPResponse:response.HTTPResponse
+                                                        data:response.HTTPBody];
     }
     return response;
   }];
 }
 
 - (FBLPromise<GACAppCheckToken *> *)appCheckTokenWithAPIResponse:
-    (GACURLSessionDataResponse *)response {
+    (_GACURLSessionDataResponse *)response {
   return [FBLPromise onQueue:[self defaultQueue]
                           do:^id _Nullable {
                             NSError *error;

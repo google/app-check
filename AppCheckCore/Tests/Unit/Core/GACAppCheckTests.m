@@ -28,10 +28,10 @@
 #import "AppCheckCore/Sources/Core/Storage/GACAppCheckStorage.h"
 #import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefreshResult.h"
 #import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefresher.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckTokenDelegate.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckTokenResult.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 /// The placeholder token value returned when an error occurs: `{"error":"UNKNOWN_ERROR"}` encoded
 /// as base64
@@ -359,7 +359,7 @@ static NSString *const kAppGroupID = @"app_group_id";
   OCMReject([self.mockStorage getToken]);
 
   // 2. Expect error when requesting token from app check provider.
-  NSError *providerError = [GACAppCheckErrorUtil keychainErrorWithError:[self internalError]];
+  NSError *providerError = [_GACAppCheckErrorUtil keychainErrorWithError:[self internalError]];
   id completionArg = [OCMArg invokeBlockWithArgs:[NSNull null], providerError, nil];
   OCMExpect([self.mockAppCheckProvider getLimitedUseTokenWithCompletion:completionArg]);
 
