@@ -111,10 +111,10 @@ final class RecaptchaTokenGenerator {
     }
 
     // Preserve underlying error for others
-    let userInfo: [String: Any] = [
-      NSUnderlyingErrorKey: error,
-      NSLocalizedFailureReasonErrorKey: error.userInfo[NSLocalizedFailureReasonErrorKey] as Any,
-    ]
+    var userInfo: [String: Any] = [NSUnderlyingErrorKey: error]
+    if let reason = error.userInfo[NSLocalizedFailureReasonErrorKey] {
+      userInfo[NSLocalizedFailureReasonErrorKey] = reason
+    }
     return NSError(
       domain: AppCheckCoreErrorDomain,
       code: AppCheckCoreErrorCode.unknown.rawValue,

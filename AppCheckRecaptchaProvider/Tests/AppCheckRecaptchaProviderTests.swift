@@ -105,6 +105,18 @@ final class AppCheckRecaptchaProviderTests: XCTestCase {
     XCTAssertNil(provider)
   }
 
+  func testInitWithCustomActionNameReturnsNilWithoutRecaptchaSDK() {
+    // When the Recaptcha SDK is not linked, the convenience initializer should return nil
+    // even with a custom action name.
+    let provider = AppCheckRecaptchaProvider(
+      siteKey: testSiteKey,
+      resourceName: testResourceName,
+      APIKey: "test-api-key",
+      actionName: "custom_action"
+    )
+    XCTAssertNil(provider)
+  }
+
   private func createProviderWithMocks(expectedToken: AppCheckCoreToken)
     -> AppCheckRecaptchaProvider {
     let mockClient = MockRecaptchaClient()

@@ -54,7 +54,20 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
   @objc public convenience init?(siteKey: String, resourceName: String, APIKey: String,
                                  requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? =
                                    nil) {
-    guard let sdk = RecaptchaEnterpriseSDKLoader(customAction: Self.appCheckActionName) else {
+    self.init(
+      siteKey: siteKey,
+      resourceName: resourceName,
+      APIKey: APIKey,
+      requestHooks: requestHooks,
+      actionName: Self.appCheckActionName
+    )
+  }
+
+  @objc public convenience init?(siteKey: String, resourceName: String, APIKey: String,
+                                 requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? =
+                                   nil,
+                                 actionName: String) {
+    guard let sdk = RecaptchaEnterpriseSDKLoader(customAction: actionName) else {
       return nil
     }
 
