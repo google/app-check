@@ -34,7 +34,13 @@ NS_ASSUME_NONNULL_BEGIN
 static NSString *const kAPIKeyHeaderKey = @"X-Goog-Api-Key";
 static NSString *const kBundleIdKey = @"X-Ios-Bundle-Identifier";
 
-static NSString *const kDefaultBaseURL = @"https://firebaseappcheck.googleapis.com/v1";
+static NSString *const kProdBaseURL = @"https://firebaseappcheck.googleapis.com/v1";
+
+#if !NDEBUG
+static NSString *const kStagingBaseURL =
+    @"https://staging-firebaseappcheck.sandbox.googleapis.com/v1";
+static NSString *const kAppCheckUseStagingEnvKey = @"_AppCheckUseStaging";
+#endif
 
 @interface _GACAppCheckAPIService ()
 
@@ -58,7 +64,25 @@ static NSString *const kDefaultBaseURL = @"https://firebaseappcheck.googleapis.c
     _URLSession = session;
     _APIKey = APIKey;
     _requestHooks = requestHooks ? [requestHooks copy] : @[];
-    _baseURL = baseURL ?: kDefaultBaseURL;
+
+    NSString *resolvedBaseURL = baseURL;
+
+#if !NDEBUG
+    if (resolvedBaseURL == nil) {
+      BOOL useStaging =
+          [[[NSProcessInfo processInfo] environment][kAppCheckUseStagingEnvKey] boolValue];
+      if (useStaging) {
+        resolvedBaseURL = kStagingBaseURL;
+        NSString *logMessage =
+            [NSString stringWithFormat:
+                          @"App Check staging environment enabled. API calls will be routed to %@.",
+                          kStagingBaseURL];
+        GACAppCheckLogInfo(GACLoggerAppCheckMessageCodeStagingModeEnabled, logMessage);
+      }
+    }
+#endif
+
+    _baseURL = resolvedBaseURL ?: kProdBaseURL;
   }
   return self;
 }

@@ -98,6 +98,44 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   XCTAssertEqualObjects(APIService.baseURL, customBaseURL);
 }
 
+- (void)testInitBaseURLStagingTriggeredByEnvVar {
+  NSString *stagingBaseURL = @"https://staging-firebaseappcheck.sandbox.googleapis.com/v1";
+
+  id processInfoMock = OCMPartialMock([NSProcessInfo processInfo]);
+  OCMExpect([processInfoMock processInfo]).andReturn(processInfoMock);
+  OCMExpect([processInfoMock environment]).andReturn(@{@"_AppCheckUseStaging" : @"YES"});
+
+  _GACAppCheckAPIService *APIService =
+      [[_GACAppCheckAPIService alloc] initWithURLSession:self.mockURLSession
+                                                 baseURL:nil
+                                                  APIKey:nil
+                                            requestHooks:nil];
+
+  XCTAssertNotNil(APIService);
+  XCTAssertEqualObjects(APIService.baseURL, stagingBaseURL);
+
+  [processInfoMock stopMocking];
+}
+
+- (void)testInitBaseURLStagingNotTriggeredWhenEnvVarIsNo {
+  NSString *prodBaseURL = @"https://firebaseappcheck.googleapis.com/v1";
+
+  id processInfoMock = OCMPartialMock([NSProcessInfo processInfo]);
+  OCMExpect([processInfoMock processInfo]).andReturn(processInfoMock);
+  OCMExpect([processInfoMock environment]).andReturn(@{@"_AppCheckUseStaging" : @"NO"});
+
+  _GACAppCheckAPIService *APIService =
+      [[_GACAppCheckAPIService alloc] initWithURLSession:self.mockURLSession
+                                                 baseURL:nil
+                                                  APIKey:nil
+                                            requestHooks:nil];
+
+  XCTAssertNotNil(APIService);
+  XCTAssertEqualObjects(APIService.baseURL, prodBaseURL);
+
+  [processInfoMock stopMocking];
+}
+
 #pragma mark - Send Requests
 
 - (void)testDataRequestNetworkError {
