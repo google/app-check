@@ -46,8 +46,8 @@ final class AppCheckRecaptchaProviderTests: XCTestCase {
     super.tearDown()
   }
 
-  func testIsRecaptchaEnterpriseSDKLinkedReturnsFalse() {
-    XCTAssertFalse(AppCheckRecaptchaProvider.isRecaptchaEnterpriseSDKLinked())
+  func testIsSupportedReturnsFalse() {
+    XCTAssertFalse(AppCheckRecaptchaProvider.isSupported())
   }
 
   func testGetTokenWithoutRecaptchaSDK() {

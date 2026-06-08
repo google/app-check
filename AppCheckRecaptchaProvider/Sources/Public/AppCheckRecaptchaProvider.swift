@@ -33,8 +33,7 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
   // This action name should never change without coordination with the backend.
   private static let appCheckActionName = "app_check_ios"
 
-  // TODO(ncooke3): Consider if this check should be expanded to handle runtime OS availability checking.
-  @objc public static func isRecaptchaEnterpriseSDKLinked() -> Bool {
+  @objc public static func isSupported() -> Bool {
     return RecaptchaEnterpriseSDKLoader.isLinked
   }
 
