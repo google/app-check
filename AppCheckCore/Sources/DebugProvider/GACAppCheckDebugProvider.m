@@ -35,20 +35,35 @@ NS_ASSUME_NONNULL_BEGIN
 static NSString *const kDebugTokenEnvKey = @"AppCheckDebugToken";
 static NSString *const kFirebaseDebugTokenEnvKey = @"FIRAAppCheckDebugToken";
 static NSString *const kDebugTokenUserDefaultsKey = @"GACAppCheckDebugToken";
+
+// The base key for registration status.
+// NOTE: Do not use this key directly. Use `registeredUserDefaultsKeyForServiceName:resourceName:`
+// to obtain the namespaced key.
 static NSString *const kDebugTokenRegisteredUserDefaultsKey = @"GACAppCheckDebugTokenRegistered";
 
 @interface GACAppCheckDebugProvider ()
 @property(nonatomic, readonly) id<GACAppCheckDebugProviderAPIServiceProtocol> APIService;
 @property(nonatomic, readonly, nullable, copy) NSString *debugTokenEnvValue;
+@property(nonatomic, readonly, copy) NSString *registeredUserDefaultsKey;
+
++ (NSString *)registeredUserDefaultsKeyForServiceName:(NSString *)serviceName
+                                         resourceName:(NSString *)resourceName;
 @end
+
+static NSString *_Nullable EnvironmentVariableDebugToken(NSString *registeredUserDefaultsKey);
 
 @implementation GACAppCheckDebugProvider
 
-- (instancetype)initWithAPIService:(id<GACAppCheckDebugProviderAPIServiceProtocol>)APIService {
+- (instancetype)initWithAPIService:(id<GACAppCheckDebugProviderAPIServiceProtocol>)APIService
+                       serviceName:(NSString *)serviceName
+                      resourceName:(NSString *)resourceName {
   self = [super init];
   if (self) {
     _APIService = APIService;
-    _debugTokenEnvValue = EnvironmentVariableDebugToken();
+    _registeredUserDefaultsKey =
+        [[[self class] registeredUserDefaultsKeyForServiceName:serviceName
+                                                  resourceName:resourceName] copy];
+    _debugTokenEnvValue = EnvironmentVariableDebugToken(_registeredUserDefaultsKey);
   }
   return self;
 }
@@ -71,7 +86,9 @@ static NSString *const kDebugTokenRegisteredUserDefaultsKey = @"GACAppCheckDebug
       [[GACAppCheckDebugProviderAPIService alloc] initWithAPIService:APIService
                                                         resourceName:resourceName];
 
-  return [self initWithAPIService:debugAPIService];
+  return [self initWithAPIService:debugAPIService
+                      serviceName:serviceName
+                     resourceName:resourceName];
 }
 
 - (NSString *)currentDebugToken {
@@ -109,8 +126,7 @@ static NSString *const kDebugTokenRegisteredUserDefaultsKey = @"GACAppCheckDebug
         return [self.APIService appCheckTokenWithDebugToken:debugToken limitedUse:limitedUse];
       })
       .then(^id(GACAppCheckToken *appCheckToken) {
-        [[GULUserDefaults standardUserDefaults] setBool:YES
-                                                 forKey:kDebugTokenRegisteredUserDefaultsKey];
+        [[GULUserDefaults standardUserDefaults] setBool:YES forKey:self.registeredUserDefaultsKey];
         handler(appCheckToken, nil);
         return nil;
       })
@@ -120,7 +136,7 @@ static NSString *const kDebugTokenRegisteredUserDefaultsKey = @"GACAppCheckDebug
         GACAppCheckLogDebug(GACLoggerAppCheckMessageDebugProviderFailedExchange, logMessage);
         if (error.code != GACAppCheckErrorCodeServerUnreachable) {
           [[GULUserDefaults standardUserDefaults]
-              removeObjectForKey:kDebugTokenRegisteredUserDefaultsKey];
+              removeObjectForKey:self.registeredUserDefaultsKey];
         }
         handler(nil, error);
       });
@@ -140,7 +156,19 @@ static NSString *GenerateAndStoreDebugToken(void) {
   return token;
 }
 
-static NSString *_Nullable EnvironmentVariableDebugToken(void) {
++ (NSString *)registeredUserDefaultsKeyForServiceName:(NSString *)serviceName
+                                         resourceName:(NSString *)resourceName {
+  NSString *safeServiceName = serviceName.length > 0 ? serviceName : @"default";
+  NSString *safeResourceName = [resourceName stringByReplacingOccurrencesOfString:@"/"
+                                                                       withString:@"_"];
+  if (safeResourceName.length == 0) {
+    safeResourceName = @"default";
+  }
+  return [NSString stringWithFormat:@"%@_%@_%@", kDebugTokenRegisteredUserDefaultsKey,
+                                    safeServiceName, safeResourceName];
+}
+
+static NSString *_Nullable EnvironmentVariableDebugToken(NSString *registeredUserDefaultsKey) {
   NSDictionary<NSString *, NSString *> *environment = [[NSProcessInfo processInfo] environment];
   NSString *envVariableValue = environment[kDebugTokenEnvKey];
   NSString *firebaseEnvVariableValue = environment[kFirebaseDebugTokenEnvKey];
@@ -183,7 +211,7 @@ static NSString *_Nullable EnvironmentVariableDebugToken(void) {
     return firebaseEnvVariableValue;
   } else {
     BOOL isRegistered =
-        [[GULUserDefaults standardUserDefaults] boolForKey:kDebugTokenRegisteredUserDefaultsKey];
+        [[GULUserDefaults standardUserDefaults] boolForKey:registeredUserDefaultsKey];
     if (!isRegistered) {
       // Print only a locally generated token to avoid a valid token leak on CI.
       GACAppCheckLog(
