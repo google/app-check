@@ -31,8 +31,8 @@
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
 #import "AppCheckCore/Sources/AppAttestProvider/Errors/GACAppAttestRejectionError.h"
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 #import "AppCheckCore/Tests/Utils/AppCheckBackoffWrapperFake/GACAppCheckBackoffWrapperFake.h"
 
@@ -42,7 +42,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                               APIService:(id<GACAppAttestAPIServiceProtocol>)APIService
                             keyIDStorage:(id<GACAppAttestKeyIDStorageProtocol>)keyIDStorage
                          artifactStorage:(id<GACAppAttestArtifactStorageProtocol>)artifactStorage
-                          backoffWrapper:(id<GACAppCheckBackoffWrapperProtocol>)backoffWrapper;
+                          backoffWrapper:(id<_GACAppCheckBackoffWrapperProtocol>)backoffWrapper;
 @end
 
 GAC_APP_ATTEST_PROVIDER_AVAILABILITY
@@ -101,7 +101,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 
 - (void)testGetTokenWhenAppAttestIsNotSupported {
   NSError *expectedError =
-      [GACAppCheckErrorUtil unsupportedAttestationProvider:@"AppAttestProvider"];
+      [_GACAppCheckErrorUtil unsupportedAttestationProvider:@"AppAttestProvider"];
 
   // 0.1. Expect backoff wrapper to be used.
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
@@ -317,9 +317,9 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                                                   code:0
                                               userInfo:nil];
   NSError *expectedError =
-      [GACAppCheckErrorUtil appAttestAttestKeyFailedWithError:attestationError
-                                                        keyId:existingKeyID
-                                               clientDataHash:self.randomChallengeHash];
+      [_GACAppCheckErrorUtil appAttestAttestKeyFailedWithError:attestationError
+                                                         keyId:existingKeyID
+                                                clientDataHash:self.randomChallengeHash];
   id attestCompletionArg = [OCMArg invokeBlockWithArgs:[NSNull null], attestationError, nil];
   OCMExpect([self.mockAppAttestService attestKey:existingKeyID
                                   clientDataHash:self.randomChallengeHash
@@ -651,9 +651,9 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   [statementForAssertion appendData:self.randomChallenge];
   NSData *clientDataHash = [GACAppCheckCryptoUtils sha256HashFromData:[statementForAssertion copy]];
   NSError *expectedError =
-      [GACAppCheckErrorUtil appAttestGenerateAssertionFailedWithError:generateAssertionError
-                                                                keyId:existingKeyID
-                                                       clientDataHash:clientDataHash];
+      [_GACAppCheckErrorUtil appAttestGenerateAssertionFailedWithError:generateAssertionError
+                                                                 keyId:existingKeyID
+                                                        clientDataHash:clientDataHash];
   id completionBlockArg = [OCMArg invokeBlockWithArgs:[NSNull null], generateAssertionError, nil];
   OCMExpect([self.mockAppAttestService
       generateAssertion:existingKeyID

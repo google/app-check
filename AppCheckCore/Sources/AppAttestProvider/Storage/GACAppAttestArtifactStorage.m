@@ -25,7 +25,7 @@
 #import <GoogleUtilities/GULKeychainStorage.h>
 
 #import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestStoredArtifact.h"
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -78,14 +78,14 @@ static NSString *const kKeychainService = @"com.firebase.app_check.app_attest_ar
         }
       })
       .recover(^NSError *(NSError *error) {
-        return [GACAppCheckErrorUtil keychainErrorWithError:error];
+        return [_GACAppCheckErrorUtil keychainErrorWithError:error];
       });
 }
 
 - (FBLPromise<NSData *> *)setArtifact:(nullable NSData *)artifact forKey:(nonnull NSString *)keyID {
   if (artifact) {
     return [self storeArtifact:artifact forKey:keyID].recover(^NSError *(NSError *error) {
-      return [GACAppCheckErrorUtil keychainErrorWithError:error];
+      return [_GACAppCheckErrorUtil keychainErrorWithError:error];
     });
   } else {
     return [FBLPromise wrapErrorCompletion:^(FBLPromiseErrorCompletion _Nonnull handler) {
@@ -97,7 +97,7 @@ static NSString *const kKeychainService = @"com.firebase.app_check.app_attest_ar
           return nil;
         })
         .recover(^NSError *(NSError *error) {
-          return [GACAppCheckErrorUtil keychainErrorWithError:error];
+          return [_GACAppCheckErrorUtil keychainErrorWithError:error];
         });
   }
 }

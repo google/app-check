@@ -24,7 +24,7 @@
 
 #import <GoogleUtilities/GULUserDefaults.h>
 
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 /// The `GULUserDefaults` suite name for the storage location of the app attest key ID.
 static NSString *const kKeyIDStorageDefaultsSuiteName = @"com.firebase.GACAppAttestKeyIDStorage";
@@ -59,7 +59,7 @@ static NSString *const kKeyIDStorageDefaultsSuiteName = @"com.firebase.GACAppAtt
   if (appAttestKeyID) {
     return [FBLPromise resolvedWith:appAttestKeyID];
   } else {
-    NSError *error = [GACAppCheckErrorUtil appAttestKeyIDNotFound];
+    NSError *error = [_GACAppCheckErrorUtil appAttestKeyIDNotFound];
     FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
     [rejectedPromise reject:error];
     return rejectedPromise;

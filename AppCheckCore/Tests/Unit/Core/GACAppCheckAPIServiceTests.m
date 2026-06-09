@@ -19,12 +19,12 @@
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
-#import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
-#import "AppCheckCore/Sources/Core/APIService/GACURLSessionDataResponse.h"
 #import "AppCheckCore/Sources/Core/APIService/NSURLSession+GACPromises.h"
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckAPIService.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACURLSessionDataResponse.h"
 
 #import "AppCheckCore/Tests/Unit/Utils/GACFixtureLoader.h"
 #import "AppCheckCore/Tests/Utils/Date/GACDateTestUtils.h"
@@ -36,11 +36,11 @@ static NSString *const kBundleIDHeaderKey = @"X-Ios-Bundle-Identifier";
 static NSString *const kTestHeaderKey = @"X-test-header";
 static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
 
-#pragma mark - GACAppCheckAPIServiceTests
+#pragma mark - _GACAppCheckAPIServiceTests
 
-@interface GACAppCheckAPIServiceTests : XCTestCase
+@interface _GACAppCheckAPIServiceTests : XCTestCase
 
-@property(nonatomic) GACAppCheckAPIService *APIService;
+@property(nonatomic) _GACAppCheckAPIService *APIService;
 
 @property(nonatomic) id mockURLSession;
 
@@ -48,7 +48,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
 
 @end
 
-@implementation GACAppCheckAPIServiceTests
+@implementation _GACAppCheckAPIServiceTests
 
 - (void)setUp {
   [super setUp];
@@ -58,10 +58,10 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   self.expectedHTTPHeaderFields = [NSMutableDictionary
       dictionaryWithDictionary:@{kBundleIDHeaderKey : [[NSBundle mainBundle] bundleIdentifier]}];
 
-  self.APIService = [[GACAppCheckAPIService alloc] initWithURLSession:self.mockURLSession
-                                                              baseURL:nil
-                                                               APIKey:nil
-                                                         requestHooks:nil];
+  self.APIService = [[_GACAppCheckAPIService alloc] initWithURLSession:self.mockURLSession
+                                                               baseURL:nil
+                                                                APIKey:nil
+                                                          requestHooks:nil];
 }
 
 - (void)tearDown {
@@ -75,11 +75,11 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
 #pragma mark - Init
 
 - (void)testInitDefaultBaseURL {
-  GACAppCheckAPIService *APIService =
-      [[GACAppCheckAPIService alloc] initWithURLSession:self.mockURLSession
-                                                baseURL:nil
-                                                 APIKey:nil
-                                           requestHooks:nil];
+  _GACAppCheckAPIService *APIService =
+      [[_GACAppCheckAPIService alloc] initWithURLSession:self.mockURLSession
+                                                 baseURL:nil
+                                                  APIKey:nil
+                                            requestHooks:nil];
 
   XCTAssertNotNil(APIService);
   XCTAssertEqualObjects(APIService.baseURL, @"https://firebaseappcheck.googleapis.com/v1");
@@ -88,14 +88,52 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
 - (void)testInitCustomBaseURL {
   NSString *customBaseURL = @"https://custom.example.com/v1beta";
 
-  GACAppCheckAPIService *APIService =
-      [[GACAppCheckAPIService alloc] initWithURLSession:self.mockURLSession
-                                                baseURL:customBaseURL
-                                                 APIKey:nil
-                                           requestHooks:nil];
+  _GACAppCheckAPIService *APIService =
+      [[_GACAppCheckAPIService alloc] initWithURLSession:self.mockURLSession
+                                                 baseURL:customBaseURL
+                                                  APIKey:nil
+                                            requestHooks:nil];
 
   XCTAssertNotNil(APIService);
   XCTAssertEqualObjects(APIService.baseURL, customBaseURL);
+}
+
+- (void)testInitBaseURLStagingTriggeredByEnvVar {
+  NSString *stagingBaseURL = @"https://staging-firebaseappcheck.sandbox.googleapis.com/v1";
+
+  id processInfoMock = OCMPartialMock([NSProcessInfo processInfo]);
+  OCMExpect([processInfoMock processInfo]).andReturn(processInfoMock);
+  OCMExpect([processInfoMock environment]).andReturn(@{@"_AppCheckUseStaging" : @"YES"});
+
+  _GACAppCheckAPIService *APIService =
+      [[_GACAppCheckAPIService alloc] initWithURLSession:self.mockURLSession
+                                                 baseURL:nil
+                                                  APIKey:nil
+                                            requestHooks:nil];
+
+  XCTAssertNotNil(APIService);
+  XCTAssertEqualObjects(APIService.baseURL, stagingBaseURL);
+
+  [processInfoMock stopMocking];
+}
+
+- (void)testInitBaseURLStagingNotTriggeredWhenEnvVarIsNo {
+  NSString *prodBaseURL = @"https://firebaseappcheck.googleapis.com/v1";
+
+  id processInfoMock = OCMPartialMock([NSProcessInfo processInfo]);
+  OCMExpect([processInfoMock processInfo]).andReturn(processInfoMock);
+  OCMExpect([processInfoMock environment]).andReturn(@{@"_AppCheckUseStaging" : @"NO"});
+
+  _GACAppCheckAPIService *APIService =
+      [[_GACAppCheckAPIService alloc] initWithURLSession:self.mockURLSession
+                                                 baseURL:nil
+                                                  APIKey:nil
+                                            requestHooks:nil];
+
+  XCTAssertNotNil(APIService);
+  XCTAssertEqualObjects(APIService.baseURL, prodBaseURL);
+
+  [processInfoMock stopMocking];
 }
 
 #pragma mark - Send Requests
@@ -187,7 +225,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
     request.allowsCellularAccess = NO;
   };
 
-  self.APIService = [[GACAppCheckAPIService alloc]
+  self.APIService = [[_GACAppCheckAPIService alloc]
       initWithURLSession:self.mockURLSession
                  baseURL:nil
                   APIKey:nil
@@ -282,10 +320,10 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   NSData *requestBody = [@"Request body" dataUsingEncoding:NSUTF8StringEncoding];
   [self.expectedHTTPHeaderFields setObject:kAPIKeyHeaderValue forKey:kAPIKeyHeaderKey];
 
-  self.APIService = [[GACAppCheckAPIService alloc] initWithURLSession:self.mockURLSession
-                                                              baseURL:nil
-                                                               APIKey:kAPIKeyHeaderValue
-                                                         requestHooks:nil];
+  self.APIService = [[_GACAppCheckAPIService alloc] initWithURLSession:self.mockURLSession
+                                                               baseURL:nil
+                                                                APIKey:kAPIKeyHeaderValue
+                                                          requestHooks:nil];
 
   // 1. Stub URL session.
   FIRRequestValidationBlock requestValidation = ^BOOL(NSURLRequest *request) {
@@ -332,8 +370,8 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
       [GACFixtureLoader loadFixtureNamed:@"FACTokenExchangeResponseSuccess.json"];
   XCTAssertNotNil(responseBody);
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:200];
-  GACURLSessionDataResponse *APIResponse =
-      [[GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
+  _GACURLSessionDataResponse *APIResponse =
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
 
   // 2. Expected result.
   NSString *expectedFACToken = @"valid_app_check_token";
@@ -358,8 +396,8 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   NSString *responseBodyString = @"Token verification failed.";
   NSData *responseBody = [responseBodyString dataUsingEncoding:NSUTF8StringEncoding];
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:200];
-  GACURLSessionDataResponse *APIResponse =
-      [[GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
+  _GACURLSessionDataResponse *APIResponse =
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
 
   // 2. Parse API response.
   __auto_type tokenPromise = [self.APIService appCheckTokenWithAPIResponse:APIResponse];
@@ -393,8 +431,8 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   XCTAssertNotNil(missingFiledBody);
 
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:200];
-  GACURLSessionDataResponse *APIResponse =
-      [[GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:missingFiledBody];
+  _GACURLSessionDataResponse *APIResponse =
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:missingFiledBody];
 
   // 2. Parse API response.
   __auto_type tokenPromise = [self.APIService appCheckTokenWithAPIResponse:APIResponse];
@@ -434,10 +472,10 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   id URLRequestValidationArg = [OCMArg checkWithBlock:nonOptionalRequestValidationBlock];
 
   // Result promise.
-  FBLPromise<GACURLSessionDataResponse *> *result = [FBLPromise pendingPromise];
+  FBLPromise<_GACURLSessionDataResponse *> *result = [FBLPromise pendingPromise];
   if (error == nil) {
-    GACURLSessionDataResponse *response =
-        [[GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:body];
+    _GACURLSessionDataResponse *response =
+        [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:body];
     [result fulfill:response];
   } else {
     [result reject:error];

@@ -20,6 +20,9 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+// This header is for internal use within Google SDKs (Firebase, Google Sign-In).
+// It is not intended for use by external developers and may change without notice.
+
 /// Backoff type. Backoff interval calculation depends on the type.
 typedef NS_ENUM(NSUInteger, GACAppCheckBackoffType) {
   /// No backoff. Another retry is allowed straight away.
@@ -44,7 +47,7 @@ typedef NSDate *_Nonnull (^GACAppCheckDateProvider)(void);
 
 /// Defines API for an object that conditionally applies backoff to a given operation based on the
 /// history of previous operation failures.
-@protocol GACAppCheckBackoffWrapperProtocol <NSObject>
+@protocol _GACAppCheckBackoffWrapperProtocol <NSObject>
 
 /// Conditionally applies backoff to the given operation.
 /// @param operationProvider A block that returns a new promise. The block will be called only when
@@ -71,7 +74,7 @@ typedef NSDate *_Nonnull (^GACAppCheckDateProvider)(void);
 /// Provides a backoff implementation. Keeps track of the operation successes and failures to either
 /// create and perform the operation promise or fails with a backoff error when the backoff is
 /// needed.
-@interface GACAppCheckBackoffWrapper : NSObject <GACAppCheckBackoffWrapperProtocol>
+@interface _GACAppCheckBackoffWrapper : NSObject <_GACAppCheckBackoffWrapperProtocol>
 
 /// Initializes the wrapper with `+[GACAppCheckBackoffWrapper currentDateProvider]`.
 - (instancetype)init;

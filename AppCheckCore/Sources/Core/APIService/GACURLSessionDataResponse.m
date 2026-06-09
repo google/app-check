@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Sources/Core/APIService/GACURLSessionDataResponse.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACURLSessionDataResponse.h"
 
-@implementation GACURLSessionDataResponse
+@implementation _GACURLSessionDataResponse
 
 - (instancetype)initWithResponse:(NSHTTPURLResponse *)response HTTPBody:(NSData *)body {
   self = [super init];
