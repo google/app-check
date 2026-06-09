@@ -21,8 +21,8 @@ import RecaptchaInterop
 
 /// Firebase App Check provider that verifies app integrity using the
 /// [reCAPTCHA Enterprise](https://cloud.google.com/recaptcha/docs/instrument-ios-apps)
-/// API. This class's platform and OS availability matches reCAPTCHA Enterprise's. See
-/// https://firebase.google.com/docs/ios/learn-more for more details.
+/// API. This class's platform and OS availability matches reCAPTCHA
+/// Enterprise's.
 @available(iOS 15.0, visionOS 1.0, *)
 @available(macOS, unavailable)
 @available(macCatalyst, unavailable)
