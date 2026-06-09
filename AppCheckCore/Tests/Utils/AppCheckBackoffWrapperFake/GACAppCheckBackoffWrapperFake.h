@@ -18,11 +18,17 @@
 
 #import <XCTest/XCTest.h>
 
-#import "AppCheckCore/Sources/Core/Backoff/GACAppCheckBackoffWrapper.h"
+#if __has_include(<FBLPromises/FBLPromises.h>)
+#import <FBLPromises/FBLPromises.h>
+#else
+#import "FBLPromises.h"
+#endif
+
+#import <AppCheckCore/_GACAppCheckBackoffWrapper.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface GACAppCheckBackoffWrapperFake : NSObject <GACAppCheckBackoffWrapperProtocol>
+@interface GACAppCheckBackoffWrapperFake : NSObject <_GACAppCheckBackoffWrapperProtocol>
 
 /// If `YES` then the next operation passed to `[backoff:errorHandler:]` method will be performed.
 /// If `NO` then it will fail with a backoff error.

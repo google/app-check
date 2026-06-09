@@ -35,8 +35,8 @@
 
 #import "AppCheckCore/Sources/Core/Storage/GACAppCheckStorage.h"
 
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 static NSString *const kAppName = @"GACAppCheckStorageTestsApp";
 static NSString *const kGoogleAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa";
@@ -109,7 +109,7 @@ static NSString *const kGoogleAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaa
   XCTAssert(FBLWaitForPromisesWithTimeout(0.5));
   XCTAssertNotNil(getPromise.error);
   XCTAssertEqualObjects(getPromise.error,
-                        [GACAppCheckErrorUtil keychainErrorWithError:gulsKeychainError]);
+                        [_GACAppCheckErrorUtil keychainErrorWithError:gulsKeychainError]);
 
   // 4. Verify storage mock.
   OCMVerifyAll(mockKeychainStorage);
@@ -138,7 +138,7 @@ static NSString *const kGoogleAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaa
   XCTAssert(FBLWaitForPromisesWithTimeout(0.5));
   XCTAssertNotNil(getPromise.error);
   XCTAssertEqualObjects(getPromise.error,
-                        [GACAppCheckErrorUtil keychainErrorWithError:gulsKeychainError]);
+                        [_GACAppCheckErrorUtil keychainErrorWithError:gulsKeychainError]);
 
   // 4. Verify storage mock.
   OCMVerifyAll(mockKeychainStorage);
@@ -162,7 +162,7 @@ static NSString *const kGoogleAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaa
   XCTAssert(FBLWaitForPromisesWithTimeout(0.5));
   XCTAssertNotNil(getPromise.error);
   XCTAssertEqualObjects(getPromise.error,
-                        [GACAppCheckErrorUtil keychainErrorWithError:gulsKeychainError]);
+                        [_GACAppCheckErrorUtil keychainErrorWithError:gulsKeychainError]);
 
   // 4. Verify storage mock.
   OCMVerifyAll(mockKeychainStorage);

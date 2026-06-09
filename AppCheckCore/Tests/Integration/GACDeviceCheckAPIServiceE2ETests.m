@@ -29,16 +29,16 @@
 
 #import "FBLPromise+Testing.h"
 
-#import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
 #import "AppCheckCore/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckAPIService.h"
 
 // TODO: Replace with real resource name to run on CI
 static NSString *const kResourceName = @"projects/test-project-id/google-app-id";
 
 @interface GACDeviceCheckAPIServiceE2ETests : XCTestCase
 @property(nonatomic) GACDeviceCheckAPIService *deviceCheckAPIService;
-@property(nonatomic) GACAppCheckAPIService *APIService;
+@property(nonatomic) _GACAppCheckAPIService *APIService;
 @property(nonatomic) NSURLSession *URLSession;
 @end
 
@@ -50,10 +50,10 @@ static NSString *const kResourceName = @"projects/test-project-id/google-app-id"
   self.URLSession = [NSURLSession
       sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
 
-  self.APIService = [[GACAppCheckAPIService alloc] initWithURLSession:self.URLSession
-                                                              baseURL:nil
-                                                               APIKey:nil
-                                                         requestHooks:nil];
+  self.APIService = [[_GACAppCheckAPIService alloc] initWithURLSession:self.URLSession
+                                                               baseURL:nil
+                                                                APIKey:nil
+                                                          requestHooks:nil];
   self.deviceCheckAPIService = [[GACDeviceCheckAPIService alloc] initWithAPIService:self.APIService
                                                                        resourceName:kResourceName];
 }

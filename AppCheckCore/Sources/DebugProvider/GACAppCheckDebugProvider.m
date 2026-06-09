@@ -24,11 +24,11 @@
 
 #import <GoogleUtilities/GULUserDefaults.h>
 
-#import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
 #import "AppCheckCore/Sources/Core/GACAppCheckLogger+Internal.h"
 #import "AppCheckCore/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckAPIService.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -60,11 +60,11 @@ static NSString *const kDebugTokenUserDefaultsKey = @"GACAppCheckDebugToken";
   NSURLSession *URLSession = [NSURLSession
       sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration]];
 
-  GACAppCheckAPIService *APIService =
-      [[GACAppCheckAPIService alloc] initWithURLSession:URLSession
-                                                baseURL:baseURL
-                                                 APIKey:APIKey
-                                           requestHooks:requestHooks];
+  _GACAppCheckAPIService *APIService =
+      [[_GACAppCheckAPIService alloc] initWithURLSession:URLSession
+                                                 baseURL:baseURL
+                                                  APIKey:APIKey
+                                            requestHooks:requestHooks];
 
   GACAppCheckDebugProviderAPIService *debugAPIService =
       [[GACAppCheckDebugProviderAPIService alloc] initWithAPIService:APIService

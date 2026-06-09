@@ -17,7 +17,7 @@
 #import <Foundation/Foundation.h>
 
 @class FBLPromise<Value>;
-@class GACURLSessionDataResponse;
+@class _GACURLSessionDataResponse;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -29,7 +29,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @return A promise that is fulfilled when an HTTP response is received (with any response code),
  * or is rejected with the error passed to the task completion.
  */
-- (FBLPromise<GACURLSessionDataResponse *> *)gac_dataTaskPromiseWithRequest:
+- (FBLPromise<_GACURLSessionDataResponse *> *)gac_dataTaskPromiseWithRequest:
     (NSURLRequest *)URLRequest;
 
 @end

@@ -18,8 +18,11 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+// This header is for internal use within Google SDKs (Firebase, Google Sign-In).
+// It is not intended for use by external developers and may change without notice.
+
 /** The class represents HTTP response received from `NSURLSession`. */
-@interface GACURLSessionDataResponse : NSObject
+@interface _GACURLSessionDataResponse : NSObject
 
 @property(nonatomic, readonly) NSHTTPURLResponse *HTTPResponse;
 @property(nonatomic, nullable, readonly) NSData *HTTPBody;
