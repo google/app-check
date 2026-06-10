@@ -1,5 +1,6 @@
 # 11.3.0
-- [changed] Added Recaptcha Enterprise attestation provider.
+- [changed] Added Recaptcha Enterprise attestation provider. (#94)
+- [changed] Only log local debug tokens when not yet registered. (#95)
 
 # 11.2.0
 - [changed] To prevent reusing expired artifacts, skip local cache when making
