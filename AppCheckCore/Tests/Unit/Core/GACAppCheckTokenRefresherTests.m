@@ -15,13 +15,11 @@
  */
 
 #import <XCTest/XCTest.h>
+#import "AppCheckCore/Sources/Public/AppCheckCore/AppCheckCore.h"
+@import AppCheckCore;
 
 #import <OCMock/OCMock.h>
 
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckSettings.h"
-
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefreshResult.h"
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefresher.h"
 #import "AppCheckCore/Tests/Unit/Utils/GACFakeTimer.h"
 #import "AppCheckCore/Tests/Utils/Date/GACDateTestUtils.h"
 

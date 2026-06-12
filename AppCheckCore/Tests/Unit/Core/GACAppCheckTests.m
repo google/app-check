@@ -15,23 +15,12 @@
  */
 
 #import <XCTest/XCTest.h>
+#import "AppCheckCore/Sources/Public/AppCheckCore/AppCheckCore.h"
+@import AppCheckCore;
 
 #import <OCMock/OCMock.h>
 
 #import "FBLPromise+Testing.h"
-
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheck.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckProvider.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckSettings.h"
-
-#import "AppCheckCore/Sources/Core/Storage/GACAppCheckStorage.h"
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefreshResult.h"
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefresher.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckTokenDelegate.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckTokenResult.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 /// The placeholder token value returned when an error occurs: `{"error":"UNKNOWN_ERROR"}` encoded
 /// as base64
@@ -105,8 +94,8 @@ static NSString *const kAppGroupID = @"app_group_id";
       [NSString stringWithFormat:@"app_check_token.%@.%@", kAppName, kResourceName];
 
   // 1. Stub GACAppCheckTokenRefresher and validate usage.
-  id mockTokenRefresher = OCMClassMock([GACAppCheckTokenRefresher class]);
-  OCMExpect([mockTokenRefresher alloc]).andReturn(mockTokenRefresher);
+  id mockTokenRefresher = OCMStrictProtocolMock(@protocol(GACAppCheckTokenRefresherProtocol));
+  OCMExpect([mockTokenRefresher setTokenRefreshHandler:[OCMArg any]]);
 
   id refresherDateValidator =
       [OCMArg checkWithBlock:^BOOL(GACAppCheckTokenRefreshResult *refreshResult) {
@@ -121,15 +110,15 @@ static NSString *const kAppGroupID = @"app_group_id";
     return YES;
   }];
 
-  OCMExpect([mockTokenRefresher initWithRefreshResult:refresherDateValidator
-                                             settings:settingsValidator])
-      .andReturn(mockTokenRefresher);
-  OCMExpect([mockTokenRefresher setTokenRefreshHandler:[OCMArg any]]);
-
   // 2. Stub GACAppCheckStorage and validate usage.
-  id mockStorage = OCMStrictClassMock([GACAppCheckStorage class]);
-  OCMExpect([mockStorage alloc]).andReturn(mockStorage);
-  OCMExpect([mockStorage initWithTokenKey:tokenKey accessGroup:kAppGroupID]).andReturn(mockStorage);
+  id mockStorage = OCMStrictProtocolMock(@protocol(GACAppCheckStorageProtocol));
+
+  id appCheckClassMock = OCMClassMock([GACAppCheck class]);
+  OCMExpect([appCheckClassMock makeTokenRefresherWithRefreshResult:refresherDateValidator
+                                                          settings:settingsValidator])
+      .andReturn(mockTokenRefresher);
+  OCMExpect([appCheckClassMock makeStorageWithTokenKey:tokenKey accessGroup:kAppGroupID])
+      .andReturn(mockStorage);
 
   // 3. Stub attestation provider.
   OCMockObject<GACAppCheckProvider> *mockProvider =
@@ -154,16 +143,14 @@ static NSString *const kAppGroupID = @"app_group_id";
 
   // 7. Verify mocks.
   OCMVerifyAll(mockTokenRefresher);
-  OCMVerifyAll(mockStorage);
+  OCMVerifyAll(appCheckClassMock);
   OCMVerifyAll(mockProvider);
   OCMVerifyAll(mockSettings);
   OCMVerifyAll(mockTokenDelegate);
 
   // 8. Stop mocking real class mocks.
-  [mockTokenRefresher stopMocking];
-  mockTokenRefresher = nil;
-  [mockStorage stopMocking];
-  mockStorage = nil;
+  [appCheckClassMock stopMocking];
+  appCheckClassMock = nil;
 }
 
 #pragma mark - Public Get Token

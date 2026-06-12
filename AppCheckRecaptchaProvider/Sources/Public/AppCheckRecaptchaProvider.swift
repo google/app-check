@@ -51,7 +51,7 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
   // bridge collections of closures (like an Array) to Objective-C blocks. This attribute
   // changes the closure's representation to match the Objective-C block heap layout.
   @objc public convenience init?(siteKey: String, resourceName: String, APIKey: String,
-                                 requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? =
+                                 requestHooks: [Any]? =
                                    nil) {
     self.init(
       siteKey: siteKey,
@@ -63,14 +63,14 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
   }
 
   @objc public convenience init?(siteKey: String, resourceName: String, APIKey: String,
-                                 requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? =
+                                 requestHooks: [Any]? =
                                    nil,
                                  actionName: String) {
     guard let sdk = RecaptchaEnterpriseSDKLoader(customAction: actionName) else {
       return nil
     }
 
-    let backoffWrapper = _GACAppCheckBackoffWrapper()
+    let backoffWrapper = AppCheckCoreBackoffWrapper()
     let tokenGenerator = RecaptchaTokenGenerator(
       siteKey: siteKey,
       recaptchaAction: sdk.action,
@@ -79,7 +79,7 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
     )
 
     let urlSession = URLSession(configuration: .ephemeral)
-    let appCheckAPIService = _GACAppCheckAPIService(urlSession: urlSession,
+    let appCheckAPIService = AppCheckCoreAPIService(urlSession: urlSession,
                                                     baseURL: nil,
                                                     apiKey: APIKey,
                                                     requestHooks: requestHooks)
@@ -99,29 +99,29 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
   }
 
   @objc(getTokenWithCompletion:)
-  public func getToken(completion handler: @escaping (AppCheckCoreToken?, (any Error)?) -> Void) {
+  public func getToken(completion handler: @escaping (AppCheckCoreToken?, NSError?) -> Void) {
     getToken(limitedUse: false)
       .then { token in
         handler(token, nil)
       }.catch { error in
-        handler(nil, error)
+        handler(nil, error as NSError)
       }
   }
 
   @objc(getLimitedUseTokenWithCompletion:)
-  public func getLimitedUseToken(completion handler: @escaping (AppCheckCoreToken?, (any Error)?)
+  public func getLimitedUseToken(completion handler: @escaping (AppCheckCoreToken?, NSError?)
     -> Void) {
     getToken(limitedUse: true)
       .then { token in
         handler(token, nil)
       }.catch { error in
-        handler(nil, error)
+        handler(nil, error as NSError)
       }
   }
 
   private func getToken(limitedUse: Bool) -> Promise<AppCheckCoreToken> {
     guard let tokenGenerator else {
-      return Promise(_GACAppCheckErrorUtil.missingRecaptchaSDKError())
+      return Promise(AppCheckCoreErrorUtil.missingRecaptchaSDKError())
     }
     return tokenGenerator.getRecaptchaToken()
       .then { recaptchaToken in

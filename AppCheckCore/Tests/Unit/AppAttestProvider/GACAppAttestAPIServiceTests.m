@@ -15,18 +15,11 @@
  */
 
 #import <XCTest/XCTest.h>
+#import "AppCheckCore/Sources/Public/AppCheckCore/AppCheckCore.h"
+@import AppCheckCore;
 
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
-
-#import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAPIService.h"
-#import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckAPIService.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/_GACURLSessionDataResponse.h"
 
 #import "AppCheckCore/Tests/Unit/Utils/GACFixtureLoader.h"
 #import "AppCheckCore/Tests/Utils/Date/GACDateTestUtils.h"

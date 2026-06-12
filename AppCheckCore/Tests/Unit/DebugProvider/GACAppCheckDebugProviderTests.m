@@ -15,15 +15,12 @@
  */
 
 #import <XCTest/XCTest.h>
+#import "AppCheckCore/Sources/Public/AppCheckCore/AppCheckCore.h"
+@import AppCheckCore;
 
 #import <GoogleUtilities/GULUserDefaults.h>
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
-
-#import "AppCheckCore/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckDebugProvider.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
 static NSString *const kDebugTokenEnvKey = @"AppCheckDebugToken";
 static NSString *const kFirebaseDebugTokenEnvKey = @"FIRAAppCheckDebugToken";

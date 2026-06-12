@@ -244,11 +244,11 @@ final class AppCheckAPITests {
 }
 
 class DummyAppCheckProvider: NSObject, AppCheckCoreProvider {
-  func getToken(completion handler: @escaping (AppCheckCoreToken?, Error?) -> Void) {
+  func getToken(completion handler: @escaping (AppCheckCoreToken?, NSError?) -> Void) {
     handler(AppCheckCoreToken(token: "token", expirationDate: .distantFuture), nil)
   }
 
-  func getLimitedUseToken(completion handler: @escaping (AppCheckCoreToken?, Error?)
+  func getLimitedUseToken(completion handler: @escaping (AppCheckCoreToken?, NSError?)
     -> Void) {
     handler(
       AppCheckCoreToken(token: "token", expirationDate: .init(timeIntervalSinceNow: 3600)),

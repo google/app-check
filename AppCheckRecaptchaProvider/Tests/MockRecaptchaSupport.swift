@@ -79,7 +79,7 @@ final class MockRecaptchaClient: NSObject, RCARecaptchaClientProtocol {
   }
 }
 
-class MockAppCheckCoreAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
+class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
   var baseURL: String = "https://test.com"
 
   struct RequestData {
@@ -90,12 +90,13 @@ class MockAppCheckCoreAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
   }
 
   var lastRequest: RequestData?
-  var expectedResponse: _GACURLSessionDataResponse?
+  var expectedResponse: AppCheckCoreURLSessionDataResponse?
   var expectedToken: AppCheckCoreToken?
   var expectedError: Error?
 
-  func sendRequest(with url: URL, httpMethod: String, body: Data?,
-                   additionalHeaders: [String: String]?) -> FBLPromise<_GACURLSessionDataResponse> {
+  func sendRequestObjC(with url: URL, httpMethod: String, body: Data?,
+                       additionalHeaders: [String: String]?)
+    -> FBLPromise<AppCheckCoreURLSessionDataResponse> {
     lastRequest = RequestData(
       url: url,
       httpMethod: httpMethod,
@@ -103,12 +104,12 @@ class MockAppCheckCoreAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
       additionalHeaders: additionalHeaders
     )
 
-    let promise = Promise<_GACURLSessionDataResponse>.pending()
+    let promise = Promise<AppCheckCoreURLSessionDataResponse>.pending()
 
     if let expectedError {
       promise.reject(expectedError)
     } else {
-      let response = expectedResponse ?? _GACURLSessionDataResponse(
+      let response = expectedResponse ?? AppCheckCoreURLSessionDataResponse(
         response: HTTPURLResponse(),
         httpBody: Data()
       )
@@ -118,7 +119,7 @@ class MockAppCheckCoreAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
     return promise.asObjCPromise()
   }
 
-  func appCheckToken(withAPIResponse response: _GACURLSessionDataResponse)
+  func appCheckTokenObjC(withAPIResponse response: AppCheckCoreURLSessionDataResponse)
     -> FBLPromise<AppCheckCoreToken> {
     let promise = Promise<AppCheckCoreToken>.pending()
 
@@ -134,17 +135,28 @@ class MockAppCheckCoreAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
 
     return promise.asObjCPromise()
   }
+
+  func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) throws
+    -> AppCheckCoreToken {
+    if let expectedError = expectedError {
+      throw expectedError
+    }
+    return expectedToken ?? AppCheckCoreToken(
+      token: "placeholder_app_check_token",
+      expirationDate: Date()
+    )
+  }
 }
 
-class MockBackoffWrapper: NSObject, _GACAppCheckBackoffWrapperProtocol {
+class MockBackoffWrapper: NSObject, AppCheckCoreBackoffWrapperProtocol {
   var applyBackoffCalled = false
   var shouldReturnError = false
   var mockError: NSError?
   var mockResult: Any?
-  var capturedErrorHandler: GACAppCheckBackoffErrorHandler?
+  var capturedErrorHandler: ((NSError) -> Int)?
 
-  func applyBackoff(toOperation operationProvider: @escaping GACAppCheckBackoffOperationProvider,
-                    errorHandler: @escaping GACAppCheckBackoffErrorHandler)
+  func applyBackoffToOperation(_ operationProvider: @escaping () -> FBLPromise<AnyObject>,
+                               errorHandler: @escaping (NSError) -> Int)
     -> FBLPromise<AnyObject> {
     applyBackoffCalled = true
     capturedErrorHandler = errorHandler
@@ -160,7 +172,7 @@ class MockBackoffWrapper: NSObject, _GACAppCheckBackoffWrapperProtocol {
     return operationProvider()
   }
 
-  func defaultAppCheckProviderErrorHandler() -> GACAppCheckBackoffErrorHandler {
-    return { error in .typeExponential }
+  func defaultAppCheckProviderErrorHandler() -> (NSError) -> Int {
+    return { error in AppCheckCoreBackoffType.exponential.rawValue }
   }
 }

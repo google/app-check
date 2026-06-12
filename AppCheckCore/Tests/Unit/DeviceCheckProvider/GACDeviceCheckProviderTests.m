@@ -15,15 +15,11 @@
  */
 
 #import <XCTest/XCTest.h>
+#import "AppCheckCore/Sources/Public/AppCheckCore/AppCheckCore.h"
+@import AppCheckCore;
 
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
-
-#import "AppCheckCore/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h"
-#import "AppCheckCore/Sources/DeviceCheckProvider/GACDeviceCheckTokenGenerator.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACDeviceCheckProvider.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 #import "AppCheckCore/Tests/Utils/AppCheckBackoffWrapperFake/GACAppCheckBackoffWrapperFake.h"
 
@@ -130,7 +126,7 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.defaultErrorHandler = ^GACAppCheckBackoffType(NSError *_Nonnull error) {
     XCTAssertEqualObjects(error, expectedError);
     [errorHandlerExpectation fulfill];
-    return GACAppCheckBackoffType1Day;
+    return GACAppCheckBackoffTypeOneDay;
   };
 
   // 1. Expect GACDeviceCheckTokenGenerator.isSupported.
@@ -178,7 +174,7 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.defaultErrorHandler = ^GACAppCheckBackoffType(NSError *_Nonnull error) {
     XCTAssertEqualObjects(error, deviceTokenError);
     [errorHandlerExpectation fulfill];
-    return GACAppCheckBackoffType1Day;
+    return GACAppCheckBackoffTypeOneDay;
   };
 
   // 1. Expect GACDeviceCheckTokenGenerator.isSupported.
@@ -229,7 +225,7 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.defaultErrorHandler = ^GACAppCheckBackoffType(NSError *_Nonnull error) {
     XCTAssertEqualObjects(error, APIServiceError);
     [errorHandlerExpectation fulfill];
-    return GACAppCheckBackoffType1Day;
+    return GACAppCheckBackoffTypeOneDay;
   };
 
   // 1. Expect GACDeviceCheckTokenGenerator.isSupported.

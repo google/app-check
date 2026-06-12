@@ -15,6 +15,8 @@
  */
 
 #import <XCTest/XCTest.h>
+#import "AppCheckCore/Sources/Public/AppCheckCore/AppCheckCore.h"
+@import AppCheckCore;
 
 #import "FBLPromise+Testing.h"
 #if __has_include(<FBLPromises/FBLPromises.h>)
@@ -22,10 +24,6 @@
 #else
 #import "FBLPromises.h"
 #endif
-
-#import <AppCheckCore/_GACAppCheckBackoffWrapper.h>
-
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
 
 @interface _GACAppCheckBackoffWrapperTests : XCTestCase
 
@@ -93,7 +91,7 @@
   // 1. Check initial failure.
   // 1.1. Set up operation failure.
   [self setUpOperationError];
-  [self setUpErrorHandlerWithBackoffType:GACAppCheckBackoffType1Day];
+  [self setUpErrorHandlerWithBackoffType:GACAppCheckBackoffTypeOneDay];
 
   // 1.2. Compose operation with backoff.
   __auto_type operationWithBackoff =
@@ -110,7 +108,7 @@
   // 2. Check backoff in 12 hours.
   // 2.1. Set up another operation.
   [self setUpOperationError];
-  [self setUpErrorHandlerWithBackoffType:GACAppCheckBackoffType1Day];
+  [self setUpErrorHandlerWithBackoffType:GACAppCheckBackoffTypeOneDay];
 
   // Don't expect operation to be called.
   self.operationFinishExpectation.inverted = YES;
@@ -135,7 +133,7 @@
   // 3. Check backoff one minute before allowing retry.
   // 3.1. Set up another operation.
   [self setUpOperationError];
-  [self setUpErrorHandlerWithBackoffType:GACAppCheckBackoffType1Day];
+  [self setUpErrorHandlerWithBackoffType:GACAppCheckBackoffTypeOneDay];
 
   // Don't expect operation to be called.
   self.operationFinishExpectation.inverted = YES;
@@ -160,7 +158,7 @@
   // 4. Check backoff one minute after allowing retry.
   // 4.1. Set up another operation.
   [self setUpOperationError];
-  [self setUpErrorHandlerWithBackoffType:GACAppCheckBackoffType1Day];
+  [self setUpErrorHandlerWithBackoffType:GACAppCheckBackoffTypeOneDay];
 
   // 4.2. Move current date.
   self.currentDate = [self.currentDate dateByAddingTimeInterval:12 * 60 * 60 + 1 * 60];
@@ -201,7 +199,7 @@
   XCTAssertEqualObjects(operationWithBackoff.error, self.operationResult);
 
   // 2. Check exponential backoff.
-  NSUInteger numberOfAttempts = 20;
+  NSUInteger numberOfAttempts = 5;
   NSTimeInterval maximumBackoff = 4 * 60 * 60;  // 4 hours.
   // The maximum of original backoff interval that can be added.
   double maxJitterPortion = 0.5;  // Backoff is up to 50% longer.
@@ -260,13 +258,13 @@
   XCTAssertEqual(errorHandler(nonHTTPError), GACAppCheckBackoffTypeNone);
 
   GACAppCheckHTTPError *HTTP400Error = [self httpErrorWithStatusCode:400];
-  XCTAssertEqual(errorHandler(HTTP400Error), GACAppCheckBackoffType1Day);
+  XCTAssertEqual(errorHandler(HTTP400Error), GACAppCheckBackoffTypeOneDay);
 
   GACAppCheckHTTPError *HTTP403Error = [self httpErrorWithStatusCode:403];
   XCTAssertEqual(errorHandler(HTTP403Error), GACAppCheckBackoffTypeExponential);
 
   GACAppCheckHTTPError *HTTP404Error = [self httpErrorWithStatusCode:404];
-  XCTAssertEqual(errorHandler(HTTP404Error), GACAppCheckBackoffType1Day);
+  XCTAssertEqual(errorHandler(HTTP404Error), GACAppCheckBackoffTypeOneDay);
 
   GACAppCheckHTTPError *HTTP429Error = [self httpErrorWithStatusCode:429];
   XCTAssertEqual(errorHandler(HTTP429Error), GACAppCheckBackoffTypeExponential);

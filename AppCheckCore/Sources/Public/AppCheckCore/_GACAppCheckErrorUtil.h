@@ -16,60 +16,8 @@
 
 #import <Foundation/Foundation.h>
 
-@class GACAppCheckHTTPError;
-
-NS_ASSUME_NONNULL_BEGIN
-
-// This header is for internal use within Google SDKs (Firebase, Google Sign-In).
-// It is not intended for use by external developers and may change without notice.
-
-extern NSString *const kGACAppCheckMissingRecaptchaSDKMessage NS_SWIFT_NAME(missingRecaptchaSDKMessage);
-
-void GACAppCheckSetErrorToPointer(NSError *error, NSError **pointer);
-
-@interface _GACAppCheckErrorUtil : NSObject
-
-+ (NSError *)publicDomainErrorWithError:(NSError *)error;
-
-// MARK: - Internal errors
-
-+ (NSError *)cachedTokenNotFound;
-
-+ (NSError *)cachedTokenExpired;
-
-+ (NSError *)keychainErrorWithError:(NSError *)error;
-
-+ (GACAppCheckHTTPError *)APIErrorWithHTTPResponse:(NSHTTPURLResponse *)HTTPResponse
-                                              data:(nullable NSData *)data;
-
-+ (NSError *)APIErrorWithNetworkError:(NSError *)networkError;
-
-+ (NSError *)appCheckTokenResponseErrorWithMissingField:(NSString *)fieldName;
-
-+ (NSError *)appAttestAttestationResponseErrorWithMissingField:(NSString *)fieldName;
-
-+ (NSError *)JSONSerializationError:(NSError *)error;
-
-+ (NSError *)errorWithFailureReason:(NSString *)failureReason;
-
-+ (NSError *)unsupportedAttestationProvider:(NSString *)providerName;
-
-+ (NSError *)missingRecaptchaSDKError;
-
-// MARK: - App Attest Errors
-
-+ (NSError *)appAttestKeyIDNotFound;
-
-+ (NSError *)appAttestGenerateKeyFailedWithError:(NSError *)error;
-
-+ (NSError *)appAttestAttestKeyFailedWithError:(NSError *)error
-                                         keyId:(NSString *)keyId
-                                clientDataHash:(NSData *)clientDataHash;
-
-+ (NSError *)appAttestGenerateAssertionFailedWithError:(NSError *)error
-                                                 keyId:(NSString *)keyId
-                                        clientDataHash:(NSData *)clientDataHash;
-
-@end
-
-NS_ASSUME_NONNULL_END
+#ifndef kGACAppCheckMissingRecaptchaSDKMessage
+#define kGACAppCheckMissingRecaptchaSDKMessage        \
+  @"The reCAPTCHA Enterprise SDK is not linked. See " \
+  @"https://cloud.google.com/recaptcha/docs/instrument-ios-apps#prepare-environment"
+#endif

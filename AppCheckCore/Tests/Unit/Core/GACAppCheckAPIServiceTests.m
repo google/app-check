@@ -15,16 +15,11 @@
  */
 
 #import <XCTest/XCTest.h>
+#import "AppCheckCore/Sources/Public/AppCheckCore/AppCheckCore.h"
+@import AppCheckCore;
 
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
-
-#import "AppCheckCore/Sources/Core/APIService/NSURLSession+GACPromises.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckAPIService.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/_GACURLSessionDataResponse.h"
 
 #import "AppCheckCore/Tests/Unit/Utils/GACFixtureLoader.h"
 #import "AppCheckCore/Tests/Utils/Date/GACDateTestUtils.h"
@@ -101,6 +96,8 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
 - (void)testInitBaseURLStagingTriggeredByEnvVar {
   NSString *stagingBaseURL = @"https://staging-firebaseappcheck.sandbox.googleapis.com/v1";
 
+  setenv("_AppCheckUseStaging", "YES", 1);
+
   id processInfoMock = OCMPartialMock([NSProcessInfo processInfo]);
   OCMExpect([processInfoMock processInfo]).andReturn(processInfoMock);
   OCMExpect([processInfoMock environment]).andReturn(@{@"_AppCheckUseStaging" : @"YES"});
@@ -115,10 +112,13 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   XCTAssertEqualObjects(APIService.baseURL, stagingBaseURL);
 
   [processInfoMock stopMocking];
+  unsetenv("_AppCheckUseStaging");
 }
 
 - (void)testInitBaseURLStagingNotTriggeredWhenEnvVarIsNo {
   NSString *prodBaseURL = @"https://firebaseappcheck.googleapis.com/v1";
+
+  setenv("_AppCheckUseStaging", "NO", 1);
 
   id processInfoMock = OCMPartialMock([NSProcessInfo processInfo]);
   OCMExpect([processInfoMock processInfo]).andReturn(processInfoMock);
@@ -134,6 +134,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   XCTAssertEqualObjects(APIService.baseURL, prodBaseURL);
 
   [processInfoMock stopMocking];
+  unsetenv("_AppCheckUseStaging");
 }
 
 #pragma mark - Send Requests
