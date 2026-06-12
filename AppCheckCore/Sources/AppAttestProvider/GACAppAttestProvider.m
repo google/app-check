@@ -375,32 +375,34 @@ NS_ASSUME_NONNULL_BEGIN
 
                 return [self attestKey:keyID challenge:challenge];
               })
-      .recoverOn(self.queue,
-                 ^id(NSError *error) {
-                   // If Apple rejected the key (DCErrorInvalidKey or
-                   // DCErrorInvalidInput) then reset the attestation and
-                   // throw a specific error to signal retry (GACAppAttestRejectionError).
-                   NSError *underlyingError = error.userInfo[NSUnderlyingErrorKey];
-                   if (underlyingError && [underlyingError.domain isEqualToString:DCErrorDomain] &&
-                       (underlyingError.code == DCErrorInvalidKey ||
-                        underlyingError.code == DCErrorInvalidInput ||
-                        underlyingError.code == DCErrorUnknownSystemFailure)) {
-                     NSString *logMessage = [NSString
-                         stringWithFormat:@"App Attest invalid key/input/system failure; the existing attestation "
-                                          @"will be reset. DC Error Code: %@.",
-                                          @(underlyingError.code)];
-                     GACAppCheckLog(GACLoggerAppCheckMessageCodeAttestationRejected,
-                                    GACAppCheckLogLevelDebug, logMessage);
-                     // Reset the attestation.
-                     return [self resetAttestation].thenOn(self.queue, ^NSError *(id result) {
-                       // Throw the rejection error.
-                       return [[GACAppAttestRejectionError alloc] initWithUnderlyingError:error];
-                     });
-                   }
+      .recoverOn(
+          self.queue,
+          ^id(NSError *error) {
+            // If Apple rejected the key (DCErrorInvalidKey or
+            // DCErrorInvalidInput) then reset the attestation and
+            // throw a specific error to signal retry (GACAppAttestRejectionError).
+            NSError *underlyingError = error.userInfo[NSUnderlyingErrorKey];
+            if (underlyingError && [underlyingError.domain isEqualToString:DCErrorDomain] &&
+                (underlyingError.code == DCErrorInvalidKey ||
+                 underlyingError.code == DCErrorInvalidInput ||
+                 underlyingError.code == DCErrorUnknownSystemFailure)) {
+              NSString *logMessage = [NSString
+                  stringWithFormat:
+                      @"App Attest invalid key/input/system failure; the existing attestation "
+                      @"will be reset. DC Error Code: %@.",
+                      @(underlyingError.code)];
+              GACAppCheckLog(GACLoggerAppCheckMessageCodeAttestationRejected,
+                             GACAppCheckLogLevelDebug, logMessage);
+              // Reset the attestation.
+              return [self resetAttestation].thenOn(self.queue, ^NSError *(id result) {
+                // Throw the rejection error.
+                return [[GACAppAttestRejectionError alloc] initWithUnderlyingError:error];
+              });
+            }
 
-                   // Otherwise just re-throw the error.
-                   return error;
-                 })
+            // Otherwise just re-throw the error.
+            return error;
+          })
       .thenOn(self.queue,
               ^FBLPromise<NSArray *> *(GACAppAttestKeyAttestationResult *result) {
                 // 3. Exchange the attestation to FAC token and pass the results to the next step.
@@ -478,48 +480,50 @@ NS_ASSUME_NONNULL_BEGIN
                     // 1.2. Get the statement SHA256 hash.
                     return [GACAppCheckCryptoUtils sha256HashFromData:[statementForAssertion copy]];
                   }]
-      .thenOn(
-          self.queue,
-          ^FBLPromise<NSData *> *(NSData *statementHash) {
-            // 2. Generate App Attest assertion.
-            return [FBLPromise onQueue:self.queue
-                       wrapObjectOrErrorCompletion:^(
-                           FBLPromiseObjectOrErrorCompletion _Nonnull handler) {
-                         [self.appAttestService generateAssertion:keyID
-                                                   clientDataHash:statementHash
-                                                completionHandler:handler];
-                       }]
-                .recoverOn(self.queue, ^id(NSError *appAttestError) {
-                  NSError *error = [_GACAppCheckErrorUtil
-                      appAttestGenerateAssertionFailedWithError:appAttestError
-                                                          keyId:keyID
-                                                 clientDataHash:statementHash];
+      .thenOn(self.queue,
+              ^FBLPromise<NSData *> *(NSData *statementHash) {
+                // 2. Generate App Attest assertion.
+                return [FBLPromise onQueue:self.queue
+                           wrapObjectOrErrorCompletion:^(
+                               FBLPromiseObjectOrErrorCompletion _Nonnull handler) {
+                             [self.appAttestService generateAssertion:keyID
+                                                       clientDataHash:statementHash
+                                                    completionHandler:handler];
+                           }]
+                    .recoverOn(self.queue, ^id(NSError *appAttestError) {
+                      NSError *error = [_GACAppCheckErrorUtil
+                          appAttestGenerateAssertionFailedWithError:appAttestError
+                                                              keyId:keyID
+                                                     clientDataHash:statementHash];
 
-                  // If Apple rejected the key (DCErrorInvalidKey,
-                  // DCErrorInvalidInput or DCErrorUnknownSystemFailure) then reset the
-                  // attestation and throw a specific error to signal retry (GACAppAttestRejectionError).
-                  NSError *underlyingError = error.userInfo[NSUnderlyingErrorKey];
-                  if (underlyingError && [underlyingError.domain isEqualToString:DCErrorDomain] &&
-                      (underlyingError.code == DCErrorInvalidKey ||
-                       underlyingError.code == DCErrorInvalidInput ||
-                       underlyingError.code == DCErrorUnknownSystemFailure)) {
-                    NSString *logMessage = [NSString
-                        stringWithFormat:@"App Attest invalid key/input/system failure; the existing attestation "
-                                         @"will be reset. DC Error Code: %@.",
-                                         @(underlyingError.code)];
-                    GACAppCheckLog(GACLoggerAppCheckMessageCodeAssertionRejected,
-                                   GACAppCheckLogLevelDebug, logMessage);
-                    // Reset the attestation.
-                    return [self resetAttestation].thenOn(self.queue, ^NSError *(id result) {
-                      // Throw the rejection error.
-                      return [[GACAppAttestRejectionError alloc] initWithUnderlyingError:error];
+                      // If Apple rejected the key (DCErrorInvalidKey,
+                      // DCErrorInvalidInput or DCErrorUnknownSystemFailure) then reset the
+                      // attestation and throw a specific error to signal retry
+                      // (GACAppAttestRejectionError).
+                      NSError *underlyingError = error.userInfo[NSUnderlyingErrorKey];
+                      if (underlyingError &&
+                          [underlyingError.domain isEqualToString:DCErrorDomain] &&
+                          (underlyingError.code == DCErrorInvalidKey ||
+                           underlyingError.code == DCErrorInvalidInput ||
+                           underlyingError.code == DCErrorUnknownSystemFailure)) {
+                        NSString *logMessage =
+                            [NSString stringWithFormat:@"App Attest invalid key/input/system "
+                                                       @"failure; the existing attestation "
+                                                       @"will be reset. DC Error Code: %@.",
+                                                       @(underlyingError.code)];
+                        GACAppCheckLog(GACLoggerAppCheckMessageCodeAssertionRejected,
+                                       GACAppCheckLogLevelDebug, logMessage);
+                        // Reset the attestation.
+                        return [self resetAttestation].thenOn(self.queue, ^NSError *(id result) {
+                          // Throw the rejection error.
+                          return [[GACAppAttestRejectionError alloc] initWithUnderlyingError:error];
+                        });
+                      }
+
+                      // Otherwise just re-throw the error.
+                      return error;
                     });
-                  }
-
-                  // Otherwise just re-throw the error.
-                  return error;
-                });
-          })
+              })
       // 3. Compose the result object.
       .thenOn(self.queue, ^GACAppAttestAssertionData *(NSData *assertion) {
         return [[GACAppAttestAssertionData alloc] initWithChallenge:challenge
