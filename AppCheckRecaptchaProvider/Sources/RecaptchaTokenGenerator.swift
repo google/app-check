@@ -37,11 +37,11 @@ final class RecaptchaTokenGenerator {
 
   private let recaptchaClient: Promise<RCARecaptchaClientProtocol>
 
-  private let backoffWrapper: _GACAppCheckBackoffWrapperProtocol
+  private let backoffWrapper: AppCheckCoreBackoffWrapperProtocol
 
   init(siteKey: String, recaptchaAction: RCAActionProtocol,
        recaptchaClass: RCARecaptchaProtocol.Type,
-       backoffWrapper: _GACAppCheckBackoffWrapperProtocol) {
+       backoffWrapper: AppCheckCoreBackoffWrapperProtocol) {
     self.recaptchaAction = recaptchaAction
     self.backoffWrapper = backoffWrapper
     // Note: `fetchClient` is called only once and its result (including
@@ -54,7 +54,7 @@ final class RecaptchaTokenGenerator {
         if let client {
           fulfill(client)
         } else {
-          reject(error ?? _GACAppCheckErrorUtil
+          reject(error ?? AppCheckCoreErrorUtil
             .error(withFailureReason: "Failed to fetch Recaptcha client"))
         }
       }
@@ -63,7 +63,7 @@ final class RecaptchaTokenGenerator {
 
   func getRecaptchaToken() -> Promise<String> {
     return recaptchaClient.then { client in
-      let operationProvider: GACAppCheckBackoffOperationProvider = {
+      let operationProvider: () -> FBLPromise<AnyObject> = {
         let swiftPromise = Promise<AnyObject> { fulfill, reject in
           client.execute(withAction: self.recaptchaAction) { token, error in
             if let token {
@@ -76,23 +76,23 @@ final class RecaptchaTokenGenerator {
         return swiftPromise.asObjCPromise()
       }
 
-      let errorHandler: GACAppCheckBackoffErrorHandler = { error in
+      let errorHandler: (NSError) -> Int = { error in
         let nsError = error as NSError
         if nsError.domain == AppCheckCoreErrorDomain && nsError.code == AppCheckCoreErrorCode
           .serverUnreachable.rawValue {
-          return .typeExponential
+          return AppCheckCoreBackoffType.exponential.rawValue
         }
-        return .typeNone
+        return AppCheckCoreBackoffType.none.rawValue
       }
 
-      let fblPromise = self.backoffWrapper.applyBackoff(
-        toOperation: operationProvider,
+      let fblPromise = self.backoffWrapper.applyBackoffToOperation(
+        operationProvider,
         errorHandler: errorHandler
       )
 
       return Promise<AnyObject>(fblPromise).then { result in
         guard let token = result as? String else {
-          throw _GACAppCheckErrorUtil
+          throw AppCheckCoreErrorUtil
             .error(
               withFailureReason: "Unexpected result type from reCAPTCHA token exchange: \(type(of: result)). Expected String."
             )
@@ -104,13 +104,13 @@ final class RecaptchaTokenGenerator {
 
   private func mapRecaptchaError(_ error: Error?) -> Error {
     guard let error = error as NSError? else {
-      return _GACAppCheckErrorUtil.error(withFailureReason: "Failed to execute Recaptcha action")
+      return AppCheckCoreErrorUtil.error(withFailureReason: "Failed to execute Recaptcha action")
     }
 
     // Map RecaptchaErrorNetworkError and RecaptchaErrorCodeInternalError.
     // See https://docs.cloud.google.com/recaptcha/docs/reference/ios/client/api/Enums/RecaptchaErrorCode.html
     if error.code == Self.networkErrorCode || error.code == Self.internalErrorCode {
-      return _GACAppCheckErrorUtil.apiError(withNetworkError: error)
+      return AppCheckCoreErrorUtil.APIError(withNetworkError: error)
     }
 
     // Preserve underlying error for others

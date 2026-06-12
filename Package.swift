@@ -53,7 +53,7 @@ let package = Package(
   targets: [
     .target(name: "AppCheckCore",
             dependencies: [
-              .product(name: "FBLPromises", package: "Promises"),
+              .product(name: "Promises", package: "Promises"),
               .product(name: "GULEnvironment", package: "GoogleUtilities"),
               .product(name: "GULUserDefaults", package: "GoogleUtilities"),
             ],

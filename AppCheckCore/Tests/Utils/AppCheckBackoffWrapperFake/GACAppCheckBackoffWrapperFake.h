@@ -15,6 +15,8 @@
  */
 
 #import <Foundation/Foundation.h>
+#import "AppCheckCore/Tests/Unit/Utils/GACAppCheckTestCompat.h"
+@import AppCheckCore;
 
 #import <XCTest/XCTest.h>
 
@@ -23,8 +25,6 @@
 #else
 #import "FBLPromises.h"
 #endif
-
-#import <AppCheckCore/_GACAppCheckBackoffWrapper.h>
 
 NS_ASSUME_NONNULL_BEGIN
 

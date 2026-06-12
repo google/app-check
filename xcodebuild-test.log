@@ -1,0 +1,53 @@
+Command line invocation:
+    /Applications/Xcode-beta.app/Contents/Developer/usr/bin/xcodebuild -scheme AppCheck -destination "platform=iOS Simulator,name=iPhone 17" ONLY_ACTIVE_ARCH=YES CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=YES COMPILER_INDEX_STORE_ENABLE=NO IPHONEOS_DEPLOYMENT_TARGET=15.0 MACOSX_DEPLOYMENT_TARGET=10.15 TVOS_DEPLOYMENT_TARGET=15.0 WATCHOS_DEPLOYMENT_TARGET=7.0 test
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = YES
+    CODE_SIGNING_REQUIRED = NO
+    COMPILER_INDEX_STORE_ENABLE = NO
+    IPHONEOS_DEPLOYMENT_TARGET = 15.0
+    MACOSX_DEPLOYMENT_TARGET = 10.15
+    ONLY_ACTIVE_ARCH = YES
+    TVOS_DEPLOYMENT_TARGET = 15.0
+    WATCHOS_DEPLOYMENT_TARGET = 7.0
+
+2026-06-12 09:55:28.595 xcodebuild[93921:12414398] [MT] IDELogStore: Failed to open log store at /Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Build
+2026-06-12 09:55:28.595 xcodebuild[93921:12414398] [MT] IDELogStore: Failed to open Build log store: Error Domain=IDEFoundationErrorDomain Code=1 "Unable to create log store directory at '/Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Build': (513) You don’t have permission to save the file “Build” in the folder “Logs”." UserInfo={NSLocalizedDescription=Unable to create log store directory at '/Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Build': (513) You don’t have permission to save the file “Build” in the folder “Logs”.}. User info: {
+    NSLocalizedDescription = "Unable to create log store directory at '/Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Build': (513) You don\U2019t have permission to save the file \U201cBuild\U201d in the folder \U201cLogs\U201d.";
+}.
+2026-06-12 09:55:28.600 xcodebuild[93921:12414437]  IDEDownloadableMetalToolchainCoordinator: Failed to remount the Metal Toolchain: No downloaded assets found: The file “MetalToolchain” couldn’t be opened because you don’t have permission to view it.
+2026-06-12 09:55:28.606 xcodebuild[93921:12414398] [MT] IDESimulatorRuntimeVersionCoordinator: Error loading SDK-to-sim mappings: Error Domain=NSCocoaErrorDomain Code=257 "The file “SDKToSimulatorIndexMapping.plist” couldn’t be opened because you don’t have permission to view it." UserInfo={NSFilePath=/Users/wilsonryan/Library/Developer/Xcode/SDKToSimulatorIndexMapping.plist, NSURL=file:///Users/wilsonryan/Library/Developer/Xcode/SDKToSimulatorIndexMapping.plist, NSUnderlyingError=0xabe86a340 {Error Domain=NSPOSIXErrorDomain Code=1 "Operation not permitted"}}
+2026-06-12 09:55:28.607 xcodebuild[93921:12414398] [MT] IDELogStore: Failed to open log store at /Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Localization
+2026-06-12 09:55:28.607 xcodebuild[93921:12414398] [MT] IDELogStore: Failed to open Localization log store: Error Domain=IDEFoundationErrorDomain Code=1 "Unable to create log store directory at '/Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Localization': (513) You don’t have permission to save the file “Localization” in the folder “Logs”." UserInfo={NSLocalizedDescription=Unable to create log store directory at '/Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Localization': (513) You don’t have permission to save the file “Localization” in the folder “Logs”.}. User info: {
+    NSLocalizedDescription = "Unable to create log store directory at '/Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Localization': (513) You don\U2019t have permission to save the file \U201cLocalization\U201d in the folder \U201cLogs\U201d.";
+}.
+2026-06-12 09:55:28.608 xcodebuild[93921:12414398] [MT] IDELogStore: Failed to open log store at /Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Launch
+2026-06-12 09:55:28.608 xcodebuild[93921:12414398] [MT] IDELogStore: Failed to open Launch log store: Error Domain=IDEFoundationErrorDomain Code=1 "Unable to create log store directory at '/Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Launch': (513) You don’t have permission to save the file “Launch” in the folder “Logs”." UserInfo={NSLocalizedDescription=Unable to create log store directory at '/Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Launch': (513) You don’t have permission to save the file “Launch” in the folder “Logs”.}. User info: {
+    NSLocalizedDescription = "Unable to create log store directory at '/Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Launch': (513) You don\U2019t have permission to save the file \U201cLaunch\U201d in the folder \U201cLogs\U201d.";
+}.
+2026-06-12 09:55:28.630 xcodebuild[93921:12414398] [MT] IDELogStore: Failed to open log store at /Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Package
+2026-06-12 09:55:28.630 xcodebuild[93921:12414398] [MT] IDELogStore: Failed to open Package log store: Error Domain=IDEFoundationErrorDomain Code=1 "Unable to create log store directory at '/Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Package': (513) You don’t have permission to save the file “Package” in the folder “Logs”." UserInfo={NSLocalizedDescription=Unable to create log store directory at '/Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Package': (513) You don’t have permission to save the file “Package” in the folder “Logs”.}. User info: {
+    NSLocalizedDescription = "Unable to create log store directory at '/Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Package': (513) You don\U2019t have permission to save the file \U201cPackage\U201d in the folder \U201cLogs\U201d.";
+}.
+2026-06-12 09:55:28.632 xcodebuild[93921:12414407] Malformed bundle does not contain an identifier at /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.5355.16.AQJApT/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime
+2026-06-12 09:55:28.654 xcodebuild[93921:12414398] [MT] IDELogStore: Failed to open log store at /Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Test
+2026-06-12 09:55:28.654 xcodebuild[93921:12414398] [MT] IDELogStore: Failed to open Test log store: Error Domain=IDEFoundationErrorDomain Code=1 "Unable to create log store directory at '/Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Test': (513) You don’t have permission to save the file “Test” in the folder “Logs”." UserInfo={NSLocalizedDescription=Unable to create log store directory at '/Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Test': (513) You don’t have permission to save the file “Test” in the folder “Logs”.}. User info: {
+    NSLocalizedDescription = "Unable to create log store directory at '/Users/wilsonryan/Library/Developer/Xcode/DerivedData/app-check-swift-promises-gdqaqocgotrakxbrmwsdxqzqiwtc/Logs/Test': (513) You don\U2019t have permission to save the file \U201cTest\U201d in the folder \U201cLogs\U201d.";
+}.
+Resolve Package Graph
+You don’t have permission to save the file “repositories” in the folder “SourcePackages”.2026-06-12 09:55:28.726 xcodebuild[93921:12414439] Malformed bundle does not contain an identifier at /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.5355.16.AQJApT/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime
+
+Package: app-check-swift-promises
+
+
+Resolved source packages:
+  app-check-swift-promises: (null)
+
+2026-06-12 09:55:28.776 xcodebuild[93921:12414398] Writing error result bundle to /var/folders/q1/959ztyhx46b7d6fzzc68kc2h00_dx3/T/ResultBundle_2026-12-06_09-55-0028.xcresult
+xcodebuild: error: Could not resolve package dependencies:
+  You don’t have permission to save the file “repositories” in the folder “SourcePackages”.
+  Error opening '/var/folders/q1/959ztyhx46b7d6fzzc68kc2h00_dx3/C/clang/ModuleCache/Swift-4C7SDBTP6RVE.swiftmodule' for output: /var/folders/q1/959ztyhx46b7d6fzzc68kc2h00_dx3/C/clang/ModuleCache/Swift-4C7SDBTP6RVE.swiftmodule: Operation not permitted
+  Unable to load standard library for target 'arm64-apple-macos14.0'
+  <unknown>:0: error: error opening '/var/folders/q1/959ztyhx46b7d6fzzc68kc2h00_dx3/C/clang/ModuleCache/Swift-4C7SDBTP6RVE.swiftmodule' for output: /var/folders/q1/959ztyhx46b7d6fzzc68kc2h00_dx3/C/clang/ModuleCache/Swift-4C7SDBTP6RVE.swiftmodule: Operation not permitted
+<unknown>:0: error: unable to load standard library for target 'arm64-apple-macos14.0'
+

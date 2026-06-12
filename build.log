@@ -1,0 +1,25 @@
+Building for debugging...
+[Computing dependencies]
+[1 / 37] third-party-IsAppEncrypted
+[18 / 40] AppCheckCoreUnit-product
+[1m/Users/wilsonryan/Code/app-check-swift-promises/AppCheckCore/Tests/Utils/AppCheckBackoffWrapperFake/GACAppCheckBackoffWrapperFake.m:29:78: [0m[0;1;35mwarning: [0m[1mconflicting parameter types in implementation of 'applyBackoffToOperation:errorHandler:': 'FBLPromise<id> * _Nonnull (^ _Nonnull __strong)(void)' vs 'GACAppCheckBackoffOperationProvider  _Nonnull __strong' (aka 'FBLPromise * _Nonnull (^__strong)(void)') [-Wmismatched-parameter-types][0m
+   29 | - (FBLPromise *)applyBackoffToOperation:(GACAppCheckBackoffOperationProvider)operationProvider[0m
+      | [0;1;32m                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^
+[0mIn module 'AppCheckCore' imported from /Users/wilsonryan/Code/app-check-swift-promises/AppCheckCore/Tests/Utils/AppCheckBackoffWrapperFake/GACAppCheckBackoffWrapperFake.h:19:
+[1m/Users/wilsonryan/Code/app-check-swift-promises/.build/out/Intermediates.noindex/GeneratedModuleMaps/AppCheckCore-Swift.h:564:100: [0m[0;1;36mnote: [0mprevious definition is here[0m
+  564 | - (FBLPromise<id> * _Nonnull)applyBackoffToOperation:(FBLPromise<id> * _Nonnull (^ _Nonnull)(void))operationProvider errorHandler:(NSInteger (^ _Nonnull)(NSError * _Nonnull))errorHandler SWIFT_WARN_UNUSED_RESULT;[0m
+      | [0;1;32m                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~        ^
+[0m1 warning generated.
+[37 / 40] AppCheckCoreUnit-product
+[1m/Users/wilsonryan/Code/app-check-swift-promises/AppCheckCore/Tests/Unit/AppAttestProvider/Storage/GACAppAttestKeyIDStorageTests.m:42:3: [0m[0;1;35mwarning: [0m[1mignoring return value of function declared with 'warn_unused_result' attribute [-Wunused-result][0m
+   42 |   [self.storage setAppAttestKeyID:nil];[0m
+      | [0;1;32m  ^
+[0m[1m/Users/wilsonryan/Code/app-check-swift-promises/AppCheckCore/Tests/Unit/AppAttestProvider/Storage/GACAppAttestKeyIDStorageTests.m:143:3: [0m[0;1;35mwarning: [0m[1mignoring return value of function declared with 'warn_unused_result' attribute [-Wunused-result][0m
+  143 |   [storage1 setAppAttestKeyID:nil];[0m
+      | [0;1;32m  ^
+[0m[1m/Users/wilsonryan/Code/app-check-swift-promises/AppCheckCore/Tests/Unit/AppAttestProvider/Storage/GACAppAttestKeyIDStorageTests.m:145:3: [0m[0;1;35mwarning: [0m[1mignoring return value of function declared with 'warn_unused_result' attribute [-Wunused-result][0m
+  145 |   [storage2 setAppAttestKeyID:nil];[0m
+      | [0;1;32m  ^
+[0m3 warnings generated.
+[38 / 40] AppCheckCoreUnit-product
+Build complete! (0.89 secs.)
