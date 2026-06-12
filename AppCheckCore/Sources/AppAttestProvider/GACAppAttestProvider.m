@@ -383,9 +383,10 @@ NS_ASSUME_NONNULL_BEGIN
                    NSError *underlyingError = error.userInfo[NSUnderlyingErrorKey];
                    if (underlyingError && [underlyingError.domain isEqualToString:DCErrorDomain] &&
                        (underlyingError.code == DCErrorInvalidKey ||
-                        underlyingError.code == DCErrorInvalidInput)) {
+                        underlyingError.code == DCErrorInvalidInput ||
+                        underlyingError.code == DCErrorUnknownSystemFailure)) {
                      NSString *logMessage = [NSString
-                         stringWithFormat:@"App Attest invalid key/input; the existing attestation "
+                         stringWithFormat:@"App Attest invalid key/input/system failure; the existing attestation "
                                           @"will be reset. DC Error Code: %@.",
                                           @(underlyingError.code)];
                      GACAppCheckLog(GACLoggerAppCheckMessageCodeAttestationRejected,
@@ -494,15 +495,16 @@ NS_ASSUME_NONNULL_BEGIN
                                                           keyId:keyID
                                                  clientDataHash:statementHash];
 
-                  // If Apple rejected the key (DCErrorInvalidKey or
-                  // DCErrorInvalidInput) then reset the attestation and
-                  // throw a specific error to signal retry (GACAppAttestRejectionError).
+                  // If Apple rejected the key (DCErrorInvalidKey,
+                  // DCErrorInvalidInput or DCErrorUnknownSystemFailure) then reset the
+                  // attestation and throw a specific error to signal retry (GACAppAttestRejectionError).
                   NSError *underlyingError = error.userInfo[NSUnderlyingErrorKey];
                   if (underlyingError && [underlyingError.domain isEqualToString:DCErrorDomain] &&
                       (underlyingError.code == DCErrorInvalidKey ||
-                       underlyingError.code == DCErrorInvalidInput)) {
+                       underlyingError.code == DCErrorInvalidInput ||
+                       underlyingError.code == DCErrorUnknownSystemFailure)) {
                     NSString *logMessage = [NSString
-                        stringWithFormat:@"App Attest invalid key/input; the existing attestation "
+                        stringWithFormat:@"App Attest invalid key/input/system failure; the existing attestation "
                                          @"will be reset. DC Error Code: %@.",
                                          @(underlyingError.code)];
                     GACAppCheckLog(GACLoggerAppCheckMessageCodeAssertionRejected,
