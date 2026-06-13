@@ -26,10 +26,7 @@ let package = Package(
       targets: ["AppCheckCore"]
     ),
 
-    .library(
-      name: "AppCheckRecaptchaProvider",
-      targets: ["AppCheckRecaptchaProvider"]
-    ),
+
 
   ],
   dependencies: [
@@ -86,13 +83,6 @@ let package = Package(
             swiftSettings: [
               .define("DEBUG", .when(configuration: .debug)),
             ]),
-    .target(name: "AppCheckRecaptchaProvider",
-            dependencies: [
-              "AppCheckCore",
-              .product(name: "RecaptchaInterop", package: "interop-ios-for-google-sdks"),
-              .product(name: "Promises", package: "Promises"),
-            ],
-            path: "AppCheckRecaptchaProvider/Sources"),
     .testTarget(
       name: "AppCheckCoreUnit",
       dependencies: [
@@ -111,21 +101,6 @@ let package = Package(
       cSettings: [
         .headerSearchPath("../.."),
       ]
-    ),
-    .testTarget(
-      name: "AppCheckCoreUnitSwift",
-      dependencies: ["AppCheckCore"],
-      path: "AppCheckCore/Tests/Unit/Swift",
-      cSettings: [
-        .headerSearchPath("../.."),
-      ]
-    ),
-    .testTarget(
-      name: "AppCheckRecaptchaProviderUnit",
-      dependencies: [
-        "AppCheckRecaptchaProvider",
-      ],
-      path: "AppCheckRecaptchaProvider/Tests"
     ),
   ]
 )
