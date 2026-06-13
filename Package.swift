@@ -54,6 +54,7 @@ let package = Package(
     .target(name: "AppCheckCore",
             dependencies: [
               .product(name: "FBLPromises", package: "Promises"),
+              .product(name: "Promises", package: "Promises"),
               .product(name: "GULEnvironment", package: "GoogleUtilities"),
               .product(name: "GULUserDefaults", package: "GoogleUtilities"),
             ],
@@ -61,6 +62,9 @@ let package = Package(
             publicHeadersPath: "Public",
             cSettings: [
               .headerSearchPath("../.."),
+            ],
+            swiftSettings: [
+              .define("DEBUG", .when(configuration: .debug)),
             ],
             linkerSettings: [
               .linkedFramework(
