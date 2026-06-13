@@ -59,6 +59,9 @@ let package = Package(
               .product(name: "GULUserDefaults", package: "GoogleUtilities"),
             ],
             path: "AppCheckCore/Sources",
+            exclude: [
+              "Swift"
+            ],
             publicHeadersPath: "Public",
             cSettings: [
               .headerSearchPath("../.."),
@@ -71,6 +74,17 @@ let package = Package(
                 "DeviceCheck",
                 .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .appCheckVisionOS])
               ),
+            ]),
+    .target(name: "AppCheckCoreSwift",
+            dependencies: [
+              .product(name: "FBLPromises", package: "Promises"),
+              .product(name: "Promises", package: "Promises"),
+              .product(name: "GULEnvironment", package: "GoogleUtilities"),
+              .product(name: "GULUserDefaults", package: "GoogleUtilities"),
+            ],
+            path: "AppCheckCore/Sources/Swift",
+            swiftSettings: [
+              .define("DEBUG", .when(configuration: .debug)),
             ]),
     .target(name: "AppCheckRecaptchaProvider",
             dependencies: [
