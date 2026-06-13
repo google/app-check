@@ -15,12 +15,10 @@
  */
 
 #import <XCTest/XCTest.h>
+#import "AppCheckCore/Sources/Public/AppCheckCore/AppCheckCore.h"
+@import AppCheckCore;
 
 #import "FBLPromise+Testing.h"
-
-#import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.h"
-
-#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 static NSString *const kAppName = @"GACAppAttestKeyIDStorageTestsApp";
 static NSString *const kAppID = @"app_id";

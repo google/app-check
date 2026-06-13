@@ -26,7 +26,10 @@ let package = Package(
       targets: ["AppCheckCore"]
     ),
 
-
+    .library(
+      name: "AppCheckRecaptchaProvider",
+      targets: ["AppCheckRecaptchaProvider"]
+    ),
 
   ],
   dependencies: [
@@ -56,9 +59,6 @@ let package = Package(
               .product(name: "GULUserDefaults", package: "GoogleUtilities"),
             ],
             path: "AppCheckCore/Sources",
-            exclude: [
-              "Swift"
-            ],
             publicHeadersPath: "Public",
             cSettings: [
               .headerSearchPath("../.."),
@@ -72,17 +72,13 @@ let package = Package(
                 .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .appCheckVisionOS])
               ),
             ]),
-    .target(name: "AppCheckCoreSwift",
+    .target(name: "AppCheckRecaptchaProvider",
             dependencies: [
-              .product(name: "FBLPromises", package: "Promises"),
+              "AppCheckCore",
+              .product(name: "RecaptchaInterop", package: "interop-ios-for-google-sdks"),
               .product(name: "Promises", package: "Promises"),
-              .product(name: "GULEnvironment", package: "GoogleUtilities"),
-              .product(name: "GULUserDefaults", package: "GoogleUtilities"),
             ],
-            path: "AppCheckCore/Sources/Swift",
-            swiftSettings: [
-              .define("DEBUG", .when(configuration: .debug)),
-            ]),
+            path: "AppCheckRecaptchaProvider/Sources"),
     .testTarget(
       name: "AppCheckCoreUnit",
       dependencies: [
@@ -101,6 +97,21 @@ let package = Package(
       cSettings: [
         .headerSearchPath("../.."),
       ]
+    ),
+    .testTarget(
+      name: "AppCheckCoreUnitSwift",
+      dependencies: ["AppCheckCore"],
+      path: "AppCheckCore/Tests/Unit/Swift",
+      cSettings: [
+        .headerSearchPath("../.."),
+      ]
+    ),
+    .testTarget(
+      name: "AppCheckRecaptchaProviderUnit",
+      dependencies: [
+        "AppCheckRecaptchaProvider",
+      ],
+      path: "AppCheckRecaptchaProvider/Tests"
     ),
   ]
 )

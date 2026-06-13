@@ -26,15 +26,14 @@
 #if !TARGET_OS_MACCATALYST && !TARGET_OS_OSX
 
 #import <XCTest/XCTest.h>
+#import "AppCheckCore/Sources/Public/AppCheckCore/AppCheckCore.h"
+@import AppCheckCore;
 
 #import <OCMock/OCMock.h>
 
 #import <GoogleUtilities/GULKeychainStorage.h>
 
 #import "FBLPromise+Testing.h"
-
-#import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestArtifactStorage.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 static NSString *const kAppName = @"GACAppAttestArtifactStorageTests";
 static NSString *const kAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa";

@@ -26,8 +26,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @implementation GACAppCheckBackoffWrapperFake
 
-- (FBLPromise *)applyBackoffToOperation:(GACAppCheckBackoffOperationProvider)operationProvider
-                           errorHandler:(GACAppCheckBackoffErrorHandler)errorHandler {
+- (FBLPromise<id> *)applyBackoffToOperation:(FBLPromise<id> * (^)(void))operationProvider
+                               errorHandler:(NSInteger (^)(NSError *))errorHandler {
   [self.backoffExpectation fulfill];
 
   if (self.isNextOperationAllowed) {

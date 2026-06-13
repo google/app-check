@@ -14,26 +14,24 @@
  * limitations under the License.
  */
 
-#import "GACAppCheck.h"
+#import "GACAppCheckAvailability.h"
 #import "GACAppCheckErrors.h"
-#import "GACAppCheckLogger.h"
-#import "GACAppCheckProvider.h"
-#import "GACAppCheckSettings.h"
-#import "GACAppCheckToken.h"
-#import "GACAppCheckTokenDelegate.h"
-#import "GACAppCheckTokenResult.h"
-
-// Debug provider
-#import "GACAppCheckDebugProvider.h"
-
-// DeviceCheck provider
-#import "GACDeviceCheckProvider.h"
-
-// App Attest provider.
-#import "GACAppAttestProvider.h"
-
-// Internal headers exposed for interop with the Swift implementation.
-#import "_GACAppCheckAPIService.h"
-#import "_GACAppCheckBackoffWrapper.h"
 #import "_GACAppCheckErrorUtil.h"
-#import "_GACURLSessionDataResponse.h"
+
+#import <Foundation/Foundation.h>
+
+@protocol GACAppCheckTimerProtocol;
+@class GACAppCheckTokenRefreshResult;
+
+typedef id<GACAppCheckTimerProtocol> _Nullable (^GACTimerProvider)(NSDate *_Nonnull fireDate,
+                                                                   dispatch_queue_t _Nonnull queue,
+                                                                   dispatch_block_t _Nonnull block);
+typedef void (^GACAppCheckTokenRefreshCompletion)(
+    GACAppCheckTokenRefreshResult *_Nonnull refreshResult);
+typedef void (^GACAppCheckTokenRefreshBlock)(
+    void (^_Nonnull completion)(GACAppCheckTokenRefreshResult *_Nonnull refreshResult));
+
+@class FBLPromise;
+typedef FBLPromise *_Nonnull (^GACAppCheckBackoffOperationProvider)(void);
+typedef NSInteger (^GACAppCheckBackoffErrorHandler)(NSError *_Nonnull error);
+typedef void (^GACAppCheckAPIRequestHook)(NSMutableURLRequest *_Nonnull request);

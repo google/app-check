@@ -14,25 +14,13 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppAttestProvider.h"
-
 #import <DeviceCheck/DeviceCheck.h>
 #import <XCTest/XCTest.h>
+#import "AppCheckCore/Sources/Public/AppCheckCore/AppCheckCore.h"
+@import AppCheckCore;
 
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
-
-#import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAPIService.h"
-#import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAttestationResponse.h"
-#import "AppCheckCore/Sources/AppAttestProvider/GACAppAttestService.h"
-#import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestArtifactStorage.h"
-#import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.h"
-#import "AppCheckCore/Sources/Core/Utils/GACAppCheckCryptoUtils.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
-
-#import "AppCheckCore/Sources/AppAttestProvider/Errors/GACAppAttestRejectionError.h"
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
-#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 #import "AppCheckCore/Tests/Utils/AppCheckBackoffWrapperFake/GACAppCheckBackoffWrapperFake.h"
 
@@ -111,7 +99,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.defaultErrorHandler = ^GACAppCheckBackoffType(NSError *_Nonnull error) {
     XCTAssertEqualObjects(error, expectedError);
     [errorHandlerExpectation fulfill];
-    return GACAppCheckBackoffType1Day;
+    return GACAppCheckBackoffTypeOneDay;
   };
 
   // 1. Expect GACAppAttestService.isSupported.
