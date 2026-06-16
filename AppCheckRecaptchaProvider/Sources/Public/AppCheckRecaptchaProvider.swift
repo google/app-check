@@ -20,7 +20,8 @@ import Promises
 import RecaptchaInterop
 
 /// Firebase App Check provider that verifies app integrity using the
-/// [reCAPTCHA Enterprise](https://firebase.google.com/docs/app-check/ios/recaptcha-enterprise-provider)
+/// [reCAPTCHA
+/// Enterprise](https://firebase.google.com/docs/app-check/ios/recaptcha-enterprise-provider)
 /// API. This class's platform and OS availability matches reCAPTCHA
 /// Enterprise's.
 @available(iOS 15.0, visionOS 1.0, *)
