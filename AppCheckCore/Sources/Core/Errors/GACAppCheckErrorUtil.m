@@ -26,7 +26,8 @@
 
 NSString *const kGACAppCheckMissingRecaptchaSDKMessage =
     @"The reCAPTCHA Enterprise SDK is not linked. See "
-    @"https://cloud.google.com/recaptcha/docs/instrument-ios-apps#prepare-environment";
+    @"https://firebase.google.com/docs/app-check/ios/"
+    @"recaptcha-enterprise-provider#prepare-environment";
 
 @implementation _GACAppCheckErrorUtil
 

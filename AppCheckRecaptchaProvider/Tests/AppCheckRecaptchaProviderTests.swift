@@ -65,7 +65,7 @@ final class AppCheckRecaptchaProviderTests: XCTestCase {
       XCTAssertEqual(nsError?.code, AppCheckCoreErrorCode.unsupported.rawValue)
       XCTAssertEqual(
         nsError?.localizedFailureReason,
-        "The reCAPTCHA Enterprise SDK is not linked. See https://cloud.google.com/recaptcha/docs/instrument-ios-apps#prepare-environment"
+        "The reCAPTCHA Enterprise SDK is not linked. See https://firebase.google.com/docs/app-check/ios/recaptcha-enterprise-provider#prepare-environment"
       )
 
       expectation.fulfill()
@@ -86,7 +86,7 @@ final class AppCheckRecaptchaProviderTests: XCTestCase {
       XCTAssertEqual(nsError?.code, AppCheckCoreErrorCode.unsupported.rawValue)
       XCTAssertEqual(
         nsError?.localizedFailureReason,
-        "The reCAPTCHA Enterprise SDK is not linked. See https://cloud.google.com/recaptcha/docs/instrument-ios-apps#prepare-environment"
+        "The reCAPTCHA Enterprise SDK is not linked. See https://firebase.google.com/docs/app-check/ios/recaptcha-enterprise-provider#prepare-environment"
       )
 
       expectation.fulfill()
