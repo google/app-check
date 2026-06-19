@@ -134,4 +134,26 @@ final class RecaptchaAPIServiceTests: XCTestCase {
 
     waitForExpectations(timeout: 1.0)
   }
+
+  func testAppCheckTokenInvalidURL() {
+    mockCoreAPIService.baseURL = "not a scheme://test.com"
+    let apiService = RecaptchaAPIService(
+      apiService: mockCoreAPIService,
+      resourceName: "invalid_resource_name"
+    )
+
+    let expectation = self.expectation(description: "Token exchange fails with invalid URL")
+
+    apiService.appCheckToken(with: testRecaptchaToken, limitedUse: false).then { token in
+      XCTFail("Should not succeed with invalid URL")
+    }.catch { error in
+      XCTAssertEqual((error as NSError).domain, AppCheckCoreErrorDomain)
+      let expectedFailureReason =
+        "Invalid URL string: not a scheme://test.com/invalid_resource_name:exchangeRecaptchaEnterpriseToken"
+      XCTAssertEqual((error as NSError).localizedFailureReason, expectedFailureReason)
+      expectation.fulfill()
+    }
+
+    waitForExpectations(timeout: 1.0)
+  }
 }
