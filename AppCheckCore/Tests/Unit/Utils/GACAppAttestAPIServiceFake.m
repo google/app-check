@@ -1,0 +1,44 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#import "AppCheckCore/Tests/Unit/Utils/GACAppAttestAPIServiceFake.h"
+
+#import "FBLPromise.h"
+
+@implementation GACAppAttestAPIServiceFake
+
+- (FBLPromise<NSData *> *)getRandomChallenge {
+  self.getRandomChallengeCallCount++;
+  return self.getRandomChallengePromise ?: [FBLPromise pendingPromise];
+}
+
+- (FBLPromise<GACAppAttestAttestationResponse *> *)attestKeyWithAttestation:(NSData *)attestation
+                                                                      keyID:(NSString *)keyID
+                                                                  challenge:(NSData *)challenge
+                                                                 limitedUse:(BOOL)limitedUse {
+  self.attestKeyCallCount++;
+  return self.attestKeyPromise ?: [FBLPromise pendingPromise];
+}
+
+- (FBLPromise<GACAppCheckToken *> *)getAppCheckTokenWithArtifact:(NSData *)artifact
+                                                       challenge:(NSData *)challenge
+                                                       assertion:(NSData *)assertion
+                                                      limitedUse:(BOOL)limitedUse {
+  self.getAppCheckTokenCallCount++;
+  return self.getAppCheckTokenPromise ?: [FBLPromise pendingPromise];
+}
+
+@end
