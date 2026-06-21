@@ -16,10 +16,10 @@ jobs:
     env:
       MINT_PATH: ${{ github.workspace }}/mint
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
 
     - name: Cache Mint packages
-      uses: actions/cache@v3
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
       with:
         path: ${{ env.MINT_PATH }}
         key: ${{ runner.os }}-mint-${{ hashFiles('**/Mintfile') }}

@@ -23,8 +23,8 @@ jobs:
             platform: iOS
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v3
-    - uses: ruby/setup-ruby@v1
+    - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+    - uses: ruby/setup-ruby@e5517072e87f198d9533967ae13d97c11b604005 # v1.99.0
     - name: Setup Scripts Directory
       run: ./setup-scripts.sh
     - name: Xcode
