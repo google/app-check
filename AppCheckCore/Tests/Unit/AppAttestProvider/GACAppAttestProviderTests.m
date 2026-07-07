@@ -569,11 +569,6 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                                                userInfo:nil];
   [self assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAttestationError:
             invalidInputError];
-  NSError *systemFailureError = [NSError errorWithDomain:DCErrorDomain
-                                                    code:DCErrorUnknownSystemFailure
-                                                userInfo:nil];
-  [self assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAttestationError:
-            systemFailureError];
 }
 
 #pragma mark - FAC token refresh (assertion)
