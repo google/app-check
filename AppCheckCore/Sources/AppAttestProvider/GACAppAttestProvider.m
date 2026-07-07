@@ -391,15 +391,15 @@ NS_ASSUME_NONNULL_BEGIN
                      GACAppCheckLog(GACLoggerAppCheckMessageCodeAttestationRejected,
                                     GACAppCheckLogLevelDebug, logMessage);
                      // Reset the attestation.
-              return [self resetAttestation].thenOn(self.queue, ^NSError *(id result) {
-                // Throw the rejection error.
-                return [[GACAppAttestRejectionError alloc] initWithUnderlyingError:error];
-              });
-            }
+                     return [self resetAttestation].thenOn(self.queue, ^NSError *(id result) {
+                       // Throw the rejection error.
+                       return [[GACAppAttestRejectionError alloc] initWithUnderlyingError:error];
+                     });
+                   }
 
-            // Otherwise just re-throw the error.
-            return error;
-          })
+                   // Otherwise just re-throw the error.
+                   return error;
+                 })
       .thenOn(self.queue,
               ^FBLPromise<NSArray *> *(GACAppAttestKeyAttestationResult *result) {
                 // 3. Exchange the attestation to FAC token and pass the results to the next step.
