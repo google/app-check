@@ -24,11 +24,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property(nonatomic, nullable) GACAppCheckToken *tokenToReturn;
 @property(nonatomic, nullable) NSError *errorToReturn;
-@property(nonatomic) NSInteger getTokenCallCount;
+@property(atomic) NSInteger getTokenCallCount;
 
 @property(nonatomic, nullable) GACAppCheckToken *limitedUseTokenToReturn;
 @property(nonatomic, nullable) NSError *limitedUseErrorToReturn;
-@property(nonatomic) NSInteger getLimitedUseTokenCallCount;
+@property(atomic) NSInteger getLimitedUseTokenCallCount;
 
 @end
 

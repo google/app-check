@@ -20,7 +20,9 @@
 
 - (void)getTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable token,
                                          NSError *_Nullable error))handler {
-  self.getTokenCallCount++;
+  @synchronized(self) {
+    self.getTokenCallCount++;
+  }
   if (handler) {
     handler(self.tokenToReturn, self.errorToReturn);
   }
@@ -28,7 +30,9 @@
 
 - (void)getLimitedUseTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable token,
                                                    NSError *_Nullable error))handler {
-  self.getLimitedUseTokenCallCount++;
+  @synchronized(self) {
+    self.getLimitedUseTokenCallCount++;
+  }
   if (handler) {
     handler(self.limitedUseTokenToReturn, self.limitedUseErrorToReturn);
   }

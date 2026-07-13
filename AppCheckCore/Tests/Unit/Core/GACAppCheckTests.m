@@ -54,6 +54,18 @@ static NSString *const kAppGroupID = @"app_group_id";
                            settings:(id<GACAppCheckSettingsProtocol>)settings
                       tokenDelegate:(nullable id<GACAppCheckTokenDelegate>)tokenDelegate;
 
+@property(nonatomic, readonly) id<GACAppCheckStorageProtocol> storage;
+@property(nonatomic, readonly, nullable) id<GACAppCheckTokenRefresherProtocol> tokenRefresher;
+
+@end
+
+@interface GACAppCheckStorage (Tests)
+@property(nonatomic, readonly) NSString *tokenKey;
+@property(nonatomic, readonly, nullable) NSString *accessGroup;
+@end
+
+@interface GACAppCheckTokenRefresher (Tests)
+@property(nonatomic, readonly) id<GACAppCheckSettingsProtocol> settings;
 @end
 
 @interface GACAppCheckTests : XCTestCase
@@ -107,6 +119,17 @@ static NSString *const kAppGroupID = @"app_group_id";
                                                      tokenDelegate:self.fakeTokenDelegate
                                                keychainAccessGroup:kAppGroupID];
   XCTAssert([appCheck isKindOfClass:[GACAppCheck class]]);
+
+  XCTAssert([appCheck.storage isKindOfClass:[GACAppCheckStorage class]]);
+  GACAppCheckStorage *storage = (GACAppCheckStorage *)appCheck.storage;
+  NSString *expectedTokenKey =
+      [NSString stringWithFormat:@"app_check_token.%@.%@", kAppName, kResourceName];
+  XCTAssertEqualObjects(storage.tokenKey, expectedTokenKey);
+  XCTAssertEqualObjects(storage.accessGroup, kAppGroupID);
+
+  XCTAssert([appCheck.tokenRefresher isKindOfClass:[GACAppCheckTokenRefresher class]]);
+  GACAppCheckTokenRefresher *tokenRefresher = (GACAppCheckTokenRefresher *)appCheck.tokenRefresher;
+  XCTAssertEqualObjects(tokenRefresher.settings, self.fakeSettings);
 }
 
 #pragma mark - Public Get Token
@@ -427,6 +450,8 @@ static NSString *const kAppGroupID = @"app_group_id";
 }
 
 - (void)assertGetToken_WhenCachedTokenIsValid_Success {
+  NSInteger initialCallCount = self.fakeAppCheckProvider.getTokenCallCount;
+
   // 1. Create expected token and configure expectations.
   GACAppCheckToken *cachedToken = [self validToken];
 
@@ -444,12 +469,7 @@ static NSString *const kAppGroupID = @"app_group_id";
   // 3. Wait for expectations and validate mocks.
   [self waitForExpectations:@[ expectation ] timeout:0.5];
 
-  // Since we reset call count for each test method implicitly by recreating fakes in setUp,
-  // we just assert that getToken was NOT called here. Note: this helper is sometimes called
-  // *after* other token operations. If so, we should just assert that call count didn't increase.
-  // Wait, the call count will be whatever it was before. To make it robust, we can clear the call
-  // count or assert that it's 0 if we assume it's isolated. Actually, we'll just omit the strict 0
-  // check here, because it's called at the end of other tests.
+  XCTAssertEqual(self.fakeAppCheckProvider.getTokenCallCount, initialCallCount);
 }
 
 - (XCTestExpectation *)configuredExpectations_GetTokenWhenNoCache_withExpectedToken:
