@@ -404,7 +404,7 @@ static NSString *const kAppGroupID = @"app_group_id";
 
   // After the first token generation fails and caches the result, the call count will be 1
   XCTAssertEqual(self.fakeAppCheckProvider.getTokenCallCount, 1);
-  XCTAssertEqual(self.fakeTokenDelegate.tokenDidUpdateCallCount, 0); // No updates on error
+  XCTAssertEqual(self.fakeTokenDelegate.tokenDidUpdateCallCount, 0);  // No updates on error
 
   // 5. Check a get token call after.
   [self assertGetToken_WhenCachedTokenIsValid_Success];
@@ -447,9 +447,9 @@ static NSString *const kAppGroupID = @"app_group_id";
   // Since we reset call count for each test method implicitly by recreating fakes in setUp,
   // we just assert that getToken was NOT called here. Note: this helper is sometimes called
   // *after* other token operations. If so, we should just assert that call count didn't increase.
-  // Wait, the call count will be whatever it was before. To make it robust, we can clear the call count
-  // or assert that it's 0 if we assume it's isolated.
-  // Actually, we'll just omit the strict 0 check here, because it's called at the end of other tests.
+  // Wait, the call count will be whatever it was before. To make it robust, we can clear the call
+  // count or assert that it's 0 if we assume it's isolated. Actually, we'll just omit the strict 0
+  // check here, because it's called at the end of other tests.
 }
 
 - (XCTestExpectation *)configuredExpectations_GetTokenWhenNoCache_withExpectedToken:
