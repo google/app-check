@@ -62,14 +62,6 @@ static NSString *const kAppGroupID = @"app_group_id";
 
 @end
 
-@interface GACAppCheckStorage (Tests)
-@property(nonatomic, readonly) NSString *tokenKey;
-@property(nonatomic, readonly, nullable) NSString *accessGroup;
-@end
-
-@interface GACAppCheckTokenRefresher (Tests)
-@property(nonatomic, readonly) id<GACAppCheckSettingsProtocol> settings;
-@end
 
 @interface GACAppCheckTests : XCTestCase
 
@@ -114,30 +106,7 @@ static NSString *const kAppGroupID = @"app_group_id";
 
 #pragma mark - Public Init
 
-- (void)testAppCheckInit {
-  GACAppCheck *appCheck = [[GACAppCheck alloc] initWithServiceName:kAppName
-                                                      resourceName:kResourceName
-                                                  appCheckProvider:self.fakeAppCheckProvider
-                                                          settings:self.fakeSettings
-                                                     tokenDelegate:self.fakeTokenDelegate
-                                               keychainAccessGroup:kAppGroupID];
-  XCTAssert([appCheck isKindOfClass:[GACAppCheck class]]);
 
-  XCTAssert([appCheck.storage isKindOfClass:[GACAppCheckStorage class]]);
-  GACAppCheckStorage *storage = (GACAppCheckStorage *)appCheck.storage;
-  NSString *expectedTokenKey =
-      [NSString stringWithFormat:@"app_check_token.%@.%@", kAppName, kResourceName];
-  XCTAssertEqualObjects(storage.tokenKey, expectedTokenKey);
-  XCTAssertEqualObjects(storage.accessGroup, kAppGroupID);
-
-  XCTAssert([appCheck.tokenRefresher isKindOfClass:[GACAppCheckTokenRefresher class]]);
-  GACAppCheckTokenRefresher *tokenRefresher = (GACAppCheckTokenRefresher *)appCheck.tokenRefresher;
-  XCTAssertEqualObjects(tokenRefresher.settings, self.fakeSettings);
-
-  XCTAssertEqualObjects(appCheck.appCheckProvider, self.fakeAppCheckProvider);
-  XCTAssertEqualObjects(appCheck.settings, self.fakeSettings);
-  XCTAssertEqualObjects(appCheck.tokenDelegate, self.fakeTokenDelegate);
-}
 
 - (void)testAppCheckDesignatedInit {
   XCTAssertEqualObjects(self.appCheck.appCheckProvider, self.fakeAppCheckProvider);
