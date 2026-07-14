@@ -22,12 +22,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface GACAppCheckProviderFake : NSObject <GACAppCheckProvider>
 
-@property(nonatomic, nullable) GACAppCheckToken *tokenToReturn;
-@property(nonatomic, nullable) NSError *errorToReturn;
+@property(atomic, nullable) GACAppCheckToken *tokenToReturn;
+@property(atomic, nullable) NSError *errorToReturn;
 @property(nonatomic) NSInteger getTokenCallCount;
 
-@property(nonatomic, nullable) GACAppCheckToken *limitedUseTokenToReturn;
-@property(nonatomic, nullable) NSError *limitedUseErrorToReturn;
+@property(atomic, nullable) GACAppCheckToken *limitedUseTokenToReturn;
+@property(atomic, nullable) NSError *limitedUseErrorToReturn;
 @property(nonatomic) NSInteger getLimitedUseTokenCallCount;
 
 @end

@@ -21,7 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface GACAppCheckSettingsFake : NSObject <GACAppCheckSettingsProtocol>
 
-@property(nonatomic) BOOL isTokenAutoRefreshEnabled;
+@property(atomic) BOOL isTokenAutoRefreshEnabled;
 
 @end
 

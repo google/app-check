@@ -18,15 +18,30 @@
 
 @implementation GACAppCheckProviderFake
 
+@synthesize getTokenCallCount = _getTokenCallCount;
+@synthesize getLimitedUseTokenCallCount = _getLimitedUseTokenCallCount;
+
 - (NSInteger)getTokenCallCount {
   @synchronized(self) {
     return _getTokenCallCount;
   }
 }
 
+- (void)setGetTokenCallCount:(NSInteger)getTokenCallCount {
+  @synchronized(self) {
+    _getTokenCallCount = getTokenCallCount;
+  }
+}
+
 - (NSInteger)getLimitedUseTokenCallCount {
   @synchronized(self) {
     return _getLimitedUseTokenCallCount;
+  }
+}
+
+- (void)setGetLimitedUseTokenCallCount:(NSInteger)getLimitedUseTokenCallCount {
+  @synchronized(self) {
+    _getLimitedUseTokenCallCount = getLimitedUseTokenCallCount;
   }
 }
 

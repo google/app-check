@@ -27,6 +27,8 @@
     }
   }
 
+  NSAssert(fileURL != nil, @"Fixture named %@ not found", fileName);
+
   NSError *error;
   NSData *data = [NSData dataWithContentsOfURL:fileURL options:0 error:&error];
 

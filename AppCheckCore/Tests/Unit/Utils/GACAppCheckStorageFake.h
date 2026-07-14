@@ -21,10 +21,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface GACAppCheckStorageFake : NSObject <GACAppCheckStorageProtocol>
 
-@property(nonatomic, nullable) FBLPromise<GACAppCheckToken *> *getTokenPromise;
-@property(nonatomic, nullable) FBLPromise<GACAppCheckToken *> *setTokenPromise;
-@property(nonatomic, nullable) GACAppCheckToken *lastSetToken;
-@property(nonatomic, nullable) FBLPromise<NSNull *> *removeTokenPromise;
+@property(atomic, nullable) FBLPromise<GACAppCheckToken *> *getTokenPromise;
+@property(atomic, nullable) FBLPromise<GACAppCheckToken *> *setTokenPromise;
+@property(atomic, nullable) GACAppCheckToken *lastSetToken;
+@property(atomic, nullable) FBLPromise<NSNull *> *removeTokenPromise;
 
 @end
 

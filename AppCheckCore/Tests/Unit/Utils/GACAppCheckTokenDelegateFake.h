@@ -21,9 +21,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface GACAppCheckTokenDelegateFake : NSObject <GACAppCheckTokenDelegate>
 
-@property(nonatomic) NSInteger tokenDidUpdateCallCount;
-@property(nonatomic, nullable) GACAppCheckToken *lastToken;
-@property(nonatomic, copy, nullable) NSString *lastServiceName;
+@property(atomic) NSInteger tokenDidUpdateCallCount;
+@property(atomic, nullable) GACAppCheckToken *lastToken;
+@property(atomic, copy, nullable) NSString *lastServiceName;
 
 @end
 

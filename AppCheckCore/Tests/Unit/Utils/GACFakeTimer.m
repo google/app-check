@@ -19,20 +19,24 @@
 @implementation GACFakeTimer
 
 - (GACTimerProvider)fakeTimerProvider {
+  __weak __typeof__(self) weakSelf = self;
   return ^id<GACAppCheckTimerProtocol> _Nullable(NSDate *fireDate, dispatch_queue_t queue,
                                                  dispatch_block_t handler) {
-    self.handler = handler;
-    if (self.createHandler) {
-      self.createHandler(fireDate);
+    __typeof__(self) strongSelf = weakSelf;
+    strongSelf.handler = handler;
+    void (^createHandler)(NSDate *) = strongSelf.createHandler;
+    if (createHandler) {
+      createHandler(fireDate);
     }
 
-    return self;
+    return strongSelf;
   };
 }
 
 - (void)invalidate {
-  if (self.invalidationHandler) {
-    self.invalidationHandler();
+  void (^invalidationHandler)(void) = self.invalidationHandler;
+  if (invalidationHandler) {
+    invalidationHandler();
   }
 }
 
