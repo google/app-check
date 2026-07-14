@@ -18,4 +18,18 @@
 
 @implementation GACAppCheckSettingsFake
 
+@synthesize isTokenAutoRefreshEnabled = _isTokenAutoRefreshEnabled;
+
+- (BOOL)isTokenAutoRefreshEnabled {
+  @synchronized(self) {
+    return _isTokenAutoRefreshEnabled;
+  }
+}
+
+- (void)setIsTokenAutoRefreshEnabled:(BOOL)isTokenAutoRefreshEnabled {
+  @synchronized(self) {
+    _isTokenAutoRefreshEnabled = isTokenAutoRefreshEnabled;
+  }
+}
+
 @end

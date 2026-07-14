@@ -21,7 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface GACAppCheckTokenRefresherFake : NSObject <GACAppCheckTokenRefresherProtocol>
 
-@property(atomic, copy, nullable) GACAppCheckTokenRefreshBlock tokenRefreshHandler;
+@property(nonatomic, copy, nullable) GACAppCheckTokenRefreshBlock tokenRefreshHandler;
 @property(atomic) NSInteger updateWithRefreshResultCallCount;
 @property(atomic, nullable) GACAppCheckTokenRefreshResult *lastRefreshResult;
 
