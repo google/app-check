@@ -56,6 +56,9 @@ static NSString *const kAppGroupID = @"app_group_id";
 
 @property(nonatomic, readonly) id<GACAppCheckStorageProtocol> storage;
 @property(nonatomic, readonly, nullable) id<GACAppCheckTokenRefresherProtocol> tokenRefresher;
+@property(nonatomic, readonly) id<GACAppCheckProvider> appCheckProvider;
+@property(nonatomic, readonly) id<GACAppCheckSettingsProtocol> settings;
+@property(nonatomic, readonly, nullable, weak) id<GACAppCheckTokenDelegate> tokenDelegate;
 
 @end
 
@@ -130,6 +133,18 @@ static NSString *const kAppGroupID = @"app_group_id";
   XCTAssert([appCheck.tokenRefresher isKindOfClass:[GACAppCheckTokenRefresher class]]);
   GACAppCheckTokenRefresher *tokenRefresher = (GACAppCheckTokenRefresher *)appCheck.tokenRefresher;
   XCTAssertEqualObjects(tokenRefresher.settings, self.fakeSettings);
+
+  XCTAssertEqualObjects(appCheck.appCheckProvider, self.fakeAppCheckProvider);
+  XCTAssertEqualObjects(appCheck.settings, self.fakeSettings);
+  XCTAssertEqualObjects(appCheck.tokenDelegate, self.fakeTokenDelegate);
+}
+
+- (void)testAppCheckDesignatedInit {
+  XCTAssertEqualObjects(self.appCheck.appCheckProvider, self.fakeAppCheckProvider);
+  XCTAssertEqualObjects(self.appCheck.storage, self.fakeStorage);
+  XCTAssertEqualObjects(self.appCheck.tokenRefresher, self.fakeTokenRefresher);
+  XCTAssertEqualObjects(self.appCheck.settings, self.fakeSettings);
+  XCTAssertEqualObjects(self.appCheck.tokenDelegate, self.fakeTokenDelegate);
 }
 
 #pragma mark - Public Get Token
