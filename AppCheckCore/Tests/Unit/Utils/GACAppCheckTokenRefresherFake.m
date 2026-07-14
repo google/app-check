@@ -19,8 +19,10 @@
 @implementation GACAppCheckTokenRefresherFake
 
 - (void)updateWithRefreshResult:(GACAppCheckTokenRefreshResult *)refreshResult {
-  self.updateWithRefreshResultCallCount++;
-  self.lastRefreshResult = refreshResult;
+  @synchronized(self) {
+    self.updateWithRefreshResultCallCount++;
+    self.lastRefreshResult = refreshResult;
+  }
 }
 
 @end

@@ -24,7 +24,9 @@
 }
 
 - (FBLPromise<GACAppCheckToken *> *)setToken:(GACAppCheckToken *)token {
-  self.lastSetToken = token;
+  @synchronized(self) {
+    self.lastSetToken = token;
+  }
   return self.setTokenPromise ?: [FBLPromise resolvedWith:token];
 }
 

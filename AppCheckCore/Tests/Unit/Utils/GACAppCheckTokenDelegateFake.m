@@ -19,9 +19,11 @@
 @implementation GACAppCheckTokenDelegateFake
 
 - (void)tokenDidUpdate:(GACAppCheckToken *)token serviceName:(NSString *)serviceName {
-  self.tokenDidUpdateCallCount++;
-  self.lastToken = token;
-  self.lastServiceName = serviceName;
+  @synchronized(self) {
+    self.tokenDidUpdateCallCount++;
+    self.lastToken = token;
+    self.lastServiceName = serviceName;
+  }
 }
 
 @end

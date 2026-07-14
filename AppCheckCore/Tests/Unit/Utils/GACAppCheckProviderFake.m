@@ -18,6 +18,18 @@
 
 @implementation GACAppCheckProviderFake
 
+- (NSInteger)getTokenCallCount {
+  @synchronized(self) {
+    return _getTokenCallCount;
+  }
+}
+
+- (NSInteger)getLimitedUseTokenCallCount {
+  @synchronized(self) {
+    return _getLimitedUseTokenCallCount;
+  }
+}
+
 - (void)getTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable token,
                                          NSError *_Nullable error))handler {
   @synchronized(self) {
