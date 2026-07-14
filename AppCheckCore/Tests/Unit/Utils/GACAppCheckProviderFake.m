@@ -50,7 +50,7 @@
   GACAppCheckToken *token;
   NSError *error;
   @synchronized(self) {
-    self.getTokenCallCount++;
+    _getTokenCallCount++;
     token = self.tokenToReturn;
     error = self.errorToReturn;
   }
@@ -64,7 +64,7 @@
   GACAppCheckToken *token;
   NSError *error;
   @synchronized(self) {
-    self.getLimitedUseTokenCallCount++;
+    _getLimitedUseTokenCallCount++;
     token = self.limitedUseTokenToReturn;
     error = self.limitedUseErrorToReturn;
   }
