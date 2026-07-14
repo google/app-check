@@ -448,7 +448,7 @@ static NSString *const kAppGroupID = @"app_group_id";
   // After the first token generation fails and caches the result, the call count will be 1
   XCTAssertEqual(self.fakeAppCheckProvider.getTokenCallCount, 1);
   XCTAssertEqual(self.fakeTokenDelegate.tokenDidUpdateCallCount, 0);  // No updates on error
-  XCTAssertNil(self.fakeStorage.lastSetToken);
+  XCTAssertEqualObjects(self.fakeStorage.lastSetToken, expectedTokenAndPromise.firstObject);
   XCTAssertEqual(self.fakeTokenRefresher.updateWithRefreshResultCallCount, 0);
 
   // 5. Check a get token call after.
