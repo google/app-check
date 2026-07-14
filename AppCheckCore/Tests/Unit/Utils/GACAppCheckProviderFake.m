@@ -32,21 +32,29 @@
 
 - (void)getTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable token,
                                          NSError *_Nullable error))handler {
+  GACAppCheckToken *token;
+  NSError *error;
   @synchronized(self) {
     self.getTokenCallCount++;
+    token = self.tokenToReturn;
+    error = self.errorToReturn;
   }
   if (handler) {
-    handler(self.tokenToReturn, self.errorToReturn);
+    handler(token, error);
   }
 }
 
 - (void)getLimitedUseTokenWithCompletion:(void (^)(GACAppCheckToken *_Nullable token,
                                                    NSError *_Nullable error))handler {
+  GACAppCheckToken *token;
+  NSError *error;
   @synchronized(self) {
     self.getLimitedUseTokenCallCount++;
+    token = self.limitedUseTokenToReturn;
+    error = self.limitedUseErrorToReturn;
   }
   if (handler) {
-    handler(self.limitedUseTokenToReturn, self.limitedUseErrorToReturn);
+    handler(token, error);
   }
 }
 
