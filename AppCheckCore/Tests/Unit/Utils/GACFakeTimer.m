@@ -23,10 +23,16 @@
   return ^id<GACAppCheckTimerProtocol> _Nullable(NSDate *fireDate, dispatch_queue_t queue,
                                                  dispatch_block_t handler) {
     __typeof__(self) strongSelf = weakSelf;
-    strongSelf.handler = handler;
-    void (^createHandler)(NSDate *) = strongSelf.createHandler;
-    if (createHandler) {
-      createHandler(fireDate);
+    if (!strongSelf) {
+      return nil;
+    }
+
+    @synchronized(strongSelf) {
+      strongSelf.handler = handler;
+      void (^createHandler)(NSDate *) = strongSelf.createHandler;
+      if (createHandler) {
+        createHandler(fireDate);
+      }
     }
 
     return strongSelf;
