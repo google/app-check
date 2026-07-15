@@ -538,8 +538,4 @@ static NSString *const kAppGroupID = @"app_group_id";
   return @[ expectedToken, storeTokenPromise ];
 }
 
-- (void)verifyAllMocks {
-  // Not needed when using Fakes. Asserts are done directly in tests.
-}
-
 @end
