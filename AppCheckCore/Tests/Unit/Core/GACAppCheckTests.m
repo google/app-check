@@ -54,9 +54,7 @@ static NSString *const kAppGroupID = @"app_group_id";
                            settings:(id<GACAppCheckSettingsProtocol>)settings
                       tokenDelegate:(nullable id<GACAppCheckTokenDelegate>)tokenDelegate;
 
-
 @end
-
 
 @interface GACAppCheckTests : XCTestCase
 
@@ -100,9 +98,6 @@ static NSString *const kAppGroupID = @"app_group_id";
 }
 
 #pragma mark - Public Init
-
-
-
 
 #pragma mark - Public Get Token
 
