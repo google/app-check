@@ -18,7 +18,6 @@
 
 @class GACAppCheckToken;
 @class FBLPromise<ValueType>;
-@class FBLPromise<ValueType>;
 @protocol GACKeychainStorageProtocol;
 
 NS_ASSUME_NONNULL_BEGIN

@@ -39,7 +39,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
 
 @property(nonatomic) GACAppAttestAPIService *appAttestAPIService;
 
-@property(nonatomic) GACAppCheckAPIServiceFake *mockAPIService;
+@property(nonatomic) GACAppCheckAPIServiceFake *fakeAPIService;
 
 @end
 
@@ -48,10 +48,10 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
 - (void)setUp {
   [super setUp];
 
-  self.mockAPIService = [[GACAppCheckAPIServiceFake alloc] init];
-  self.mockAPIService.baseURL = kBaseURL;
+  self.fakeAPIService = [[GACAppCheckAPIServiceFake alloc] init];
+  self.fakeAPIService.baseURL = kBaseURL;
 
-  self.appAttestAPIService = [[GACAppAttestAPIService alloc] initWithAPIService:self.mockAPIService
+  self.appAttestAPIService = [[GACAppAttestAPIService alloc] initWithAPIService:self.fakeAPIService
                                                                    resourceName:kResourceName];
 }
 
@@ -59,7 +59,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   [super tearDown];
 
   self.appAttestAPIService = nil;
-  self.mockAPIService = nil;
+  self.fakeAPIService = nil;
 }
 
 #pragma mark - Random challenge request
@@ -86,10 +86,10 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   XCTAssert([challengeString isEqualToString:@"random_challenge"]);
 
   NSString *expectedRequestURL =
-      [NSString stringWithFormat:@"%@/%@:%@", [self.mockAPIService baseURL], kResourceName,
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
                                  @"generateAppAttestChallenge"];
-  XCTAssertEqualObjects(self.mockAPIService.passedRequestURL.absoluteString, expectedRequestURL);
-  XCTAssertEqualObjects(self.mockAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
 }
 
 - (void)testGetRandomChallengeWhenAPIError {
@@ -121,10 +121,10 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   XCTAssertTrue([failureReason containsString:responseBodyString]);
 
   NSString *expectedRequestURL =
-      [NSString stringWithFormat:@"%@/%@:%@", [self.mockAPIService baseURL], kResourceName,
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
                                  @"generateAppAttestChallenge"];
-  XCTAssertEqualObjects(self.mockAPIService.passedRequestURL.absoluteString, expectedRequestURL);
-  XCTAssertEqualObjects(self.mockAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
 }
 
 - (void)testGetRandomChallengeWhenAPIResponseEmpty {
@@ -147,10 +147,10 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   XCTAssertEqualObjects(failureReason, @"Empty server response body.");
 
   NSString *expectedRequestURL =
-      [NSString stringWithFormat:@"%@/%@:%@", [self.mockAPIService baseURL], kResourceName,
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
                                  @"generateAppAttestChallenge"];
-  XCTAssertEqualObjects(self.mockAPIService.passedRequestURL.absoluteString, expectedRequestURL);
-  XCTAssertEqualObjects(self.mockAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
 }
 
 - (void)testGetRandomChallengeWhenAPIResponseInvalidFormat {
@@ -174,10 +174,10 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   XCTAssertEqualObjects(failureReason, @"JSON serialization error.");
 
   NSString *expectedRequestURL =
-      [NSString stringWithFormat:@"%@/%@:%@", [self.mockAPIService baseURL], kResourceName,
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
                                  @"generateAppAttestChallenge"];
-  XCTAssertEqualObjects(self.mockAPIService.passedRequestURL.absoluteString, expectedRequestURL);
-  XCTAssertEqualObjects(self.mockAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
 }
 
 - (void)testGetRandomChallengeWhenResponseMissingField {
@@ -265,13 +265,13 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   XCTAssertEqualObjects(promise.value.receivedAtDate, expectedToken.receivedAtDate);
 
   NSString *expectedRequestURL =
-      [NSString stringWithFormat:@"%@/%@:%@", [self.mockAPIService baseURL], kResourceName,
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
                                  @"exchangeAppAttestAssertion"];
-  XCTAssertEqualObjects(self.mockAPIService.passedRequestURL.absoluteString, expectedRequestURL);
-  XCTAssertEqualObjects(self.mockAPIService.passedHTTPMethod, @"POST");
-  XCTAssertEqualObjects(self.mockAPIService.passedAdditionalHeaders[@"Content-Type"],
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.fakeAPIService.passedAdditionalHeaders[@"Content-Type"],
                         @"application/json");
-  [self assertTokenExchangeBody:self.mockAPIService.passedBody
+  [self assertTokenExchangeBody:self.fakeAPIService.passedBody
                        artifact:artifact
                       challenge:challenge
                       assertion:assertion
@@ -312,13 +312,13 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   XCTAssertEqualObjects(promise.error, networkError);
 
   NSString *expectedRequestURL =
-      [NSString stringWithFormat:@"%@/%@:%@", [self.mockAPIService baseURL], kResourceName,
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
                                  @"exchangeAppAttestAssertion"];
-  XCTAssertEqualObjects(self.mockAPIService.passedRequestURL.absoluteString, expectedRequestURL);
-  XCTAssertEqualObjects(self.mockAPIService.passedHTTPMethod, @"POST");
-  XCTAssertEqualObjects(self.mockAPIService.passedAdditionalHeaders[@"Content-Type"],
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.fakeAPIService.passedAdditionalHeaders[@"Content-Type"],
                         @"application/json");
-  [self assertTokenExchangeBody:self.mockAPIService.passedBody
+  [self assertTokenExchangeBody:self.fakeAPIService.passedBody
                        artifact:artifact
                       challenge:challenge
                       assertion:assertion
@@ -360,13 +360,13 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   XCTAssertNotNil(promise.error);
 
   NSString *expectedRequestURL =
-      [NSString stringWithFormat:@"%@/%@:%@", [self.mockAPIService baseURL], kResourceName,
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
                                  @"exchangeAppAttestAssertion"];
-  XCTAssertEqualObjects(self.mockAPIService.passedRequestURL.absoluteString, expectedRequestURL);
-  XCTAssertEqualObjects(self.mockAPIService.passedHTTPMethod, @"POST");
-  XCTAssertEqualObjects(self.mockAPIService.passedAdditionalHeaders[@"Content-Type"],
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.fakeAPIService.passedAdditionalHeaders[@"Content-Type"],
                         @"application/json");
-  [self assertTokenExchangeBody:self.mockAPIService.passedBody
+  [self assertTokenExchangeBody:self.fakeAPIService.passedBody
                        artifact:artifact
                       challenge:challenge
                       assertion:assertion
@@ -425,13 +425,13 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
                                       precision:10]);
 
   NSString *expectedRequestURL =
-      [NSString stringWithFormat:@"%@/%@:%@", [self.mockAPIService baseURL], kResourceName,
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
                                  @"exchangeAppAttestAttestation"];
-  XCTAssertEqualObjects(self.mockAPIService.passedRequestURL.absoluteString, expectedRequestURL);
-  XCTAssertEqualObjects(self.mockAPIService.passedHTTPMethod, @"POST");
-  XCTAssertEqualObjects(self.mockAPIService.passedAdditionalHeaders[@"Content-Type"],
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.fakeAPIService.passedAdditionalHeaders[@"Content-Type"],
                         @"application/json");
-  [self assertAttestKeyBody:self.mockAPIService.passedBody
+  [self assertAttestKeyBody:self.fakeAPIService.passedBody
                 attestation:attestation
                   challenge:challenge
                       keyID:keyID
@@ -467,13 +467,13 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   XCTAssertEqualObjects(promise.error, networkError);
 
   NSString *expectedRequestURL =
-      [NSString stringWithFormat:@"%@/%@:%@", [self.mockAPIService baseURL], kResourceName,
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
                                  @"exchangeAppAttestAttestation"];
-  XCTAssertEqualObjects(self.mockAPIService.passedRequestURL.absoluteString, expectedRequestURL);
-  XCTAssertEqualObjects(self.mockAPIService.passedHTTPMethod, @"POST");
-  XCTAssertEqualObjects(self.mockAPIService.passedAdditionalHeaders[@"Content-Type"],
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.fakeAPIService.passedAdditionalHeaders[@"Content-Type"],
                         @"application/json");
-  [self assertAttestKeyBody:self.mockAPIService.passedBody
+  [self assertAttestKeyBody:self.fakeAPIService.passedBody
                 attestation:attestation
                   challenge:challenge
                       keyID:keyID
@@ -514,13 +514,13 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   XCTAssertNotNil(promise.error);
 
   NSString *expectedRequestURL =
-      [NSString stringWithFormat:@"%@/%@:%@", [self.mockAPIService baseURL], kResourceName,
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
                                  @"exchangeAppAttestAttestation"];
-  XCTAssertEqualObjects(self.mockAPIService.passedRequestURL.absoluteString, expectedRequestURL);
-  XCTAssertEqualObjects(self.mockAPIService.passedHTTPMethod, @"POST");
-  XCTAssertEqualObjects(self.mockAPIService.passedAdditionalHeaders[@"Content-Type"],
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.fakeAPIService.passedAdditionalHeaders[@"Content-Type"],
                         @"application/json");
-  [self assertAttestKeyBody:self.mockAPIService.passedBody
+  [self assertAttestKeyBody:self.fakeAPIService.passedBody
                 attestation:attestation
                   challenge:challenge
                       keyID:keyID
@@ -545,7 +545,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   } else {
     [resultPromise fulfill:response];
   }
-  self.mockAPIService.sendRequestPromise = resultPromise;
+  self.fakeAPIService.sendRequestPromise = resultPromise;
 }
 
 - (void)expectTokenAPIRequestWithArtifact:(NSData *)attestation
@@ -560,7 +560,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   } else {
     [responsePromise fulfill:response];
   }
-  self.mockAPIService.sendRequestPromise = responsePromise;
+  self.fakeAPIService.sendRequestPromise = responsePromise;
 }
 
 - (void)assertTokenExchangeBody:(NSData *)requestBody
@@ -613,7 +613,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
     NSError *tokenError = [NSError errorWithDomain:self.name code:0 userInfo:nil];
     [tokenPromise reject:tokenError];
   }
-  self.mockAPIService.appCheckTokenPromise = tokenPromise;
+  self.fakeAPIService.appCheckTokenPromise = tokenPromise;
 }
 
 - (void)expectAttestAPIRequestWithAttestation:(NSData *)attestation
@@ -629,7 +629,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
     [resultPromise fulfill:response];
   }
 
-  self.mockAPIService.sendRequestPromise = resultPromise;
+  self.fakeAPIService.sendRequestPromise = resultPromise;
 }
 
 - (void)assertAttestKeyBody:(NSData *)requestBody

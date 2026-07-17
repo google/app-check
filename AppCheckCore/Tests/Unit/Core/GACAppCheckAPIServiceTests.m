@@ -43,7 +43,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
 
 @property(nonatomic) _GACAppCheckAPIService *APIService;
 
-@property(nonatomic) GACURLSessionFake *mockURLSession;
+@property(nonatomic) GACURLSessionFake *fakeURLSession;
 
 @property(nonatomic) NSMutableDictionary<NSString *, NSString *> *expectedHTTPHeaderFields;
 
@@ -54,13 +54,13 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
 - (void)setUp {
   [super setUp];
 
-  self.mockURLSession = [[GACURLSessionFake alloc] init];
+  self.fakeURLSession = [[GACURLSessionFake alloc] init];
 
   self.expectedHTTPHeaderFields = [NSMutableDictionary
       dictionaryWithDictionary:@{kBundleIDHeaderKey : [[NSBundle mainBundle] bundleIdentifier]}];
 
   self.APIService =
-      [[_GACAppCheckAPIService alloc] initWithURLSession:(NSURLSession *)self.mockURLSession
+      [[_GACAppCheckAPIService alloc] initWithURLSession:(NSURLSession *)self.fakeURLSession
                                                  baseURL:nil
                                                   APIKey:nil
                                             requestHooks:nil
@@ -71,14 +71,14 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   [super tearDown];
 
   self.APIService = nil;
-  self.mockURLSession = nil;
+  self.fakeURLSession = nil;
 }
 
 #pragma mark - Init
 
 - (void)testInitDefaultBaseURL {
   _GACAppCheckAPIService *APIService =
-      [[_GACAppCheckAPIService alloc] initWithURLSession:(NSURLSession *)self.mockURLSession
+      [[_GACAppCheckAPIService alloc] initWithURLSession:(NSURLSession *)self.fakeURLSession
                                                  baseURL:nil
                                                   APIKey:nil
                                             requestHooks:nil
@@ -92,7 +92,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   NSString *customBaseURL = @"https://custom.example.com/v1beta";
 
   _GACAppCheckAPIService *APIService =
-      [[_GACAppCheckAPIService alloc] initWithURLSession:(NSURLSession *)self.mockURLSession
+      [[_GACAppCheckAPIService alloc] initWithURLSession:(NSURLSession *)self.fakeURLSession
                                                  baseURL:customBaseURL
                                                   APIKey:nil
                                             requestHooks:nil
@@ -106,7 +106,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   NSString *stagingBaseURL = @"https://staging-firebaseappcheck.sandbox.googleapis.com/v1";
 
   _GACAppCheckAPIService *APIService =
-      [[_GACAppCheckAPIService alloc] initWithURLSession:(NSURLSession *)self.mockURLSession
+      [[_GACAppCheckAPIService alloc] initWithURLSession:(NSURLSession *)self.fakeURLSession
                                                  baseURL:nil
                                                   APIKey:nil
                                             requestHooks:nil
@@ -120,7 +120,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   NSString *prodBaseURL = @"https://firebaseappcheck.googleapis.com/v1";
 
   _GACAppCheckAPIService *APIService =
-      [[_GACAppCheckAPIService alloc] initWithURLSession:(NSURLSession *)self.mockURLSession
+      [[_GACAppCheckAPIService alloc] initWithURLSession:(NSURLSession *)self.fakeURLSession
                                                  baseURL:nil
                                                   APIKey:nil
                                             requestHooks:nil
@@ -143,7 +143,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   [self stubURLSessionDataTaskPromiseWithResponse:nil
                                              body:nil
                                             error:networkError
-                                   URLSessionMock:self.mockURLSession
+                                   URLSessionMock:self.fakeURLSession
                            requestValidationBlock:nil];
 
   // 2. Send request.
@@ -161,7 +161,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   XCTAssertEqual(requestPromise.error.code, GACAppCheckErrorCodeServerUnreachable);
   XCTAssertEqualObjects(requestPromise.error.userInfo[NSUnderlyingErrorKey], networkError);
 
-  XCTAssertTrue(self.mockURLSession.isInvoked);
+  XCTAssertTrue(self.fakeURLSession.isInvoked);
 }
 
 - (void)testDataRequestNot2xxHTTPStatusCode {
@@ -174,7 +174,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   [self stubURLSessionDataTaskPromiseWithResponse:HTTPResponse
                                              body:HTTPResponseBody
                                             error:nil
-                                   URLSessionMock:self.mockURLSession
+                                   URLSessionMock:self.fakeURLSession
                            requestValidationBlock:nil];
 
   // 2. Send request.
@@ -199,7 +199,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   XCTAssertTrue([failureReason containsString:@"300"]);
   XCTAssertTrue([failureReason containsString:responseBodyString]);
 
-  XCTAssertTrue(self.mockURLSession.isInvoked);
+  XCTAssertTrue(self.fakeURLSession.isInvoked);
 }
 
 - (void)testDataRequestWithRequestHooks {
@@ -220,7 +220,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   };
 
   self.APIService = [[_GACAppCheckAPIService alloc]
-      initWithURLSession:(NSURLSession *)self.mockURLSession
+      initWithURLSession:(NSURLSession *)self.fakeURLSession
                  baseURL:nil
                   APIKey:nil
             requestHooks:@[ headerRequestHook, timeoutRequestHook, cellularAccessRequestHook ]
@@ -244,7 +244,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   [self stubURLSessionDataTaskPromiseWithResponse:HTTPResponse
                                              body:HTTPResponseBody
                                             error:nil
-                                   URLSessionMock:self.mockURLSession
+                                   URLSessionMock:self.fakeURLSession
                            requestValidationBlock:requestValidation];
 
   // 2. Send request.
@@ -262,7 +262,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   XCTAssertEqualObjects(requestPromise.value.HTTPResponse, HTTPResponse);
   XCTAssertEqualObjects(requestPromise.value.HTTPBody, HTTPResponseBody);
 
-  XCTAssertTrue(self.mockURLSession.isInvoked);
+  XCTAssertTrue(self.fakeURLSession.isInvoked);
 }
 
 - (void)testDataRequestWithAdditionalHeaders {
@@ -288,7 +288,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   [self stubURLSessionDataTaskPromiseWithResponse:HTTPResponse
                                              body:HTTPResponseBody
                                             error:nil
-                                   URLSessionMock:self.mockURLSession
+                                   URLSessionMock:self.fakeURLSession
                            requestValidationBlock:requestValidation];
 
   // 2. Send request.
@@ -306,7 +306,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   XCTAssertEqualObjects(requestPromise.value.HTTPResponse, HTTPResponse);
   XCTAssertEqualObjects(requestPromise.value.HTTPBody, HTTPResponseBody);
 
-  XCTAssertTrue(self.mockURLSession.isInvoked);
+  XCTAssertTrue(self.fakeURLSession.isInvoked);
 }
 
 - (void)testDataRequestWithAPIKey {
@@ -316,7 +316,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   [self.expectedHTTPHeaderFields setObject:kAPIKeyHeaderValue forKey:kAPIKeyHeaderKey];
 
   self.APIService =
-      [[_GACAppCheckAPIService alloc] initWithURLSession:(NSURLSession *)self.mockURLSession
+      [[_GACAppCheckAPIService alloc] initWithURLSession:(NSURLSession *)self.fakeURLSession
                                                  baseURL:nil
                                                   APIKey:kAPIKeyHeaderValue
                                             requestHooks:nil
@@ -338,7 +338,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   [self stubURLSessionDataTaskPromiseWithResponse:HTTPResponse
                                              body:HTTPResponseBody
                                             error:nil
-                                   URLSessionMock:self.mockURLSession
+                                   URLSessionMock:self.fakeURLSession
                            requestValidationBlock:requestValidation];
 
   // 2. Send request.
@@ -356,7 +356,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   XCTAssertEqualObjects(requestPromise.value.HTTPResponse, HTTPResponse);
   XCTAssertEqualObjects(requestPromise.value.HTTPBody, HTTPResponseBody);
 
-  XCTAssertTrue(self.mockURLSession.isInvoked);
+  XCTAssertTrue(self.fakeURLSession.isInvoked);
 }
 
 #pragma mark - Token Exchange API response
