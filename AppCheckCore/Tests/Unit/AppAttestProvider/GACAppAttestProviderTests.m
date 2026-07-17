@@ -615,6 +615,11 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                                                userInfo:nil];
   [self assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAssertionError:
             invalidInputError];
+  NSError *systemFailureError = [NSError errorWithDomain:DCErrorDomain
+                                                    code:DCErrorUnknownSystemFailure
+                                                userInfo:nil];
+  [self assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAssertionError:
+            systemFailureError];
 }
 
 #pragma mark - Request merging

@@ -84,29 +84,21 @@ static NSString *const kLimitedUseField = @"limited_use";
     return rejectedPromise;
   }
 
-  return [FBLPromise
-      onQueue:[self backgroundQueue]
-           do:^id _Nullable {
-             NSString *base64EncodedToken = [deviceToken base64EncodedStringWithOptions:0];
+  NSString *base64EncodedToken = [deviceToken base64EncodedStringWithOptions:0];
 
-             NSError *encodingError;
-             NSData *payloadJSON = [NSJSONSerialization dataWithJSONObject:@{
-               kDeviceTokenField : base64EncodedToken,
-               kLimitedUseField : @(limitedUse)
-             }
-                                                                   options:0
-                                                                     error:&encodingError];
+  NSError *encodingError;
+  NSData *payloadJSON = [NSJSONSerialization
+      dataWithJSONObject:@{kDeviceTokenField : base64EncodedToken, kLimitedUseField : @(limitedUse)}
+                 options:0
+                   error:&encodingError];
 
-             if (payloadJSON != nil) {
-               return payloadJSON;
-             } else {
-               return [_GACAppCheckErrorUtil JSONSerializationError:encodingError];
-             }
-           }];
-}
-
-- (dispatch_queue_t)backgroundQueue {
-  return dispatch_get_global_queue(QOS_CLASS_UTILITY, 0);
+  FBLPromise<NSData *> *payloadPromise = [FBLPromise pendingPromise];
+  if (payloadJSON != nil) {
+    [payloadPromise fulfill:payloadJSON];
+  } else {
+    [payloadPromise reject:[_GACAppCheckErrorUtil JSONSerializationError:encodingError]];
+  }
+  return payloadPromise;
 }
 
 @end

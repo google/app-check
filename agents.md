@@ -210,3 +210,47 @@ Perform self-reflection after completing the task. You MUST update this file
 (`agents.md`) with any new learnings, context, or troubleshooting steps that
 were needed and will be needed again to refine the process for future agents.
 Alternatively, create or update a Knowledge Item.
+
+---
+
+## 🧪 OCMock & Objective-C Testing Migration Guidelines
+When migrating Objective-C tests away from `OCMock` (to support future Swift
+interoperability), you MUST follow these patterns:
+- **Use Protocol-Based Fakes**: Replace `OCMock` with manually implemented
+  `Fake` classes that conform to the required protocols (e.g.,
+  `id<GACAppCheckProvider>`).
+- **Strict Black-Box Testing (No Test Categories)**: Do NOT use
+  `@interface TargetClass (Tests)` categories to expose internal properties or
+  standard `alloc/init` overrides just to verify "wiring". Inject Fakes via
+  designated initializers and verify behavior, not state.
+- **Thread-Safety & Locks**: Avoid redundant recursive locks
+  (`@synchronized(self)`). If a property uses `@synchronized(self)` in its
+  getter/setter, use direct instance variable access (e.g. `_ivar`) when
+  reading/writing it internally from within another `@synchronized(self)` block
+  to reduce overhead.
+- **Concurrent Independent PRs**: When migrating multiple test suites, separate
+  them into independent branches (e.g. Core AppCheck vs AppAttest) and open
+  concurrent PRs rather than a single monolithic PR, provided they don't share
+  Fake implementations.
+
+---
+
+## 🤖 AI Subagent Personas
+
+### Objective Code Verifier
+Your role is to act as a strict execution engine. When invoked, you must
+strictly run builds and test suites using this repository's specific test
+commands (as defined in the Verification section above). You must report binary
+pass/fail results. Do not attempt to fix or diagnose the failures yourself;
+simply output the error logs and failure details back to the caller.
+
+### Rigorous Code Reviewer
+Your role is to perform subjective, rigorous code reviews on proposed changes.
+You must focus heavily on concurrency, memory management, and strict adherence
+to the project's guidelines. You MUST read and enforce the rules defined in
+`REVIEW_GUIDELINES.md` located at the root of this repository. Flag any missing
+synchronization or thread-safety violations immediately.
+
+
+
+

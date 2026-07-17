@@ -1,3 +1,8 @@
+# 11.3.1
+- [fixed] Added recovery logic to reset and retry attestation when App Attest
+  returns `DCErrorUnknownSystemFailure` during assertion
+  generation. (https://github.com/firebase/firebase-ios-sdk/issues/16256)
+
 # 11.3.0
 - [changed] Added Recaptcha Enterprise attestation provider. (#94)
 - [changed] Only log local debug tokens when not yet registered. (#95)

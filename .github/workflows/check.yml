@@ -6,6 +6,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
@@ -16,10 +19,10 @@ jobs:
     env:
       MINT_PATH: ${{ github.workspace }}/mint
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
     - name: Cache Mint packages
-      uses: actions/cache@v3
+      uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
       with:
         path: ${{ env.MINT_PATH }}
         key: ${{ runner.os }}-mint-${{ hashFiles('**/Mintfile') }}
