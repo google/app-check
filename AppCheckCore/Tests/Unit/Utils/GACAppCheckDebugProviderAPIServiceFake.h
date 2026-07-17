@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Tests/Unit/Utils/GACAppCheckTokenDelegateFake.h"
+#import <Foundation/Foundation.h>
 
-@implementation GACAppCheckTokenDelegateFake
+#import "AppCheckCore/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h"
 
-- (void)tokenDidUpdate:(GACAppCheckToken *)token serviceName:(NSString *)serviceName {
-  @synchronized(self) {
-    _tokenDidUpdateCallCount++;
-    _lastToken = token;
-    _lastServiceName = serviceName;
-  }
-}
+NS_ASSUME_NONNULL_BEGIN
+
+@interface GACAppCheckDebugProviderAPIServiceFake : NSObject <GACAppCheckDebugProviderAPIServiceProtocol>
+
+@property(nonatomic, nullable) FBLPromise<GACAppCheckToken *> *tokenPromise;
+@property(nonatomic, nullable) FBLPromise<GACAppCheckToken *> *limitedUseTokenPromise;
+@property(nonatomic, nullable) NSString *passedDebugToken;
+@property(nonatomic, assign) BOOL passedLimitedUse;
 
 @end
+
+NS_ASSUME_NONNULL_END

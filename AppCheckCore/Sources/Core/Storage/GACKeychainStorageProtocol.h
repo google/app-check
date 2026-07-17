@@ -15,16 +15,26 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefresher.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface GACAppCheckTokenRefresherFake : NSObject <GACAppCheckTokenRefresherProtocol>
+@protocol GACKeychainStorageProtocol <NSObject>
 
-@property(nonatomic, copy, nullable) GACAppCheckTokenRefreshBlock tokenRefreshHandler;
-@property(nonatomic) NSInteger updateWithRefreshResultCallCount;
-@property(nonatomic, strong, nullable) GACAppCheckTokenRefreshResult *lastRefreshResult;
+- (void)getObjectForKey:(NSString *)key
+            objectClass:(Class)objectClass
+            accessGroup:(nullable NSString *)accessGroup
+      completionHandler:(void (^)(id<NSSecureCoding> _Nullable, NSError *_Nullable))handler;
+
+- (void)setObject:(id<NSSecureCoding>)object
+           forKey:(NSString *)key
+      accessGroup:(nullable NSString *)accessGroup
+completionHandler:(void (^)(id<NSSecureCoding> _Nullable, NSError *_Nullable))handler;
+
+- (void)removeObjectForKey:(NSString *)key
+               accessGroup:(nullable NSString *)accessGroup
+         completionHandler:(void (^)(NSError *_Nullable))handler;
 
 @end
+
 
 NS_ASSUME_NONNULL_END

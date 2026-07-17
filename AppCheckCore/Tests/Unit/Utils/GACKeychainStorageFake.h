@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,16 @@
 
 #import <Foundation/Foundation.h>
 
+#import "AppCheckCore/Sources/Core/Storage/GACKeychainStorageProtocol.h"
+
 NS_ASSUME_NONNULL_BEGIN
 
-typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
+@interface GACKeychainStorageFake : NSObject <GACKeychainStorageProtocol>
 
-@interface GACURLSessionOCMockStub : NSObject
+@property(nonatomic, readonly) NSMutableDictionary<NSString *, id<NSSecureCoding>> *storage;
 
-+ (id)stubURLSessionDataTaskWithResponse:(nullable NSHTTPURLResponse *)response
-                                    body:(nullable NSData *)body
-                                   error:(nullable NSError *)error
-                          URLSessionMock:(id)URLSessionMock
-                  requestValidationBlock:(nullable FIRRequestValidationBlock)requestValidationBlock;
-
-+ (NSHTTPURLResponse *)HTTPResponseWithCode:(NSInteger)statusCode;
+/// Set this property to simulate a keychain error for all operations.
+@property(nonatomic, strong, nullable) NSError *keychainError;
 
 @end
 

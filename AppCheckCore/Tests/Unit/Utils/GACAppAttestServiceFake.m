@@ -32,27 +32,45 @@
 
 - (void)generateKeyWithCompletionHandler:(void (^)(NSString *keyId,
                                                    NSError *error))completionHandler {
-  self.generateKeyCallCount++;
+  NSString *keyId;
+  NSError *error;
+  @synchronized(self) {
+    _generateKeyCallCount++;
+    keyId = _keyIdToReturn;
+    error = _generateKeyErrorToReturn;
+  }
   if (completionHandler) {
-    completionHandler(self.keyIdToReturn, self.generateKeyErrorToReturn);
+    completionHandler(keyId, error);
   }
 }
 
 - (void)attestKey:(NSString *)keyId
        clientDataHash:(NSData *)clientDataHash
     completionHandler:(void (^)(NSData *attestationObject, NSError *error))completionHandler {
-  self.attestKeyCallCount++;
+  NSData *attestation;
+  NSError *error;
+  @synchronized(self) {
+    _attestKeyCallCount++;
+    attestation = _attestationToReturn;
+    error = _attestKeyErrorToReturn;
+  }
   if (completionHandler) {
-    completionHandler(self.attestationToReturn, self.attestKeyErrorToReturn);
+    completionHandler(attestation, error);
   }
 }
 
 - (void)generateAssertion:(NSString *)keyId
            clientDataHash:(NSData *)clientDataHash
         completionHandler:(void (^)(NSData *assertionObject, NSError *error))completionHandler {
-  self.generateAssertionCallCount++;
+  NSData *assertion;
+  NSError *error;
+  @synchronized(self) {
+    _generateAssertionCallCount++;
+    assertion = _assertionToReturn;
+    error = _generateAssertionErrorToReturn;
+  }
   if (completionHandler) {
-    completionHandler(self.assertionToReturn, self.generateAssertionErrorToReturn);
+    completionHandler(assertion, error);
   }
 }
 

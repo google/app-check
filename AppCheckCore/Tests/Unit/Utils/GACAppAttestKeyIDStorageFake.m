@@ -21,13 +21,17 @@
 @implementation GACAppAttestKeyIDStorageFake
 
 - (FBLPromise<NSString *> *)setAppAttestKeyID:(nullable NSString *)keyID {
-  self.setAppAttestKeyIDCallCount++;
-  return self.setAppAttestKeyIDPromise ?: [FBLPromise pendingPromise];
+  @synchronized(self) {
+    _setAppAttestKeyIDCallCount++;
+    return _setAppAttestKeyIDPromise ?: [FBLPromise pendingPromise];
+  }
 }
 
 - (FBLPromise<NSString *> *)getAppAttestKeyID {
-  self.getAppAttestKeyIDCallCount++;
-  return self.getAppAttestKeyIDPromise ?: [FBLPromise pendingPromise];
+  @synchronized(self) {
+    _getAppAttestKeyIDCallCount++;
+    return _getAppAttestKeyIDPromise ?: [FBLPromise pendingPromise];
+  }
 }
 
 @end

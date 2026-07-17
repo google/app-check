@@ -50,20 +50,22 @@ static NSString *const kDebugTokenRegisteredUserDefaultsKey = @"GACAppCheckDebug
                                          resourceName:(NSString *)resourceName;
 @end
 
-static NSString *_Nullable EnvironmentVariableDebugToken(NSString *registeredUserDefaultsKey);
+static NSString *_Nullable EnvironmentVariableDebugToken(
+    NSString *registeredUserDefaultsKey, NSDictionary<NSString *, NSString *> *environment);
 
 @implementation GACAppCheckDebugProvider
 
 - (instancetype)initWithAPIService:(id<GACAppCheckDebugProviderAPIServiceProtocol>)APIService
                        serviceName:(NSString *)serviceName
-                      resourceName:(NSString *)resourceName {
+                      resourceName:(NSString *)resourceName
+                       environment:(NSDictionary<NSString *, NSString *> *)environment {
   self = [super init];
   if (self) {
     _APIService = APIService;
     _registeredUserDefaultsKey =
         [[[self class] registeredUserDefaultsKeyForServiceName:serviceName
                                                   resourceName:resourceName] copy];
-    _debugTokenEnvValue = EnvironmentVariableDebugToken(_registeredUserDefaultsKey);
+    _debugTokenEnvValue = EnvironmentVariableDebugToken(_registeredUserDefaultsKey, environment);
   }
   return self;
 }
@@ -72,7 +74,8 @@ static NSString *_Nullable EnvironmentVariableDebugToken(NSString *registeredUse
                        resourceName:(NSString *)resourceName
                             baseURL:(nullable NSString *)baseURL
                              APIKey:(NSString *)APIKey
-                       requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks {
+                       requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks
+                        environment:(NSDictionary<NSString *, NSString *> *)environment {
   NSURLSession *URLSession = [NSURLSession
       sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration]];
 
@@ -80,7 +83,8 @@ static NSString *_Nullable EnvironmentVariableDebugToken(NSString *registeredUse
       [[_GACAppCheckAPIService alloc] initWithURLSession:URLSession
                                                  baseURL:baseURL
                                                   APIKey:APIKey
-                                            requestHooks:requestHooks];
+                                            requestHooks:requestHooks
+                                             environment:environment];
 
   GACAppCheckDebugProviderAPIService *debugAPIService =
       [[GACAppCheckDebugProviderAPIService alloc] initWithAPIService:APIService
@@ -88,7 +92,21 @@ static NSString *_Nullable EnvironmentVariableDebugToken(NSString *registeredUse
 
   return [self initWithAPIService:debugAPIService
                       serviceName:serviceName
-                     resourceName:resourceName];
+                     resourceName:resourceName
+                      environment:environment];
+}
+
+- (instancetype)initWithServiceName:(NSString *)serviceName
+                       resourceName:(NSString *)resourceName
+                            baseURL:(nullable NSString *)baseURL
+                             APIKey:(NSString *)APIKey
+                       requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks {
+  return [self initWithServiceName:serviceName
+                      resourceName:resourceName
+                           baseURL:baseURL
+                            APIKey:APIKey
+                      requestHooks:requestHooks
+                       environment:[[NSProcessInfo processInfo] environment]];
 }
 
 - (NSString *)currentDebugToken {
@@ -168,8 +186,8 @@ static NSString *GenerateAndStoreDebugToken(void) {
                                     safeServiceName, safeResourceName];
 }
 
-static NSString *_Nullable EnvironmentVariableDebugToken(NSString *registeredUserDefaultsKey) {
-  NSDictionary<NSString *, NSString *> *environment = [[NSProcessInfo processInfo] environment];
+static NSString *_Nullable EnvironmentVariableDebugToken(
+    NSString *registeredUserDefaultsKey, NSDictionary<NSString *, NSString *> *environment) {
   NSString *envVariableValue = environment[kDebugTokenEnvKey];
   NSString *firebaseEnvVariableValue = environment[kFirebaseDebugTokenEnvKey];
   if (envVariableValue.length == 0) {

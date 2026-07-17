@@ -16,8 +16,6 @@
 
 #import <XCTest/XCTest.h>
 
-#import <OCMock/OCMock.h>
-
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckSettings.h"
 
 #import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefreshResult.h"
@@ -29,7 +27,7 @@
 
 @property(nonatomic) GACFakeTimer *fakeTimer;
 
-@property(nonatomic) OCMockObject<GACAppCheckSettingsProtocol> *mockSettings;
+@property(nonatomic) GACAppCheckSettings *settings;
 
 @property(nonatomic) GACAppCheckTokenRefreshResult *initialTokenRefreshResult;
 
@@ -38,7 +36,7 @@
 @implementation GACAppCheckTokenRefresherTests
 
 - (void)setUp {
-  self.mockSettings = OCMProtocolMock(@protocol(GACAppCheckSettingsProtocol));
+  self.settings = [[GACAppCheckSettings alloc] init];
   self.fakeTimer = [[GACFakeTimer alloc] init];
 
   NSDate *receivedAtDate = [NSDate date];
@@ -49,8 +47,7 @@
 
 - (void)tearDown {
   self.fakeTimer = nil;
-  [self.mockSettings stopMocking];
-  self.mockSettings = nil;
+  self.settings = nil;
 }
 
 #pragma mark - Auto refresh is allowed
@@ -62,7 +59,7 @@
   GACAppCheckTokenRefresher *refresher = [self createRefresher];
 
   // 1. Expect checking if auto-refresh allowed before scheduling the initial refresh.
-  [[[self.mockSettings expect] andReturnValue:@(YES)] isTokenAutoRefreshEnabled];
+  self.settings.isTokenAutoRefreshEnabled = YES;
 
   // 2. Don't expect the timer to be scheduled for the first refresh as the refresh should be
   // triggered straight away.
@@ -75,7 +72,7 @@
   };
 
   // 3. Expect checking if auto-refresh allowed before triggering the initial refresh.
-  [[[self.mockSettings expect] andReturnValue:@(YES)] isTokenAutoRefreshEnabled];
+  self.settings.isTokenAutoRefreshEnabled = YES;
 
   // 4. Expect initial refresh handler to be called.
   __block GACAppCheckTokenRefreshCompletion initialRefreshCompletion;
@@ -98,7 +95,7 @@
                     timeout:1];
 
   // 5. Expect checking if auto-refresh allowed before scheduling next refresh.
-  [[[self.mockSettings expect] andReturnValue:@(YES)] isTokenAutoRefreshEnabled];
+  self.settings.isTokenAutoRefreshEnabled = YES;
 
   // 6. Expect a next refresh timer to be scheduled on initial refresh completion.
   NSDate *expectedRefreshDate =
@@ -117,7 +114,7 @@
   [self waitForExpectations:@[ nextTimerCreateExpectation ] timeout:0.5];
 
   // 8. Expect checking if auto-refresh allowed before triggering the next refresh.
-  [[[self.mockSettings expect] andReturnValue:@(YES)] isTokenAutoRefreshEnabled];
+  self.settings.isTokenAutoRefreshEnabled = YES;
 
   // 9. Expect refresh handler to be called for the next refresh.
   __auto_type nextRefreshResult = [[GACAppCheckTokenRefreshResult alloc]
@@ -136,8 +133,6 @@
 
   // 11. Wait for the next refresh handler to be called.
   [self waitForExpectations:@[ nextRefreshExpectation ] timeout:1];
-
-  OCMVerifyAll(self.mockSettings);
 }
 
 - (void)testNoTimeScheduledUntilHandlerSet {
@@ -157,7 +152,7 @@
 
   // 3. Expect timer to be created after the handler has been set.
   // 3.1. Expect checking if auto-refresh allowed one more time when timer fires.
-  [[[self.mockSettings expect] andReturnValue:@(YES)] isTokenAutoRefreshEnabled];
+  self.settings.isTokenAutoRefreshEnabled = YES;
 
   // 3.2. Expect timer to fire.
   XCTestExpectation *timerCreateExpectation2 = [self expectationWithDescription:@"create timer 2"];
@@ -170,8 +165,6 @@
   };
 
   [self waitForExpectations:@[ timerCreateExpectation2 ] timeout:0.5];
-
-  OCMVerifyAll(self.mockSettings);
 }
 
 - (void)testNextRefreshOnRefreshSuccess {
@@ -184,10 +177,10 @@
                               receivedAtDate:self.initialTokenRefreshResult.tokenExpirationDate];
 
   // 1. Expect checking if auto-refresh allowed before scheduling initial refresh.
-  [[[self.mockSettings expect] andReturnValue:@(YES)] isTokenAutoRefreshEnabled];
+  self.settings.isTokenAutoRefreshEnabled = YES;
 
   // 2. Expect checking if auto-refresh allowed before calling the refresh handler.
-  [[[self.mockSettings expect] andReturnValue:@(YES)] isTokenAutoRefreshEnabled];
+  self.settings.isTokenAutoRefreshEnabled = YES;
 
   // 3. Expect refresh handler.
   XCTestExpectation *initialRefreshExpectation =
@@ -213,7 +206,7 @@
   };
 
   // 5. Expect checking if auto-refresh allowed before refreshing.
-  [[[self.mockSettings expect] andReturnValue:@(YES)] isTokenAutoRefreshEnabled];
+  self.settings.isTokenAutoRefreshEnabled = YES;
 
   // 6. Fire initial timer and wait for expectations.
   [self fireTimer];
@@ -221,8 +214,6 @@
   [self waitForExpectations:@[ initialRefreshExpectation, createTimerExpectation ]
                     timeout:1
                enforceOrder:YES];
-
-  OCMVerifyAll(self.mockSettings);
 }
 
 - (void)testBackoff {
@@ -233,11 +224,11 @@
   NSTimeInterval maximumBackoffTime = 16 * 60;  // 16 min.
 
   // 1. Expect checking if auto-refresh allowed before scheduling initial refresh.
-  [[[self.mockSettings expect] andReturnValue:@(YES)] isTokenAutoRefreshEnabled];
+  self.settings.isTokenAutoRefreshEnabled = YES;
 
   for (NSInteger i = 0; i < 10; i++) {
     // 2. Expect checking if auto-refresh allowed before calling the refresh handler.
-    [[[self.mockSettings expect] andReturnValue:@(YES)] isTokenAutoRefreshEnabled];
+    self.settings.isTokenAutoRefreshEnabled = YES;
 
     // 3. Expect refresh handler.
     XCTestExpectation *initialRefreshExpectation =
@@ -270,7 +261,7 @@
     };
 
     // 5. Expect checking if auto-refresh allowed before refreshing.
-    [[[self.mockSettings expect] andReturnValue:@(YES)] isTokenAutoRefreshEnabled];
+    self.settings.isTokenAutoRefreshEnabled = YES;
 
     // 6. Fire initial timer and wait for expectations.
     [self fireTimer];
@@ -279,8 +270,6 @@
                       timeout:1
                  enforceOrder:YES];
   }
-
-  OCMVerifyAll(self.mockSettings);
 }
 
 #pragma mark - Auto refresh is not allowed
@@ -289,7 +278,7 @@
   GACAppCheckTokenRefresher *refresher = [self createRefresher];
 
   // 1. Expect checking if auto-refresh allowed before scheduling initial refresh.
-  [[[self.mockSettings expect] andReturnValue:@(NO)] isTokenAutoRefreshEnabled];
+  self.settings.isTokenAutoRefreshEnabled = NO;
 
   // 2. Don't expect timer to be scheduled.
   XCTestExpectation *timerCreateExpectation = [self expectationWithDescription:@"create timer"];
@@ -317,15 +306,13 @@
 
   // 4. Check if the handler is not fired before the timer.
   [self waitForExpectations:@[ timerCreateExpectation, refreshExpectation ] timeout:1];
-
-  OCMVerifyAll(self.mockSettings);
 }
 
 - (void)testNoRefreshWhenAutoRefreshWasDisabledAfterInit {
   GACAppCheckTokenRefresher *refresher = [self createRefresher];
 
   // 1. Expect checking if auto-refresh allowed before scheduling initial refresh.
-  [[[self.mockSettings expect] andReturnValue:@(YES)] isTokenAutoRefreshEnabled];
+  self.settings.isTokenAutoRefreshEnabled = YES;
 
   // 2. Expect timer to be scheduled.
   NSDate *expectedTimerFireDate =
@@ -358,14 +345,12 @@
   [self waitForExpectations:@[ timerCreateExpectation ] timeout:1];
 
   // 5. Expect checking if auto-refresh allowed before refreshing.
-  [[[self.mockSettings expect] andReturnValue:@(NO)] isTokenAutoRefreshEnabled];
+  self.settings.isTokenAutoRefreshEnabled = NO;
 
   // 6. Fire the timer and wait for completion.
   [self fireTimer];
 
   [self waitForExpectations:@[ noRefreshExpectation ] timeout:1];
-
-  OCMVerifyAll(self.mockSettings);
 }
 
 #pragma mark - Update token expiration
@@ -380,7 +365,7 @@
                               receivedAtDate:self.initialTokenRefreshResult.tokenExpirationDate];
 
   // 1. Expect checking if auto-refresh allowed before scheduling refresh.
-  [[[self.mockSettings expect] andReturnValue:@(YES)] isTokenAutoRefreshEnabled];
+  self.settings.isTokenAutoRefreshEnabled = YES;
 
   // 2. Expect timer to be scheduled.
   NSDate *expectedTimerFireDate =
@@ -400,8 +385,6 @@
 
   // 4. Wait for timer to be created.
   [self waitForExpectations:@[ timerCreateExpectation ] timeout:1];
-
-  OCMVerifyAll(self.mockSettings);
 }
 
 - (void)testUpdateWithRefreshResultWhenAutoRefreshIsNotAllowed {
@@ -412,7 +395,7 @@
                               receivedAtDate:self.initialTokenRefreshResult.tokenExpirationDate];
 
   // 1. Expect checking if auto-refresh allowed before scheduling initial refresh.
-  [[[self.mockSettings expect] andReturnValue:@(NO)] isTokenAutoRefreshEnabled];
+  self.settings.isTokenAutoRefreshEnabled = NO;
 
   // 2. Don't expect timer to be scheduled.
   XCTestExpectation *timerCreateExpectation = [self expectationWithDescription:@"create timer"];
@@ -429,8 +412,6 @@
 
   // 4. Wait for timer to be created.
   [self waitForExpectations:@[ timerCreateExpectation ] timeout:1];
-
-  OCMVerifyAll(self.mockSettings);
 }
 
 - (void)testUpdateWithRefreshResult_WhenTokenExpiresLessThanIn1Minute {
@@ -442,7 +423,7 @@
                               receivedAtDate:[NSDate date]];
 
   // 1. Expect checking if auto-refresh allowed before scheduling refresh.
-  [[[self.mockSettings expect] andReturnValue:@(YES)] isTokenAutoRefreshEnabled];
+  self.settings.isTokenAutoRefreshEnabled = YES;
 
   // 2. Expect timer to be scheduled in at least 1 minute.
   XCTestExpectation *timerCreateExpectation = [self expectationWithDescription:@"create timer"];
@@ -463,8 +444,6 @@
 
   // 4. Wait for timer to be created.
   [self waitForExpectations:@[ timerCreateExpectation ] timeout:1];
-
-  OCMVerifyAll(self.mockSettings);
 }
 
 #pragma mark - Helpers
@@ -480,7 +459,7 @@
 - (GACAppCheckTokenRefresher *)createRefresher {
   return [[GACAppCheckTokenRefresher alloc] initWithRefreshResult:self.initialTokenRefreshResult
                                                     timerProvider:[self.fakeTimer fakeTimerProvider]
-                                                         settings:self.mockSettings];
+                                                         settings:self.settings];
 }
 
 - (NSDate *)expectedRefreshDateWithReceivedDate:(NSDate *)receivedDate

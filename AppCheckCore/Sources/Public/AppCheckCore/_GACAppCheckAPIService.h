@@ -51,12 +51,19 @@ NS_ASSUME_NONNULL_BEGIN
  * `https://firebaseappcheck.googleapis.com/v1`.
  * @param APIKey The Google Cloud Platform API key, if needed, or nil.
  * @param requestHooks Hooks that will be invoked on requests through this service.
+ * @param environment A dictionary containing environment variables.
  */
 - (instancetype)initWithURLSession:(NSURLSession *)session
                            baseURL:(nullable NSString *)baseURL
                             APIKey:(nullable NSString *)APIKey
                       requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks
+                       environment:(NSDictionary<NSString *, NSString *> *)environment
     NS_DESIGNATED_INITIALIZER;
+
+- (instancetype)initWithURLSession:(NSURLSession *)session
+                           baseURL:(nullable NSString *)baseURL
+                            APIKey:(nullable NSString *)APIKey
+                      requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks;
 
 - (instancetype)init NS_UNAVAILABLE;
 

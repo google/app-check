@@ -15,15 +15,21 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefresher.h"
+#import "AppCheckCore/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h"
+
+@class FBLPromise<Result>;
+@class GACAppCheckToken;
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface GACAppCheckTokenRefresherFake : NSObject <GACAppCheckTokenRefresherProtocol>
+@interface GACDeviceCheckAPIServiceFake : NSObject <GACDeviceCheckAPIServiceProtocol>
 
-@property(nonatomic, copy, nullable) GACAppCheckTokenRefreshBlock tokenRefreshHandler;
-@property(nonatomic) NSInteger updateWithRefreshResultCallCount;
-@property(nonatomic, strong, nullable) GACAppCheckTokenRefreshResult *lastRefreshResult;
+@property(nonatomic, strong) FBLPromise<GACAppCheckToken *> *appCheckTokenPromise;
+@property(nonatomic, copy, nullable) NSData *passedDeviceToken;
+@property(nonatomic, assign) BOOL passedLimitedUse;
+
+@property(nonatomic, copy, nullable) void (^appCheckTokenWithDeviceTokenHandler)
+    (NSData *deviceToken, BOOL limitedUse);
 
 @end
 

@@ -24,6 +24,8 @@
 
 #import <GoogleUtilities/GULKeychainStorage.h>
 
+#import "AppCheckCore/Sources/Core/Storage/GACKeychainStorageProtocol.h"
+
 #import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestStoredArtifact.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
@@ -34,7 +36,7 @@ static NSString *const kKeychainService = @"com.firebase.app_check.app_attest_ar
 @interface GACAppAttestArtifactStorage ()
 
 @property(nonatomic, readonly) NSString *keySuffix;
-@property(nonatomic, readonly) GULKeychainStorage *keychainStorage;
+@property(nonatomic, readonly) id<GACKeychainStorageProtocol> keychainStorage;
 @property(nonatomic, readonly, nullable) NSString *accessGroup;
 
 @end
@@ -42,7 +44,7 @@ static NSString *const kKeychainService = @"com.firebase.app_check.app_attest_ar
 @implementation GACAppAttestArtifactStorage
 
 - (instancetype)initWithKeySuffix:(NSString *)keySuffix
-                  keychainStorage:(GULKeychainStorage *)keychainStorage
+                  keychainStorage:(id<GACKeychainStorageProtocol>)keychainStorage
                       accessGroup:(nullable NSString *)accessGroup {
   self = [super init];
   if (self) {

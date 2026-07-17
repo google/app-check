@@ -28,8 +28,8 @@
     }
 
     @synchronized(strongSelf) {
-      strongSelf.handler = handler;
-      void (^createHandler)(NSDate *) = strongSelf.createHandler;
+      strongSelf->_handler = handler;
+      void (^createHandler)(NSDate *) = strongSelf->_createHandler;
       if (createHandler) {
         createHandler(fireDate);
       }

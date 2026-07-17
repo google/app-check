@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Tests/Unit/Utils/GACAppCheckTokenRefresherFake.h"
+#import "AppCheckCore/Tests/Unit/Utils/GACDeviceCheckTokenGeneratorFake.h"
 
-@implementation GACAppCheckTokenRefresherFake
+NS_ASSUME_NONNULL_BEGIN
 
-@synthesize tokenRefreshHandler = _tokenRefreshHandler;
+@implementation GACDeviceCheckTokenGeneratorFake
 
-- (GACAppCheckTokenRefreshBlock)tokenRefreshHandler {
-  @synchronized(self) {
-    return _tokenRefreshHandler;
-  }
+- (BOOL)supported {
+  return self.isSupported;
 }
 
-- (void)setTokenRefreshHandler:(GACAppCheckTokenRefreshBlock)tokenRefreshHandler {
+- (void)generateTokenWithCompletionHandler:(void (^)(NSData* _Nullable token,
+                                                     NSError* _Nullable error))completion {
+  NSData *token;
+  NSError *error;
   @synchronized(self) {
-    _tokenRefreshHandler = [tokenRefreshHandler copy];
+    _generateTokenCalled = YES;
+    token = _tokenToReturn;
+    error = _errorToReturn;
   }
-}
-
-- (void)updateWithRefreshResult:(GACAppCheckTokenRefreshResult *)refreshResult {
-  @synchronized(self) {
-    _updateWithRefreshResultCallCount++;
-    _lastRefreshResult = refreshResult;
+  if (completion) {
+    completion(token, error);
   }
 }
 
 @end
+
+NS_ASSUME_NONNULL_END

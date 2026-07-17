@@ -28,12 +28,12 @@ typedef void (^GACFakeTimerCreateHandler)(NSDate *fireDate);
 
 /// `createHandler` is called each time the timer provider returned by `fakeTimerProvider` is asked
 /// to create a timer.
-@property(atomic, copy, nullable) GACFakeTimerCreateHandler createHandler;
+@property(nonatomic, copy, nullable) GACFakeTimerCreateHandler createHandler;
 
-@property(atomic, copy, nullable) dispatch_block_t invalidationHandler;
+@property(nonatomic, copy, nullable) dispatch_block_t invalidationHandler;
 
 /// The timer handler passed in the timer provider returned by `fakeTimerProvider` method.
-@property(atomic, copy, nullable) dispatch_block_t handler;
+@property(nonatomic, copy, nullable) dispatch_block_t handler;
 
 @end
 

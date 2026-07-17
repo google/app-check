@@ -15,15 +15,24 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefresher.h"
+
+@class FBLPromise<ValueType>;
+@class _GACURLSessionDataResponse;
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface GACAppCheckTokenRefresherFake : NSObject <GACAppCheckTokenRefresherProtocol>
+typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
 
-@property(nonatomic, copy, nullable) GACAppCheckTokenRefreshBlock tokenRefreshHandler;
-@property(nonatomic) NSInteger updateWithRefreshResultCallCount;
-@property(nonatomic, strong, nullable) GACAppCheckTokenRefreshResult *lastRefreshResult;
+@interface GACURLSessionFake : NSObject
+
+@property(nonatomic, nullable) FBLPromise<_GACURLSessionDataResponse *> *resultPromise;
+@property(nonatomic, nullable) NSURLRequest *lastRequest;
+@property(nonatomic, copy, nullable) FIRRequestValidationBlock requestValidationBlock;
+@property(nonatomic, assign) BOOL isInvoked;
+
+- (FBLPromise<_GACURLSessionDataResponse *> *)gac_dataTaskPromiseWithRequest:(NSURLRequest *)URLRequest;
+
++ (NSHTTPURLResponse *)HTTPResponseWithCode:(NSInteger)statusCode;
 
 @end
 

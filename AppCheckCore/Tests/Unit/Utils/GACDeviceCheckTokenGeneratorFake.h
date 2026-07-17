@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Tests/Unit/Utils/GACAppCheckTokenDelegateFake.h"
+#import <Foundation/Foundation.h>
+#import "AppCheckCore/Sources/DeviceCheckProvider/GACDeviceCheckTokenGenerator.h"
 
-@implementation GACAppCheckTokenDelegateFake
+NS_ASSUME_NONNULL_BEGIN
 
-- (void)tokenDidUpdate:(GACAppCheckToken *)token serviceName:(NSString *)serviceName {
-  @synchronized(self) {
-    _tokenDidUpdateCallCount++;
-    _lastToken = token;
-    _lastServiceName = serviceName;
-  }
-}
+@interface GACDeviceCheckTokenGeneratorFake : NSObject <GACDeviceCheckTokenGenerator>
+
+@property(nonatomic, assign) BOOL isSupported;
+
+@property(nonatomic, copy, nullable) NSData *tokenToReturn;
+@property(nonatomic, strong, nullable) NSError *errorToReturn;
+
+@property(nonatomic, assign) BOOL generateTokenCalled;
 
 @end
+
+NS_ASSUME_NONNULL_END

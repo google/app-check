@@ -51,8 +51,8 @@
   NSError *error;
   @synchronized(self) {
     _getTokenCallCount++;
-    token = self.tokenToReturn;
-    error = self.errorToReturn;
+    token = _tokenToReturn;
+    error = _errorToReturn;
   }
   if (handler) {
     handler(token, error);
@@ -65,8 +65,8 @@
   NSError *error;
   @synchronized(self) {
     _getLimitedUseTokenCallCount++;
-    token = self.limitedUseTokenToReturn;
-    error = self.limitedUseErrorToReturn;
+    token = _limitedUseTokenToReturn;
+    error = _limitedUseErrorToReturn;
   }
   if (handler) {
     handler(token, error);

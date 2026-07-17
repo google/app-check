@@ -58,7 +58,8 @@ static NSString *const kAppCheckUseStagingEnvKey = @"_AppCheckUseStaging";
 - (instancetype)initWithURLSession:(NSURLSession *)session
                            baseURL:(nullable NSString *)baseURL
                             APIKey:(nullable NSString *)APIKey
-                      requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks {
+                      requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks
+                       environment:(NSDictionary<NSString *, NSString *> *)environment {
   self = [super init];
   if (self) {
     _URLSession = session;
@@ -69,8 +70,7 @@ static NSString *const kAppCheckUseStagingEnvKey = @"_AppCheckUseStaging";
 
 #if !NDEBUG
     if (resolvedBaseURL == nil) {
-      BOOL useStaging =
-          [[[NSProcessInfo processInfo] environment][kAppCheckUseStagingEnvKey] boolValue];
+      BOOL useStaging = [environment[kAppCheckUseStagingEnvKey] boolValue];
       if (useStaging) {
         resolvedBaseURL = kStagingBaseURL;
         NSString *logMessage =
@@ -85,6 +85,17 @@ static NSString *const kAppCheckUseStagingEnvKey = @"_AppCheckUseStaging";
     _baseURL = resolvedBaseURL ?: kProdBaseURL;
   }
   return self;
+}
+
+- (instancetype)initWithURLSession:(NSURLSession *)session
+                           baseURL:(nullable NSString *)baseURL
+                            APIKey:(nullable NSString *)APIKey
+                      requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks {
+  return [self initWithURLSession:session
+                          baseURL:baseURL
+                           APIKey:APIKey
+                     requestHooks:requestHooks
+                      environment:[[NSProcessInfo processInfo] environment]];
 }
 
 - (FBLPromise<_GACURLSessionDataResponse *> *)
