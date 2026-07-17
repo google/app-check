@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,54 +14,26 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
-
-#import "GACAppCheckProvider.h"
-
-@class FBLPromise<Result>;
-@class _GACURLSessionDataResponse;
-@class GACAppCheckToken;
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckAPIService.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-// This header is for internal use within Google SDKs (Firebase, Google Sign-In).
-// It is not intended for use by external developers and may change without notice.
-
-@protocol _GACAppCheckAPIServiceProtocol <NSObject>
-
-@property(nonatomic, readonly) NSString *baseURL;
-
-- (FBLPromise<_GACURLSessionDataResponse *> *)
-    sendRequestWithURL:(NSURL *)requestURL
-            HTTPMethod:(NSString *)HTTPMethod
-                  body:(nullable NSData *)body
-     additionalHeaders:(nullable NSDictionary<NSString *, NSString *> *)additionalHeaders;
-
-- (FBLPromise<GACAppCheckToken *> *)appCheckTokenWithAPIResponse:
-    (_GACURLSessionDataResponse *)response;
-
-@end
-
-@interface _GACAppCheckAPIService : NSObject <_GACAppCheckAPIServiceProtocol>
+@interface _GACAppCheckAPIService (Testing)
 
 /**
- * The default initializer.
+ * Test initializer.
  * @param session The URL session used to make network requests.
  * @param baseURL The base URL for the App Check service, e.g.,
  * `https://firebaseappcheck.googleapis.com/v1`.
  * @param APIKey The Google Cloud Platform API key, if needed, or nil.
  * @param requestHooks Hooks that will be invoked on requests through this service.
+ * @param environment A dictionary containing environment variables.
  */
 - (instancetype)initWithURLSession:(NSURLSession *)session
                            baseURL:(nullable NSString *)baseURL
                             APIKey:(nullable NSString *)APIKey
                       requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks
-    NS_DESIGNATED_INITIALIZER;
-
-- (instancetype)init NS_UNAVAILABLE;
-
-- (FBLPromise<GACAppCheckToken *> *)appCheckTokenWithAPIResponse:
-    (_GACURLSessionDataResponse *)response;
+                       environment:(NSDictionary<NSString *, NSString *> *)environment;
 
 @end
 

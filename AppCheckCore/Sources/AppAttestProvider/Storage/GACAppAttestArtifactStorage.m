@@ -26,6 +26,11 @@
 
 #import "AppCheckCore/Sources/Core/Storage/GACKeychainStorageProtocol.h"
 
+@interface GULKeychainStorage (GACKeychainStorageProtocol) <GACKeychainStorageProtocol>
+@end
+@implementation GULKeychainStorage (GACKeychainStorageProtocol)
+@end
+
 #import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestStoredArtifact.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 

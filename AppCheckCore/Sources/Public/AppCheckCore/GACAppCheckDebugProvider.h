@@ -83,14 +83,6 @@ NS_SWIFT_NAME(AppCheckCoreDebugProvider)
 /// @return The currently used App Check debug token.
 - (NSString *)currentDebugToken;
 
-/// Test initializer.
-- (instancetype)initWithServiceName:(NSString *)serviceName
-                       resourceName:(NSString *)resourceName
-                            baseURL:(nullable NSString *)baseURL
-                             APIKey:(NSString *)APIKey
-                       requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks
-                        environment:(NSDictionary<NSString *, NSString *> *)environment;
-
 @end
 
 NS_ASSUME_NONNULL_END

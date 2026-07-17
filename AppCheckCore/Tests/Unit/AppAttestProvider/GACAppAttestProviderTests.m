@@ -35,10 +35,10 @@
 
 #import "AppCheckCore/Tests/Utils/AppCheckBackoffWrapperFake/GACAppCheckBackoffWrapperFake.h"
 
-#import "AppCheckCore/Tests/Unit/Utils/GACAppAttestServiceFake.h"
 #import "AppCheckCore/Tests/Unit/Utils/GACAppAttestAPIServiceFake.h"
-#import "AppCheckCore/Tests/Unit/Utils/GACAppAttestKeyIDStorageFake.h"
 #import "AppCheckCore/Tests/Unit/Utils/GACAppAttestArtifactStorageFake.h"
+#import "AppCheckCore/Tests/Unit/Utils/GACAppAttestKeyIDStorageFake.h"
+#import "AppCheckCore/Tests/Unit/Utils/GACAppAttestServiceFake.h"
 
 GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 @interface GACAppAttestProvider (Tests)
@@ -67,8 +67,10 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 - (void)verifyAllMocks;
 - (void)assertGetToken_WhenNoExistingKey_Success;
 - (void)assertGetToken_WhenKeyRegistered_Success;
-- (void)assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAttestationError:(NSError *)error;
-- (void)assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAssertionError:(NSError *)error;
+- (void)assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAttestationError:
+    (NSError *)error;
+- (void)assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAssertionError:
+    (NSError *)error;
 - (void)expectAppAttestAvailabilityToBeCheckedAndNotExistingStoredKeyRequested;
 - (void)expectAppAttestKeyGeneratedAndAttestedWithKeyID:(NSString *)keyID
                                         attestationData:(NSData *)attestationData;
@@ -408,7 +410,6 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   [self assertGetToken_WhenNoExistingKey_Success];
 }
 
-
 - (void)testGetToken_WhenAttestationIsRejected_ThenAttestationIsResetAndRetriedOnceError {
   // 1. Expect App Attest availability to be requested and stored key ID request to fail.
   [self expectAppAttestAvailabilityToBeCheckedAndNotExistingStoredKeyRequested];
@@ -455,7 +456,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 
   // 11. Verify mocks.
   XCTAssertEqual(self.fakeAPIService.attestKeyCallCount, 2);
-  XCTAssertEqual(self.fakeArtifactStorage.setArtifactCallCount, 2); // 2 resets
+  XCTAssertEqual(self.fakeArtifactStorage.setArtifactCallCount, 2);  // 2 resets
 }
 
 - (void)testGetToken_WhenExistingKeyIsRejectedByApple_ThenAttestationIsResetAndRetriedOnce_Success {

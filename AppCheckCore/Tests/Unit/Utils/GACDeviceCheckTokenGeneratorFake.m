@@ -24,8 +24,8 @@ NS_ASSUME_NONNULL_BEGIN
   return self.isSupported;
 }
 
-- (void)generateTokenWithCompletionHandler:(void (^)(NSData* _Nullable token,
-                                                     NSError* _Nullable error))completion {
+- (void)generateTokenWithCompletionHandler:(void (^)(NSData *_Nullable token,
+                                                     NSError *_Nullable error))completion {
   NSData *token;
   NSError *error;
   @synchronized(self) {

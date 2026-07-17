@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
-
-#import "AppCheckCore/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckDebugProvider.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface GACAppCheckDebugProviderAPIServiceFake
-    : NSObject <GACAppCheckDebugProviderAPIServiceProtocol>
+@interface GACAppCheckDebugProvider (Testing)
 
-@property(nonatomic, nullable) FBLPromise<GACAppCheckToken *> *tokenPromise;
-@property(nonatomic, nullable) FBLPromise<GACAppCheckToken *> *limitedUseTokenPromise;
-@property(nonatomic, nullable) NSString *passedDebugToken;
-@property(nonatomic, assign) BOOL passedLimitedUse;
+/// Test initializer.
+- (instancetype)initWithServiceName:(NSString *)serviceName
+                       resourceName:(NSString *)resourceName
+                            baseURL:(nullable NSString *)baseURL
+                             APIKey:(NSString *)APIKey
+                       requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks
+                        environment:(NSDictionary<NSString *, NSString *> *)environment;
 
 @end
 

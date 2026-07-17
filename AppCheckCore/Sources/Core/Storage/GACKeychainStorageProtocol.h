@@ -26,15 +26,14 @@ NS_ASSUME_NONNULL_BEGIN
       completionHandler:(void (^)(id<NSSecureCoding> _Nullable, NSError *_Nullable))handler;
 
 - (void)setObject:(id<NSSecureCoding>)object
-           forKey:(NSString *)key
-      accessGroup:(nullable NSString *)accessGroup
-completionHandler:(void (^)(id<NSSecureCoding> _Nullable, NSError *_Nullable))handler;
+               forKey:(NSString *)key
+          accessGroup:(nullable NSString *)accessGroup
+    completionHandler:(void (^)(id<NSSecureCoding> _Nullable, NSError *_Nullable))handler;
 
 - (void)removeObjectForKey:(NSString *)key
                accessGroup:(nullable NSString *)accessGroup
          completionHandler:(void (^)(NSError *_Nullable))handler;
 
 @end
-
 
 NS_ASSUME_NONNULL_END

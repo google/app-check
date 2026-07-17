@@ -29,6 +29,8 @@
 #import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/_GACURLSessionDataResponse.h"
 
+#import "AppCheckCore/Sources/Core/_GACAppCheckAPIService+Testing.h"
+
 NS_ASSUME_NONNULL_BEGIN
 
 static NSString *const kAPIKeyHeaderKey = @"X-Goog-Api-Key";

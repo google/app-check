@@ -16,8 +16,8 @@
 
 #import "AppCheckCore/Tests/Unit/Utils/GACDeviceCheckAPIServiceFake.h"
 
-#import "FBLPromise+Testing.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
+#import "FBLPromise+Testing.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

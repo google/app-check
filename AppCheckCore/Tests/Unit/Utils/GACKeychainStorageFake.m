@@ -36,7 +36,7 @@
     });
     return;
   }
-  
+
   id<NSSecureCoding> object = self.storage[key];
   if (object && ![(id)object isKindOfClass:objectClass]) {
     object = nil;
@@ -47,9 +47,9 @@
 }
 
 - (void)setObject:(id<NSSecureCoding>)object
-           forKey:(NSString *)key
-      accessGroup:(nullable NSString *)accessGroup
-completionHandler:(void (^)(id<NSSecureCoding> _Nullable, NSError *_Nullable))handler {
+               forKey:(NSString *)key
+          accessGroup:(nullable NSString *)accessGroup
+    completionHandler:(void (^)(id<NSSecureCoding> _Nullable, NSError *_Nullable))handler {
   if (self.keychainError) {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
       handler(nil, self.keychainError);

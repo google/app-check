@@ -30,7 +30,8 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
 @property(nonatomic, copy, nullable) FIRRequestValidationBlock requestValidationBlock;
 @property(nonatomic, assign) BOOL isInvoked;
 
-- (FBLPromise<_GACURLSessionDataResponse *> *)gac_dataTaskPromiseWithRequest:(NSURLRequest *)URLRequest;
+- (FBLPromise<_GACURLSessionDataResponse *> *)gac_dataTaskPromiseWithRequest:
+    (NSURLRequest *)URLRequest;
 
 + (NSHTTPURLResponse *)HTTPResponseWithCode:(NSInteger)statusCode;
 

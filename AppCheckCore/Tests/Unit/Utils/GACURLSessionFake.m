@@ -20,7 +20,8 @@
 
 @implementation GACURLSessionFake
 
-- (FBLPromise<_GACURLSessionDataResponse *> *)gac_dataTaskPromiseWithRequest:(NSURLRequest *)URLRequest {
+- (FBLPromise<_GACURLSessionDataResponse *> *)gac_dataTaskPromiseWithRequest:
+    (NSURLRequest *)URLRequest {
   self.isInvoked = YES;
   self.lastRequest = URLRequest;
   if (self.requestValidationBlock) {
