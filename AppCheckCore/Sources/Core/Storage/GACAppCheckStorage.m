@@ -24,8 +24,8 @@
 
 #import <GoogleUtilities/GULKeychainStorage.h>
 
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Core/Storage/GACAppCheckStoredToken+GACAppCheckToken.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -75,14 +75,14 @@ static NSString *const kKeychainService = @"com.google.app_check_core.token_stor
         }
       })
       .recover(^NSError *(NSError *error) {
-        return [GACAppCheckErrorUtil keychainErrorWithError:error];
+        return [_GACAppCheckErrorUtil keychainErrorWithError:error];
       });
 }
 
 - (FBLPromise<NSNull *> *)setToken:(nullable GACAppCheckToken *)token {
   if (token) {
     return [self storeToken:token].recover(^NSError *(NSError *error) {
-      return [GACAppCheckErrorUtil keychainErrorWithError:error];
+      return [_GACAppCheckErrorUtil keychainErrorWithError:error];
     });
   } else {
     return [FBLPromise wrapErrorCompletion:^(FBLPromiseErrorCompletion _Nonnull handler) {
@@ -94,7 +94,7 @@ static NSString *const kKeychainService = @"com.google.app_check_core.token_stor
           return token;
         })
         .recover(^NSError *(NSError *error) {
-          return [GACAppCheckErrorUtil keychainErrorWithError:error];
+          return [_GACAppCheckErrorUtil keychainErrorWithError:error];
         });
   }
 }

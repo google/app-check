@@ -20,7 +20,7 @@
 
 #import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.h"
 
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 static NSString *const kAppName = @"GACAppAttestKeyIDStorageTestsApp";
 static NSString *const kAppID = @"app_id";
@@ -77,7 +77,7 @@ static NSString *const kAppID = @"app_id";
   __auto_type getPromise = [self.storage getAppAttestKeyID];
   XCTAssert(FBLWaitForPromisesWithTimeout(0.5));
   XCTAssertNotNil(getPromise.error);
-  XCTAssertEqualObjects(getPromise.error, [GACAppCheckErrorUtil appAttestKeyIDNotFound]);
+  XCTAssertEqualObjects(getPromise.error, [_GACAppCheckErrorUtil appAttestKeyIDNotFound]);
 }
 
 - (void)testSetGetAppAttestKeyIDPerApp {

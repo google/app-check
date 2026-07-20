@@ -19,11 +19,11 @@
 #import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h"
 #import "AppCheckCore/Sources/DeviceCheckProvider/GACDeviceCheckTokenGenerator.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACDeviceCheckProvider.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 #import "AppCheckCore/Tests/Utils/AppCheckBackoffWrapperFake/GACAppCheckBackoffWrapperFake.h"
 
@@ -32,7 +32,7 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
 
 - (instancetype)initWithAPIService:(id<GACDeviceCheckAPIServiceProtocol>)APIService
               deviceTokenGenerator:(id<GACDeviceCheckTokenGenerator>)deviceTokenGenerator
-                    backoffWrapper:(id<GACAppCheckBackoffWrapperProtocol>)backoffWrapper;
+                    backoffWrapper:(id<_GACAppCheckBackoffWrapperProtocol>)backoffWrapper;
 
 @end
 
@@ -120,7 +120,7 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
 
 - (void)testGetTokenWhenDeviceCheckIsNotSupported {
   NSError *expectedError =
-      [GACAppCheckErrorUtil unsupportedAttestationProvider:@"DeviceCheckProvider"];
+      [_GACAppCheckErrorUtil unsupportedAttestationProvider:@"DeviceCheckProvider"];
 
   // 0.1. Expect backoff wrapper to be used.
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];

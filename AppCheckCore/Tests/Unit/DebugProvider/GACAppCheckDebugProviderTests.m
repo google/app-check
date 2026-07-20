@@ -22,15 +22,24 @@
 
 #import "AppCheckCore/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckDebugProvider.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
 static NSString *const kDebugTokenEnvKey = @"AppCheckDebugToken";
 static NSString *const kFirebaseDebugTokenEnvKey = @"FIRAAppCheckDebugToken";
 static NSString *const kDebugTokenUserDefaultsKey = @"GACAppCheckDebugToken";
+static NSString *const kDebugTokenRegisteredUserDefaultsKey = @"GACAppCheckDebugTokenRegistered";
 
 @interface GACAppCheckDebugProvider (Tests)
 
-- (instancetype)initWithAPIService:(id<GACAppCheckDebugProviderAPIServiceProtocol>)APIService;
+- (instancetype)initWithAPIService:(id<GACAppCheckDebugProviderAPIServiceProtocol>)APIService
+                       serviceName:(NSString *)serviceName
+                      resourceName:(NSString *)resourceName;
+
++ (NSString *)registeredUserDefaultsKeyForServiceName:(NSString *)serviceName
+                                         resourceName:(NSString *)resourceName;
+
+@property(nonatomic, readonly, copy) NSString *registeredUserDefaultsKey;
 
 @end
 
@@ -51,7 +60,10 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
   self.processInfoMock = OCMPartialMock([NSProcessInfo processInfo]);
 
   self.fakeAPIService = OCMProtocolMock(@protocol(GACAppCheckDebugProviderAPIServiceProtocol));
-  self.provider = [[GACAppCheckDebugProvider alloc] initWithAPIService:self.fakeAPIService];
+  self.provider =
+      [[GACAppCheckDebugProvider alloc] initWithAPIService:self.fakeAPIService
+                                               serviceName:@"test-service"
+                                              resourceName:@"projects/test-project/apps/test-app"];
 }
 
 - (void)tearDown {
@@ -59,6 +71,8 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
   [self.processInfoMock stopMocking];
   self.processInfoMock = nil;
   [[GULUserDefaults standardUserDefaults] removeObjectForKey:kDebugTokenUserDefaultsKey];
+  [[GULUserDefaults standardUserDefaults] removeObjectForKey:kDebugTokenRegisteredUserDefaultsKey];
+  [super tearDown];
 }
 
 #pragma mark - Debug token generating/storing
@@ -69,7 +83,10 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
   NSString *envToken = @"env token";
   OCMExpect([self.processInfoMock processInfo]).andReturn(self.processInfoMock);
   OCMExpect([self.processInfoMock environment]).andReturn(@{kDebugTokenEnvKey : envToken});
-  self.provider = [[GACAppCheckDebugProvider alloc] initWithAPIService:self.fakeAPIService];
+  self.provider =
+      [[GACAppCheckDebugProvider alloc] initWithAPIService:self.fakeAPIService
+                                               serviceName:@"test-service"
+                                              resourceName:@"projects/test-project/apps/test-app"];
 
   XCTAssertEqualObjects([self.provider currentDebugToken], envToken);
 }
@@ -82,7 +99,10 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
   OCMExpect([self.processInfoMock environment])
       .andReturn(
           (@{kDebugTokenEnvKey : envToken, kFirebaseDebugTokenEnvKey : @"firebase env token"}));
-  self.provider = [[GACAppCheckDebugProvider alloc] initWithAPIService:self.fakeAPIService];
+  self.provider =
+      [[GACAppCheckDebugProvider alloc] initWithAPIService:self.fakeAPIService
+                                               serviceName:@"test-service"
+                                              resourceName:@"projects/test-project/apps/test-app"];
 
   XCTAssertEqualObjects([self.provider currentDebugToken], envToken);
 }
@@ -95,7 +115,10 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
   OCMExpect([self.processInfoMock environment]).andReturn((@{
     kFirebaseDebugTokenEnvKey : envToken
   }));
-  self.provider = [[GACAppCheckDebugProvider alloc] initWithAPIService:self.fakeAPIService];
+  self.provider =
+      [[GACAppCheckDebugProvider alloc] initWithAPIService:self.fakeAPIService
+                                               serviceName:@"test-service"
+                                              resourceName:@"projects/test-project/apps/test-app"];
 
   XCTAssertEqualObjects([self.provider currentDebugToken], envToken);
 }
@@ -106,7 +129,10 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
   OCMExpect([self.processInfoMock environment])
       .andReturn(
           (@{kDebugTokenEnvKey : envToken, kFirebaseDebugTokenEnvKey : @"firebase env token"}));
-  self.provider = [[GACAppCheckDebugProvider alloc] initWithAPIService:self.fakeAPIService];
+  self.provider =
+      [[GACAppCheckDebugProvider alloc] initWithAPIService:self.fakeAPIService
+                                               serviceName:@"test-service"
+                                              resourceName:@"projects/test-project/apps/test-app"];
 
   XCTAssertEqualObjects([self.provider currentDebugToken], envToken);
 }
@@ -223,6 +249,111 @@ typedef void (^GACAppCheckTokenValidationBlock)(GACAppCheckToken *_Nullable toke
 
   // 3. Verify fakes.
   OCMVerifyAll(self.fakeAPIService);
+}
+
+- (void)testGetTokenSuccessSetsRegisteredFlag {
+  // 1. Stub API service.
+  NSString *expectedDebugToken = [self.provider currentDebugToken];
+  GACAppCheckToken *validToken = [[GACAppCheckToken alloc] initWithToken:@"valid_token"
+                                                          expirationDate:[NSDate date]
+                                                          receivedAtDate:[NSDate date]];
+  FBLPromise *resolvedPromise = [FBLPromise pendingPromise];
+  [resolvedPromise fulfill:validToken];
+  OCMExpect([self.fakeAPIService appCheckTokenWithDebugToken:expectedDebugToken limitedUse:NO])
+      .andReturn(resolvedPromise);
+
+  [[GULUserDefaults standardUserDefaults]
+      removeObjectForKey:self.provider.registeredUserDefaultsKey];
+
+  // 2. Validate get token.
+  [self validateGetToken:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
+    XCTAssertNil(error);
+    XCTAssertNotNil(token);
+  }];
+
+  // 3. Verify flag is now YES.
+  XCTAssertTrue(
+      [[GULUserDefaults standardUserDefaults] boolForKey:self.provider.registeredUserDefaultsKey]);
+
+  // 4. Verify fakes.
+  OCMVerifyAll(self.fakeAPIService);
+}
+
+- (void)testGetTokenPermanentFailureClearsRegisteredFlag {
+  // 1. Stub API service.
+  NSString *expectedDebugToken = [self.provider currentDebugToken];
+  NSError *APIError = [NSError errorWithDomain:@"testGetTokenPermanentFailureClearsRegisteredFlag"
+                                          code:-1
+                                      userInfo:nil];
+  FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
+  [rejectedPromise reject:APIError];
+  OCMExpect([self.fakeAPIService appCheckTokenWithDebugToken:expectedDebugToken limitedUse:NO])
+      .andReturn(rejectedPromise);
+
+  // Pre-populate flag to YES.
+  [[GULUserDefaults standardUserDefaults] setBool:YES
+                                           forKey:self.provider.registeredUserDefaultsKey];
+
+  // 2. Validate get token.
+  [self validateGetToken:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
+    XCTAssertNotNil(error);
+    XCTAssertNil(token);
+  }];
+
+  // 3. Verify flag is cleared.
+  XCTAssertNil([[GULUserDefaults standardUserDefaults]
+      objectForKey:self.provider.registeredUserDefaultsKey]);
+
+  // 4. Verify fakes.
+  OCMVerifyAll(self.fakeAPIService);
+}
+
+- (void)testGetTokenNetworkFailureDoesNotClearRegisteredFlag {
+  // 1. Stub API service.
+  NSString *expectedDebugToken = [self.provider currentDebugToken];
+  NSError *networkError = [NSError errorWithDomain:GACAppCheckErrorDomain
+                                              code:GACAppCheckErrorCodeServerUnreachable
+                                          userInfo:nil];
+  FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
+  [rejectedPromise reject:networkError];
+  OCMExpect([self.fakeAPIService appCheckTokenWithDebugToken:expectedDebugToken limitedUse:NO])
+      .andReturn(rejectedPromise);
+
+  // Pre-populate flag to YES.
+  [[GULUserDefaults standardUserDefaults] setBool:YES
+                                           forKey:self.provider.registeredUserDefaultsKey];
+
+  // 2. Validate get token.
+  [self validateGetToken:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
+    XCTAssertNotNil(error);
+    XCTAssertNil(token);
+  }];
+
+  // 3. Verify flag is still YES.
+  XCTAssertTrue(
+      [[GULUserDefaults standardUserDefaults] boolForKey:self.provider.registeredUserDefaultsKey]);
+
+  // 4. Verify fakes.
+  OCMVerifyAll(self.fakeAPIService);
+}
+
+#pragma mark - Keys
+
+- (void)testRegisteredUserDefaultsKeyForServiceName_resourceName {
+  XCTAssertEqualObjects(
+      [GACAppCheckDebugProvider registeredUserDefaultsKeyForServiceName:@"app1"
+                                                           resourceName:@"projects/p1/apps/a1"],
+      @"GACAppCheckDebugTokenRegistered_app1_projects_p1_apps_a1");
+  XCTAssertEqualObjects(
+      [GACAppCheckDebugProvider registeredUserDefaultsKeyForServiceName:@"app2"
+                                                           resourceName:@"projects/p2/apps/a2"],
+      @"GACAppCheckDebugTokenRegistered_app2_projects_p2_apps_a2");
+  XCTAssertEqualObjects([GACAppCheckDebugProvider registeredUserDefaultsKeyForServiceName:@""
+                                                                             resourceName:@""],
+                        @"GACAppCheckDebugTokenRegistered_default_default");
+  XCTAssertEqualObjects([GACAppCheckDebugProvider registeredUserDefaultsKeyForServiceName:nil
+                                                                             resourceName:nil],
+                        @"GACAppCheckDebugTokenRegistered_default_default");
 }
 
 #pragma mark - Helpers

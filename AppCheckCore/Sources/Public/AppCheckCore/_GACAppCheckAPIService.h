@@ -16,30 +16,33 @@
 
 #import <Foundation/Foundation.h>
 
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckProvider.h"
+#import "GACAppCheckProvider.h"
 
 @class FBLPromise<Result>;
-@class GACURLSessionDataResponse;
+@class _GACURLSessionDataResponse;
 @class GACAppCheckToken;
 
 NS_ASSUME_NONNULL_BEGIN
 
-@protocol GACAppCheckAPIServiceProtocol <NSObject>
+// This header is for internal use within Google SDKs (Firebase, Google Sign-In).
+// It is not intended for use by external developers and may change without notice.
+
+@protocol _GACAppCheckAPIServiceProtocol <NSObject>
 
 @property(nonatomic, readonly) NSString *baseURL;
 
-- (FBLPromise<GACURLSessionDataResponse *> *)
+- (FBLPromise<_GACURLSessionDataResponse *> *)
     sendRequestWithURL:(NSURL *)requestURL
             HTTPMethod:(NSString *)HTTPMethod
                   body:(nullable NSData *)body
      additionalHeaders:(nullable NSDictionary<NSString *, NSString *> *)additionalHeaders;
 
 - (FBLPromise<GACAppCheckToken *> *)appCheckTokenWithAPIResponse:
-    (GACURLSessionDataResponse *)response;
+    (_GACURLSessionDataResponse *)response;
 
 @end
 
-@interface GACAppCheckAPIService : NSObject <GACAppCheckAPIServiceProtocol>
+@interface _GACAppCheckAPIService : NSObject <_GACAppCheckAPIServiceProtocol>
 
 /**
  * The default initializer.
@@ -56,6 +59,9 @@ NS_ASSUME_NONNULL_BEGIN
     NS_DESIGNATED_INITIALIZER;
 
 - (instancetype)init NS_UNAVAILABLE;
+
+- (FBLPromise<GACAppCheckToken *> *)appCheckTokenWithAPIResponse:
+    (_GACURLSessionDataResponse *)response;
 
 @end
 

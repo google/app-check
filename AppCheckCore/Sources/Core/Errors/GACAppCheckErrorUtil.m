@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 #import <DeviceCheck/DeviceCheck.h>
 
@@ -24,7 +24,12 @@
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
 
-@implementation GACAppCheckErrorUtil
+NSString *const kGACAppCheckMissingRecaptchaSDKMessage =
+    @"The reCAPTCHA Enterprise SDK is not linked. See "
+    @"https://firebase.google.com/docs/app-check/ios/"
+    @"recaptcha-enterprise-provider#prepare-environment";
+
+@implementation _GACAppCheckErrorUtil
 
 + (NSError *)publicDomainErrorWithError:(NSError *)error {
   if ([error.domain isEqualToString:GACAppCheckErrorDomain]) {
@@ -105,6 +110,12 @@
           providerName];
   return [self appCheckErrorWithCode:GACAppCheckErrorCodeUnsupported
                        failureReason:failureReason
+                     underlyingError:nil];
+}
+
++ (NSError *)missingRecaptchaSDKError {
+  return [self appCheckErrorWithCode:GACAppCheckErrorCodeUnsupported
+                       failureReason:kGACAppCheckMissingRecaptchaSDKMessage
                      underlyingError:nil];
 }
 

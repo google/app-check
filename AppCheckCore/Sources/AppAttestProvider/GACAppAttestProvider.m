@@ -30,17 +30,17 @@
 #import "AppCheckCore/Sources/AppAttestProvider/GACAppAttestService.h"
 #import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestArtifactStorage.h"
 #import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.h"
-#import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
-#import "AppCheckCore/Sources/Core/Backoff/GACAppCheckBackoffWrapper.h"
 #import "AppCheckCore/Sources/Core/GACAppCheckLogger+Internal.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckAPIService.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckBackoffWrapper.h"
 
 #import "AppCheckCore/Sources/Core/Utils/GACAppCheckCryptoUtils.h"
 
 #import "AppCheckCore/Sources/AppAttestProvider/Errors/GACAppAttestRejectionError.h"
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Core/Errors/GACAppCheckHTTPError.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -108,7 +108,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) id<GACAppAttestService> appAttestService;
 @property(nonatomic, readonly) id<GACAppAttestKeyIDStorageProtocol> keyIDStorage;
 @property(nonatomic, readonly) id<GACAppAttestArtifactStorageProtocol> artifactStorage;
-@property(nonatomic, readonly) id<GACAppCheckBackoffWrapperProtocol> backoffWrapper;
+@property(nonatomic, readonly) id<_GACAppCheckBackoffWrapperProtocol> backoffWrapper;
 
 @property(nonatomic, nullable) FBLPromise<GACAppCheckToken *> *ongoingGetTokenOperation;
 @property(nonatomic, assign) BOOL ongoingGetTokenOperationLimitedUse;
@@ -123,7 +123,7 @@ NS_ASSUME_NONNULL_BEGIN
                               APIService:(id<GACAppAttestAPIServiceProtocol>)APIService
                             keyIDStorage:(id<GACAppAttestKeyIDStorageProtocol>)keyIDStorage
                          artifactStorage:(id<GACAppAttestArtifactStorageProtocol>)artifactStorage
-                          backoffWrapper:(id<GACAppCheckBackoffWrapperProtocol>)backoffWrapper {
+                          backoffWrapper:(id<_GACAppCheckBackoffWrapperProtocol>)backoffWrapper {
   self = [super init];
   if (self) {
     _appAttestService = appAttestService;
@@ -151,11 +151,11 @@ NS_ASSUME_NONNULL_BEGIN
   GACAppAttestKeyIDStorage *keyIDStorage =
       [[GACAppAttestKeyIDStorage alloc] initWithKeySuffix:storageKeySuffix];
 
-  GACAppCheckAPIService *APIService =
-      [[GACAppCheckAPIService alloc] initWithURLSession:URLSession
-                                                baseURL:baseURL
-                                                 APIKey:APIKey
-                                           requestHooks:requestHooks];
+  _GACAppCheckAPIService *APIService =
+      [[_GACAppCheckAPIService alloc] initWithURLSession:URLSession
+                                                 baseURL:baseURL
+                                                  APIKey:APIKey
+                                            requestHooks:requestHooks];
 
   GACAppAttestAPIService *appAttestAPIService =
       [[GACAppAttestAPIService alloc] initWithAPIService:APIService resourceName:resourceName];
@@ -164,7 +164,7 @@ NS_ASSUME_NONNULL_BEGIN
       [[GACAppAttestArtifactStorage alloc] initWithKeySuffix:storageKeySuffix
                                                  accessGroup:accessGroup];
 
-  GACAppCheckBackoffWrapper *backoffWrapper = [[GACAppCheckBackoffWrapper alloc] init];
+  _GACAppCheckBackoffWrapper *backoffWrapper = [[_GACAppCheckBackoffWrapper alloc] init];
 
   return [self initWithAppAttestService:DCAppAttestService.sharedService
                              APIService:appAttestAPIService
@@ -341,9 +341,10 @@ NS_ASSUME_NONNULL_BEGIN
                                             completionHandler:handler];
                            }]
                     .recoverOn(self.queue, ^id(NSError *error) {
-                      return [GACAppCheckErrorUtil appAttestAttestKeyFailedWithError:error
-                                                                               keyId:keyID
-                                                                      clientDataHash:challengeHash];
+                      return
+                          [_GACAppCheckErrorUtil appAttestAttestKeyFailedWithError:error
+                                                                             keyId:keyID
+                                                                    clientDataHash:challengeHash];
                     });
               })
       .thenOn(self.queue, ^FBLPromise<GACAppAttestKeyAttestationResult *> *(NSData *attestation) {
@@ -476,47 +477,50 @@ NS_ASSUME_NONNULL_BEGIN
                     // 1.2. Get the statement SHA256 hash.
                     return [GACAppCheckCryptoUtils sha256HashFromData:[statementForAssertion copy]];
                   }]
-      .thenOn(
-          self.queue,
-          ^FBLPromise<NSData *> *(NSData *statementHash) {
-            // 2. Generate App Attest assertion.
-            return [FBLPromise onQueue:self.queue
-                       wrapObjectOrErrorCompletion:^(
-                           FBLPromiseObjectOrErrorCompletion _Nonnull handler) {
-                         [self.appAttestService generateAssertion:keyID
-                                                   clientDataHash:statementHash
-                                                completionHandler:handler];
-                       }]
-                .recoverOn(self.queue, ^id(NSError *appAttestError) {
-                  NSError *error = [GACAppCheckErrorUtil
-                      appAttestGenerateAssertionFailedWithError:appAttestError
-                                                          keyId:keyID
-                                                 clientDataHash:statementHash];
+      .thenOn(self.queue,
+              ^FBLPromise<NSData *> *(NSData *statementHash) {
+                // 2. Generate App Attest assertion.
+                return [FBLPromise onQueue:self.queue
+                           wrapObjectOrErrorCompletion:^(
+                               FBLPromiseObjectOrErrorCompletion _Nonnull handler) {
+                             [self.appAttestService generateAssertion:keyID
+                                                       clientDataHash:statementHash
+                                                    completionHandler:handler];
+                           }]
+                    .recoverOn(self.queue, ^id(NSError *appAttestError) {
+                      NSError *error = [_GACAppCheckErrorUtil
+                          appAttestGenerateAssertionFailedWithError:appAttestError
+                                                              keyId:keyID
+                                                     clientDataHash:statementHash];
 
-                  // If Apple rejected the key (DCErrorInvalidKey or
-                  // DCErrorInvalidInput) then reset the attestation and
-                  // throw a specific error to signal retry (GACAppAttestRejectionError).
-                  NSError *underlyingError = error.userInfo[NSUnderlyingErrorKey];
-                  if (underlyingError && [underlyingError.domain isEqualToString:DCErrorDomain] &&
-                      (underlyingError.code == DCErrorInvalidKey ||
-                       underlyingError.code == DCErrorInvalidInput)) {
-                    NSString *logMessage = [NSString
-                        stringWithFormat:@"App Attest invalid key/input; the existing attestation "
-                                         @"will be reset. DC Error Code: %@.",
-                                         @(underlyingError.code)];
-                    GACAppCheckLog(GACLoggerAppCheckMessageCodeAssertionRejected,
-                                   GACAppCheckLogLevelDebug, logMessage);
-                    // Reset the attestation.
-                    return [self resetAttestation].thenOn(self.queue, ^NSError *(id result) {
-                      // Throw the rejection error.
-                      return [[GACAppAttestRejectionError alloc] initWithUnderlyingError:error];
+                      // If Apple rejected the key (DCErrorInvalidKey,
+                      // DCErrorInvalidInput or DCErrorUnknownSystemFailure) then reset the
+                      // attestation and throw a specific error to signal retry
+                      // (GACAppAttestRejectionError).
+                      NSError *underlyingError = error.userInfo[NSUnderlyingErrorKey];
+                      if (underlyingError &&
+                          [underlyingError.domain isEqualToString:DCErrorDomain] &&
+                          (underlyingError.code == DCErrorInvalidKey ||
+                           underlyingError.code == DCErrorInvalidInput ||
+                           underlyingError.code == DCErrorUnknownSystemFailure)) {
+                        NSString *logMessage =
+                            [NSString stringWithFormat:@"App Attest invalid key/input/system "
+                                                       @"failure; the existing attestation "
+                                                       @"will be reset. DC Error Code: %@.",
+                                                       @(underlyingError.code)];
+                        GACAppCheckLog(GACLoggerAppCheckMessageCodeAssertionRejected,
+                                       GACAppCheckLogLevelDebug, logMessage);
+                        // Reset the attestation.
+                        return [self resetAttestation].thenOn(self.queue, ^NSError *(id result) {
+                          // Throw the rejection error.
+                          return [[GACAppAttestRejectionError alloc] initWithUnderlyingError:error];
+                        });
+                      }
+
+                      // Otherwise just re-throw the error.
+                      return error;
                     });
-                  }
-
-                  // Otherwise just re-throw the error.
-                  return error;
-                });
-          })
+              })
       // 3. Compose the result object.
       .thenOn(self.queue, ^GACAppAttestAssertionData *(NSData *assertion) {
         return [[GACAppAttestAssertionData alloc] initWithChallenge:challenge
@@ -570,7 +574,7 @@ NS_ASSUME_NONNULL_BEGIN
   if (self.appAttestService.isSupported) {
     return [FBLPromise resolvedWith:[NSNull null]];
   } else {
-    NSError *error = [GACAppCheckErrorUtil unsupportedAttestationProvider:@"AppAttestProvider"];
+    NSError *error = [_GACAppCheckErrorUtil unsupportedAttestationProvider:@"AppAttestProvider"];
     FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
     [rejectedPromise reject:error];
     return rejectedPromise;
@@ -596,7 +600,7 @@ NS_ASSUME_NONNULL_BEGIN
              }]
       .recoverOn(self.queue,
                  ^id(NSError *error) {
-                   return [GACAppCheckErrorUtil appAttestGenerateKeyFailedWithError:error];
+                   return [_GACAppCheckErrorUtil appAttestGenerateKeyFailedWithError:error];
                  })
       .thenOn(self.queue, ^FBLPromise<NSString *> *(NSString *keyID) {
         return [self.keyIDStorage setAppAttestKeyID:keyID];

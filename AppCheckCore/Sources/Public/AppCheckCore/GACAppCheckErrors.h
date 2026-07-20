@@ -45,6 +45,7 @@ typedef NS_ENUM(NSInteger, GACAppCheckMessageCode) {
 
   // App Check
   GACLoggerAppCheckMessageCodeProviderIsMissing = 2002,
+  GACLoggerAppCheckMessageCodeStagingModeEnabled = 2003,
   GACLoggerAppCheckMessageCodeUnexpectedHTTPCode = 3001,
 
   // Debug Provider

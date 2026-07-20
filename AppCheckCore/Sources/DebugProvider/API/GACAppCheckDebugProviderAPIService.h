@@ -18,7 +18,7 @@
 
 @class FBLPromise<Result>;
 @class GACAppCheckToken;
-@protocol GACAppCheckAPIServiceProtocol;
+@protocol _GACAppCheckAPIServiceProtocol;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -33,12 +33,12 @@ NS_ASSUME_NONNULL_BEGIN
     : NSObject <GACAppCheckDebugProviderAPIServiceProtocol>
 
 /// Default initializer.
-/// @param APIService An instance implementing `GACAppCheckAPIServiceProtocol` to be used to send
+/// @param APIService An instance implementing `_GACAppCheckAPIServiceProtocol` to be used to send
 /// network requests to the App Check backend.
 /// @param resourceName The name of the resource protected by App Check; for a Firebase App this is
 /// "projects/{project_id}/apps/{app_id}". See https://google.aip.dev/122 for more details about
 /// resource names.
-- (instancetype)initWithAPIService:(id<GACAppCheckAPIServiceProtocol>)APIService
+- (instancetype)initWithAPIService:(id<_GACAppCheckAPIServiceProtocol>)APIService
                       resourceName:(NSString *)resourceName;
 
 @end

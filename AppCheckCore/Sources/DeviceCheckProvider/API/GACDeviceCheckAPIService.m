@@ -22,11 +22,11 @@
 #import "FBLPromises.h"
 #endif
 
-#import "AppCheckCore/Sources/Core/APIService/GACAppCheckAPIService.h"
 #import "AppCheckCore/Sources/Core/APIService/GACAppCheckToken+APIResponse.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckAPIService.h"
 
-#import "AppCheckCore/Sources/Core/Errors/GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Core/GACAppCheckLogger+Internal.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -37,7 +37,7 @@ static NSString *const kLimitedUseField = @"limited_use";
 
 @interface GACDeviceCheckAPIService ()
 
-@property(nonatomic, readonly) id<GACAppCheckAPIServiceProtocol> APIService;
+@property(nonatomic, readonly) id<_GACAppCheckAPIServiceProtocol> APIService;
 
 @property(nonatomic, readonly) NSString *resourceName;
 
@@ -45,7 +45,7 @@ static NSString *const kLimitedUseField = @"limited_use";
 
 @implementation GACDeviceCheckAPIService
 
-- (instancetype)initWithAPIService:(id<GACAppCheckAPIServiceProtocol>)APIService
+- (instancetype)initWithAPIService:(id<_GACAppCheckAPIServiceProtocol>)APIService
                       resourceName:(NSString *)resourceName {
   self = [super init];
   if (self) {
@@ -64,13 +64,13 @@ static NSString *const kLimitedUseField = @"limited_use";
   NSURL *URL = [NSURL URLWithString:URLString];
 
   return [self HTTPBodyWithDeviceToken:deviceToken limitedUse:limitedUse]
-      .then(^FBLPromise<GACURLSessionDataResponse *> *(NSData *HTTPBody) {
+      .then(^FBLPromise<_GACURLSessionDataResponse *> *(NSData *HTTPBody) {
         return [self.APIService sendRequestWithURL:URL
                                         HTTPMethod:@"POST"
                                               body:HTTPBody
                                  additionalHeaders:@{kContentTypeKey : kJSONContentType}];
       })
-      .then(^id _Nullable(GACURLSessionDataResponse *_Nullable response) {
+      .then(^id _Nullable(_GACURLSessionDataResponse *_Nullable response) {
         return [self.APIService appCheckTokenWithAPIResponse:response];
       });
 }
@@ -79,34 +79,26 @@ static NSString *const kLimitedUseField = @"limited_use";
                                        limitedUse:(BOOL)limitedUse {
   if (deviceToken.length <= 0) {
     FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
-    [rejectedPromise reject:[GACAppCheckErrorUtil
+    [rejectedPromise reject:[_GACAppCheckErrorUtil
                                 errorWithFailureReason:@"DeviceCheck token must not be empty."]];
     return rejectedPromise;
   }
 
-  return [FBLPromise
-      onQueue:[self backgroundQueue]
-           do:^id _Nullable {
-             NSString *base64EncodedToken = [deviceToken base64EncodedStringWithOptions:0];
+  NSString *base64EncodedToken = [deviceToken base64EncodedStringWithOptions:0];
 
-             NSError *encodingError;
-             NSData *payloadJSON = [NSJSONSerialization dataWithJSONObject:@{
-               kDeviceTokenField : base64EncodedToken,
-               kLimitedUseField : @(limitedUse)
-             }
-                                                                   options:0
-                                                                     error:&encodingError];
+  NSError *encodingError;
+  NSData *payloadJSON = [NSJSONSerialization
+      dataWithJSONObject:@{kDeviceTokenField : base64EncodedToken, kLimitedUseField : @(limitedUse)}
+                 options:0
+                   error:&encodingError];
 
-             if (payloadJSON != nil) {
-               return payloadJSON;
-             } else {
-               return [GACAppCheckErrorUtil JSONSerializationError:encodingError];
-             }
-           }];
-}
-
-- (dispatch_queue_t)backgroundQueue {
-  return dispatch_get_global_queue(QOS_CLASS_UTILITY, 0);
+  FBLPromise<NSData *> *payloadPromise = [FBLPromise pendingPromise];
+  if (payloadJSON != nil) {
+    [payloadPromise fulfill:payloadJSON];
+  } else {
+    [payloadPromise reject:[_GACAppCheckErrorUtil JSONSerializationError:encodingError]];
+  }
+  return payloadPromise;
 }
 
 @end
