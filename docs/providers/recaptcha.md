@@ -17,13 +17,13 @@ sequenceDiagram
     participant Backend as Firebase Backend
 
     App->>Provider: getToken(limitedUse)
-    
+
     Provider->>Generator: getRecaptchaToken()
     Note right of Generator: Wrapped in Backoff Wrapper
     Generator->>ReCAPTCHA: execute(withAction: "app_check_ios")
     ReCAPTCHA-->>Generator: reCAPTCHA Token
     Generator-->>Provider: reCAPTCHA Token
-    
+
     Provider->>API: appCheckToken(with: recaptchaToken, limitedUse)
     API->>Backend: POST /exchangeRecaptchaEnterpriseToken<br/>{ limited_use: true/false }
     Note right of Backend: Verifies token with reCAPTCHA Enterprise.
