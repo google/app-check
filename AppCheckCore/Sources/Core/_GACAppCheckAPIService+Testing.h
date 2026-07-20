@@ -33,7 +33,8 @@ NS_ASSUME_NONNULL_BEGIN
                            baseURL:(nullable NSString *)baseURL
                             APIKey:(nullable NSString *)APIKey
                       requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks
-                       environment:(NSDictionary<NSString *, NSString *> *)environment;
+                       environment:(NSDictionary<NSString *, NSString *> *)environment
+    NS_DESIGNATED_INITIALIZER;
 
 @end
 
