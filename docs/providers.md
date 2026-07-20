@@ -6,6 +6,8 @@ resets.
 
 Select a provider below for detailed documentation:
 
+*   [reCAPTCHA Provider](providers/recaptcha.md)
+    *   Verifies app integrity using the reCAPTCHA Enterprise API.
 *   [AppAttest Provider](providers/app-attest.md)
     *   The primary provider for modern iOS devices, wrapping `DCAppAttestService`.
     *   Features complex state management, automatic retries, and request coalescing.

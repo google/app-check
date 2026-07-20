@@ -72,6 +72,11 @@ classDiagram
         -LocalDebugToken
     }
 
+    class AppCheckRecaptchaProvider {
+        -RecaptchaTokenGenerator
+        -RecaptchaAPIService
+    }
+
     class GACAppCheckToken {
         +token: String
         +expirationDate: Date
@@ -81,5 +86,6 @@ classDiagram
     GACAppCheckProvider <|-- GACAppAttestProvider : implements
     GACAppCheckProvider <|-- GACDeviceCheckProvider : implements
     GACAppCheckProvider <|-- GACAppCheckDebugProvider : implements
+    GACAppCheckProvider <|-- AppCheckRecaptchaProvider : implements
     GACAppCheck --> GACAppCheckToken : returns
 ```

@@ -45,7 +45,7 @@ The App Attest provider uses a two-phase process:
         *   **Triggers for Reset & Internal Retry:**
             *   `DCErrorInvalidKey` / `DCErrorInvalidInput` (Apple DeviceCheck error).
             *   HTTP 403 (Attestation Rejected) from the backend during handshake.
-    *   **Backoff Strategy (External):** An outer `GACAppCheckBackoffWrapper`
+    *   **Backoff Strategy (External):** An outer `_GACAppCheckBackoffWrapper`
         protects the backend from traffic spikes by enforcing delays on
         subsequent attempts based on the error type.
         *   **No Backoff (Immediately Permitted):** For non-HTTP errors (e.g.,

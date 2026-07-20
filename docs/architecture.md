@@ -54,7 +54,7 @@ The `GACAppCheck` class acts as the central coordinator.
 ## Exponential Backoff Strategy
 To prevent overwhelming the backend or Apple's servers during failures,
 `AppCheckCore` implements a robust exponential backoff strategy via
-`GACAppCheckBackoffWrapper`.
+`_GACAppCheckBackoffWrapper`.
 
 ### Algorithm
 The backoff interval is calculated as follows:
@@ -78,7 +78,7 @@ codes returned by the backend:
 | **Other 5xx** | **Exponential** | Standard server errors. |
 
 ### Implementation
-*   **Class:** `GACAppCheckBackoffWrapper`
+*   **Class:** `_GACAppCheckBackoffWrapper`
 *   **Usage:** Providers (`GACAppAttestProvider`, `GACDeviceCheckProvider`)
     wrap their network and attestation calls in this backoff mechanism.
 *   **State:** The wrapper tracks the failure count and the last failure
