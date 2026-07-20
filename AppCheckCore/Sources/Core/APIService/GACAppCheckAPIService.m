@@ -50,6 +50,13 @@ static NSString *const kAppCheckUseStagingEnvKey = @"_AppCheckUseStaging";
 @property(nonatomic, readonly, nullable) NSString *APIKey;
 @property(nonatomic, readonly) NSArray<GACAppCheckAPIRequestHook> *requestHooks;
 
+- (instancetype)initWithURLSession:(NSURLSession *)session
+                           baseURL:(nullable NSString *)baseURL
+                            APIKey:(nullable NSString *)APIKey
+                      requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks
+                       environment:(NSDictionary<NSString *, NSString *> *)environment
+    NS_DESIGNATED_INITIALIZER;
+
 @end
 
 @implementation _GACAppCheckAPIService
