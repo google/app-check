@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
-#import "AppCheckCore/Sources/DeviceCheckProvider/GACDeviceCheckTokenGenerator.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckDebugProvider.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface GACDeviceCheckTokenGeneratorFake : NSObject <GACDeviceCheckTokenGenerator>
+@interface GACAppCheckDebugProvider (Internal)
 
-@property(nonatomic, assign, getter=isSupported) BOOL supported;
-
-@property(nonatomic, copy, nullable) NSData *tokenToReturn;
-@property(nonatomic, strong, nullable) NSError *errorToReturn;
-
-@property(nonatomic, assign) BOOL generateTokenCalled;
+/// Internal initializer.
+- (instancetype)initWithServiceName:(NSString *)serviceName
+                       resourceName:(NSString *)resourceName
+                            baseURL:(nullable NSString *)baseURL
+                             APIKey:(NSString *)APIKey
+                       requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks
+                        environment:(NSDictionary<NSString *, NSString *> *)environment;
 
 @end
 

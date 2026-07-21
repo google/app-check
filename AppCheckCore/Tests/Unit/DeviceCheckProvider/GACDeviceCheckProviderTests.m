@@ -73,7 +73,7 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
 
 - (void)testGetTokenSuccess {
   // 1. Expect GACDeviceCheckTokenGenerator.isSupported.
-  self.fakeTokenGenerator.isSupported = YES;
+  self.fakeTokenGenerator.supported = YES;
 
   // 2. Expect device token to be generated.
   NSData *deviceToken = [NSData data];
@@ -133,7 +133,7 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
   };
 
   // 1. Expect GACDeviceCheckTokenGenerator.isSupported.
-  self.fakeTokenGenerator.isSupported = NO;
+  self.fakeTokenGenerator.supported = NO;
 
   // 3. Call getToken and validate the result.
   XCTestExpectation *completionExpectation =
@@ -176,7 +176,7 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
   };
 
   // 1. Expect GACDeviceCheckTokenGenerator.isSupported.
-  self.fakeTokenGenerator.isSupported = YES;
+  self.fakeTokenGenerator.supported = YES;
 
   // 2. Expect device token to be generated.
   self.fakeTokenGenerator.errorToReturn = deviceTokenError;
@@ -222,7 +222,7 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
   };
 
   // 1. Expect GACDeviceCheckTokenGenerator.isSupported.
-  self.fakeTokenGenerator.isSupported = YES;
+  self.fakeTokenGenerator.supported = YES;
 
   // 2. Expect device token to be generated.
   NSData *deviceToken = [NSData data];
@@ -260,7 +260,7 @@ GAC_DEVICE_CHECK_PROVIDER_AVAILABILITY
 
 - (void)testGetLimitedUseTokenSuccess {
   // 1. Expect GACDeviceCheckTokenGenerator.isSupported.
-  self.fakeTokenGenerator.isSupported = YES;
+  self.fakeTokenGenerator.supported = YES;
 
   // 2. Expect device token to be generated.
   NSData *deviceToken = [NSData data];

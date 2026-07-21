@@ -22,13 +22,19 @@
 
 - (FBLPromise<_GACURLSessionDataResponse *> *)gac_dataTaskPromiseWithRequest:
     (NSURLRequest *)URLRequest {
-  self.isInvoked = YES;
-  self.lastRequest = URLRequest;
-  if (self.requestValidationBlock) {
-    self.requestValidationBlock(URLRequest);
+  void (^validationBlock)(NSURLRequest *);
+  FBLPromise *promise;
+  @synchronized(self) {
+    _isInvoked = YES;
+    _lastRequest = URLRequest;
+    validationBlock = _requestValidationBlock;
+    promise = _resultPromise;
   }
-  if (self.resultPromise) {
-    return self.resultPromise;
+  if (validationBlock) {
+    validationBlock(URLRequest);
+  }
+  if (promise) {
+    return promise;
   }
   return [FBLPromise pendingPromise];
 }

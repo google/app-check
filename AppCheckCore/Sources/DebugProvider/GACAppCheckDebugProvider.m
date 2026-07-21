@@ -30,8 +30,8 @@
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckAPIService.h"
 
-#import "AppCheckCore/Sources/Core/GACAppCheckDebugProvider+Testing.h"
-#import "AppCheckCore/Sources/Core/_GACAppCheckAPIService+Testing.h"
+#import "AppCheckCore/Sources/Core/GACAppCheckDebugProvider+Internal.h"
+#import "AppCheckCore/Sources/Core/_GACAppCheckAPIService+Internal.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

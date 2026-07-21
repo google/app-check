@@ -24,7 +24,7 @@
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckErrors.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckToken.h"
 
-#import "AppCheckCore/Sources/Core/GACAppCheckDebugProvider+Testing.h"
+#import "AppCheckCore/Sources/Core/GACAppCheckDebugProvider+Internal.h"
 #import "AppCheckCore/Tests/Unit/Utils/GACAppCheckDebugProviderAPIServiceFake.h"
 
 static NSString *const kDebugTokenEnvKey = @"AppCheckDebugToken";

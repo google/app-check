@@ -134,7 +134,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   };
 
   // 1. Expect GACAppAttestService.isSupported.
-  self.fakeAppAttestService.isSupported = NO;
+  self.fakeAppAttestService.supported = NO;
 
   // 3. Call get token.
   XCTestExpectation *completionExpectation =
@@ -170,7 +170,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
   // 1. Expect GACAppAttestService.isSupported.
-  self.fakeAppAttestService.isSupported = YES;
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
@@ -234,7 +234,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
   // 1. Expect GACAppAttestService.isSupported.
-  self.fakeAppAttestService.isSupported = YES;
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
@@ -281,7 +281,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
   // 1. Expect GACAppAttestService.isSupported.
-  self.fakeAppAttestService.isSupported = YES;
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
@@ -337,7 +337,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
   // 1. Expect GACAppAttestService.isSupported.
-  self.fakeAppAttestService.isSupported = YES;
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
@@ -480,7 +480,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 
 - (void)testGetToken_WhenKeyRegisteredAndChallengeRequestError {
   // 1. Expect GACAppAttestService.isSupported.
-  self.fakeAppAttestService.isSupported = YES;
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
@@ -513,7 +513,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 
 - (void)testGetToken_WhenKeyRegisteredAndGenerateAssertionError {
   // 1. Expect GACAppAttestService.isSupported.
-  self.fakeAppAttestService.isSupported = YES;
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
@@ -561,7 +561,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 
 - (void)testGetToken_WhenKeyRegisteredAndTokenExchangeRequestError {
   // 1. Expect GACAppAttestService.isSupported.
-  self.fakeAppAttestService.isSupported = YES;
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
@@ -630,7 +630,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
   // 1. Expect GACAppAttestService.isSupported.
-  self.fakeAppAttestService.isSupported = YES;
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
@@ -697,7 +697,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
   // 1. Expect GACAppAttestService.isSupported.
-  self.fakeAppAttestService.isSupported = YES;
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
@@ -925,7 +925,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
   // 1. Expect GACAppAttestService.isSupported.
-  self.fakeAppAttestService.isSupported = YES;
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = [NSUUID UUID].UUIDString;
@@ -974,7 +974,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 - (void)assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAttestationError:
     (NSError *)error {
   // 1. Expect GACAppAttestService.isSupported.
-  self.fakeAppAttestService.isSupported = YES;
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
@@ -1032,7 +1032,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 - (void)assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAssertionError:
     (NSError *)error {
   // 1. Expect GACAppAttestService.isSupported.
-  self.fakeAppAttestService.isSupported = YES;
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
@@ -1057,7 +1057,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 
 - (void)expectAppAttestAvailabilityToBeCheckedAndNotExistingStoredKeyRequested {
   // 1. Expect GACAppAttestService.isSupported.
-  self.fakeAppAttestService.isSupported = YES;
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   FBLPromise *rejectedPromise = [FBLPromise pendingPromise];

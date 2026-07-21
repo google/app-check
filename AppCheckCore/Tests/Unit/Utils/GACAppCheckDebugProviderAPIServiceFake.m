@@ -21,16 +21,18 @@
 
 - (FBLPromise<GACAppCheckToken *> *)appCheckTokenWithDebugToken:(NSString *)debugToken
                                                      limitedUse:(BOOL)limitedUse {
-  self.passedDebugToken = debugToken;
-  self.passedLimitedUse = limitedUse;
-  if (limitedUse) {
-    if (self.limitedUseTokenPromise) {
-      return self.limitedUseTokenPromise;
+  FBLPromise *promise;
+  @synchronized(self) {
+    _passedDebugToken = debugToken;
+    _passedLimitedUse = limitedUse;
+    if (limitedUse) {
+      promise = _limitedUseTokenPromise;
+    } else {
+      promise = _tokenPromise;
     }
-  } else {
-    if (self.tokenPromise) {
-      return self.tokenPromise;
-    }
+  }
+  if (promise) {
+    return promise;
   }
   return [FBLPromise pendingPromise];
 }

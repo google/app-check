@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckDebugProvider.h"
+#import <GoogleUtilities/GULKeychainStorage.h>
+
+#import "AppCheckCore/Sources/Core/Storage/GACKeychainStorageProtocol.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface GACAppCheckDebugProvider (Testing)
-
-/// Test initializer.
-- (instancetype)initWithServiceName:(NSString *)serviceName
-                       resourceName:(NSString *)resourceName
-                            baseURL:(nullable NSString *)baseURL
-                             APIKey:(NSString *)APIKey
-                       requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks
-                        environment:(NSDictionary<NSString *, NSString *> *)environment;
-
+@interface GULKeychainStorage (GACKeychainStorageProtocol) <GACKeychainStorageProtocol>
 @end
 
 NS_ASSUME_NONNULL_END

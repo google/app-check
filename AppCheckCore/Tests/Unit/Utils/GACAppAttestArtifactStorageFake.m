@@ -21,13 +21,17 @@
 @implementation GACAppAttestArtifactStorageFake
 
 - (FBLPromise<NSData *> *)setArtifact:(nullable NSData *)artifact forKey:(NSString *)keyID {
-  self.setArtifactCallCount++;
-  return self.setArtifactPromise ?: [FBLPromise pendingPromise];
+  @synchronized(self) {
+    _setArtifactCallCount++;
+    return _setArtifactPromise ?: [FBLPromise pendingPromise];
+  }
 }
 
 - (FBLPromise<NSData *> *)getArtifactForKey:(NSString *)keyID {
-  self.getArtifactCallCount++;
-  return self.getArtifactPromise ?: [FBLPromise pendingPromise];
+  @synchronized(self) {
+    _getArtifactCallCount++;
+    return _getArtifactPromise ?: [FBLPromise pendingPromise];
+  }
 }
 
 @end

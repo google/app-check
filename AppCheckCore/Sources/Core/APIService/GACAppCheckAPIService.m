@@ -29,7 +29,7 @@
 #import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/_GACURLSessionDataResponse.h"
 
-#import "AppCheckCore/Sources/Core/_GACAppCheckAPIService+Testing.h"
+#import "AppCheckCore/Sources/Core/_GACAppCheckAPIService+Internal.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
