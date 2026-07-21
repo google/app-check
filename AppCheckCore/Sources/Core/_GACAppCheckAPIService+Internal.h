@@ -18,10 +18,10 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface _GACAppCheckAPIService (Testing)
+@interface _GACAppCheckAPIService (Internal)
 
 /**
- * Test initializer.
+ * Internal initializer.
  * @param session The URL session used to make network requests.
  * @param baseURL The base URL for the App Check service, e.g.,
  * `https://firebaseappcheck.googleapis.com/v1`.
