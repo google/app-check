@@ -21,7 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface GACDeviceCheckTokenGeneratorFake : NSObject <GACDeviceCheckTokenGenerator>
 
-@property(nonatomic, assign) BOOL isSupported;
+@property(nonatomic, assign, getter=isSupported) BOOL supported;
 
 @property(nonatomic, copy, nullable) NSData *tokenToReturn;
 @property(nonatomic, strong, nullable) NSError *errorToReturn;

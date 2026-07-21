@@ -21,7 +21,7 @@
 - (instancetype)init {
   self = [super init];
   if (self) {
-    _isSupported = YES;
+    _supported = YES;
   }
   return self;
 }
