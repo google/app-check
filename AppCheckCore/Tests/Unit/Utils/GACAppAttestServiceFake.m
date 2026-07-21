@@ -26,7 +26,7 @@
   return self;
 }
 
-@dynamic supported;
+@synthesize supported = _supported;
 
 - (void)generateKeyWithCompletionHandler:(void (^)(NSString *keyId,
                                                    NSError *error))completionHandler {
