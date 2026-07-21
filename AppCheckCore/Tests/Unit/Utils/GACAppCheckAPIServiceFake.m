@@ -24,23 +24,31 @@
             HTTPMethod:(NSString *)HTTPMethod
                   body:(nullable NSData *)body
      additionalHeaders:(nullable NSDictionary<NSString *, NSString *> *)additionalHeaders {
-  self.passedRequestURL = requestURL;
-  self.passedHTTPMethod = HTTPMethod;
-  self.passedBody = body;
-  self.passedAdditionalHeaders = additionalHeaders;
+  FBLPromise *promise;
+  @synchronized(self) {
+    _passedRequestURL = requestURL;
+    _passedHTTPMethod = HTTPMethod;
+    _passedBody = body;
+    _passedAdditionalHeaders = additionalHeaders;
+    promise = _sendRequestPromise;
+  }
 
-  if (self.sendRequestPromise) {
-    return self.sendRequestPromise;
+  if (promise) {
+    return promise;
   }
   return [FBLPromise pendingPromise];
 }
 
 - (FBLPromise<GACAppCheckToken *> *)appCheckTokenWithAPIResponse:
     (_GACURLSessionDataResponse *)response {
-  self.passedAPIResponse = response;
+  FBLPromise *promise;
+  @synchronized(self) {
+    _passedAPIResponse = response;
+    promise = _appCheckTokenPromise;
+  }
 
-  if (self.appCheckTokenPromise) {
-    return self.appCheckTokenPromise;
+  if (promise) {
+    return promise;
   }
   return [FBLPromise pendingPromise];
 }

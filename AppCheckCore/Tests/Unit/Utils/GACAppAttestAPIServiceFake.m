@@ -21,24 +21,30 @@
 @implementation GACAppAttestAPIServiceFake
 
 - (FBLPromise<NSData *> *)getRandomChallenge {
-  self.getRandomChallengeCallCount++;
-  return self.getRandomChallengePromise ?: [FBLPromise pendingPromise];
+  @synchronized(self) {
+    _getRandomChallengeCallCount++;
+    return _getRandomChallengePromise ?: [FBLPromise pendingPromise];
+  }
 }
 
 - (FBLPromise<GACAppAttestAttestationResponse *> *)attestKeyWithAttestation:(NSData *)attestation
                                                                       keyID:(NSString *)keyID
                                                                   challenge:(NSData *)challenge
                                                                  limitedUse:(BOOL)limitedUse {
-  self.attestKeyCallCount++;
-  return self.attestKeyPromise ?: [FBLPromise pendingPromise];
+  @synchronized(self) {
+    _attestKeyCallCount++;
+    return _attestKeyPromise ?: [FBLPromise pendingPromise];
+  }
 }
 
 - (FBLPromise<GACAppCheckToken *> *)getAppCheckTokenWithArtifact:(NSData *)artifact
                                                        challenge:(NSData *)challenge
                                                        assertion:(NSData *)assertion
                                                       limitedUse:(BOOL)limitedUse {
-  self.getAppCheckTokenCallCount++;
-  return self.getAppCheckTokenPromise ?: [FBLPromise pendingPromise];
+  @synchronized(self) {
+    _getAppCheckTokenCallCount++;
+    return _getAppCheckTokenPromise ?: [FBLPromise pendingPromise];
+  }
 }
 
 @end

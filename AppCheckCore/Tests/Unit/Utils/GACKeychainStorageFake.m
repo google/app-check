@@ -37,7 +37,10 @@
     return;
   }
 
-  id<NSSecureCoding> object = self.storage[key];
+  id<NSSecureCoding> object;
+  @synchronized(self) {
+    object = _storage[key];
+  }
   if (object && ![(id)object isKindOfClass:objectClass]) {
     object = nil;
   }
@@ -57,7 +60,9 @@
     return;
   }
 
-  self.storage[key] = object;
+  @synchronized(self) {
+    _storage[key] = object;
+  }
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     handler(object, nil);
   });
@@ -73,7 +78,9 @@
     return;
   }
 
-  [self.storage removeObjectForKey:key];
+  @synchronized(self) {
+    [_storage removeObjectForKey:key];
+  }
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     handler(nil);
   });
