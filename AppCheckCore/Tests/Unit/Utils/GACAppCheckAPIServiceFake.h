@@ -22,7 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface GACAppCheckAPIServiceFake : NSObject <_GACAppCheckAPIServiceProtocol>
 
-@property(nonatomic, copy) NSString *baseURL;
+@property(nonatomic) NSString *baseURL;
 
 @property(nonatomic, nullable) FBLPromise<_GACURLSessionDataResponse *> *sendRequestPromise;
 @property(nonatomic, nullable) FBLPromise<GACAppCheckToken *> *appCheckTokenPromise;

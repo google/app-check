@@ -20,9 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @implementation GACDeviceCheckTokenGeneratorFake
 
-- (BOOL)supported {
-  return self.isSupported;
-}
+@synthesize supported = _isSupported;
 
 - (void)generateTokenWithCompletionHandler:(void (^)(NSData *_Nullable token,
                                                      NSError *_Nullable error))completion {

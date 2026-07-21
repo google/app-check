@@ -26,9 +26,7 @@
   return self;
 }
 
-- (BOOL)supported {
-  return self.isSupported;
-}
+@synthesize supported = _isSupported;
 
 - (void)generateKeyWithCompletionHandler:(void (^)(NSString *keyId,
                                                    NSError *error))completionHandler {
