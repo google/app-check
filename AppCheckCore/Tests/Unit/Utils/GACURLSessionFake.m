@@ -22,7 +22,7 @@
 
 - (FBLPromise<_GACURLSessionDataResponse *> *)gac_dataTaskPromiseWithRequest:
     (NSURLRequest *)URLRequest {
-  void (^validationBlock)(NSURLRequest *);
+  FIRRequestValidationBlock validationBlock;
   FBLPromise *promise;
   @synchronized(self) {
     _isInvoked = YES;
