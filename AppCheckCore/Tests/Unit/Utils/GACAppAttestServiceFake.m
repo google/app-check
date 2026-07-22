@@ -27,6 +27,15 @@
 }
 
 @synthesize supported = _supported;
+@synthesize generateKeyCallCount = _generateKeyCallCount;
+@synthesize keyIdToReturn = _keyIdToReturn;
+@synthesize generateKeyErrorToReturn = _generateKeyErrorToReturn;
+@synthesize attestKeyCallCount = _attestKeyCallCount;
+@synthesize attestationToReturn = _attestationToReturn;
+@synthesize attestKeyErrorToReturn = _attestKeyErrorToReturn;
+@synthesize generateAssertionCallCount = _generateAssertionCallCount;
+@synthesize assertionToReturn = _assertionToReturn;
+@synthesize generateAssertionErrorToReturn = _generateAssertionErrorToReturn;
 
 - (void)generateKeyWithCompletionHandler:(void (^)(NSString *keyId,
                                                    NSError *error))completionHandler {
@@ -69,6 +78,126 @@
   }
   if (completionHandler) {
     completionHandler(assertion, error);
+  }
+}
+
+- (BOOL)isSupported {
+  @synchronized(self) {
+    return _supported;
+  }
+}
+
+- (void)setSupported:(BOOL)supported {
+  @synchronized(self) {
+    _supported = supported;
+  }
+}
+
+- (NSInteger)generateKeyCallCount {
+  @synchronized(self) {
+    return _generateKeyCallCount;
+  }
+}
+
+- (void)setGenerateKeyCallCount:(NSInteger)generateKeyCallCount {
+  @synchronized(self) {
+    _generateKeyCallCount = generateKeyCallCount;
+  }
+}
+
+- (NSString *)keyIdToReturn {
+  @synchronized(self) {
+    return _keyIdToReturn;
+  }
+}
+
+- (void)setKeyIdToReturn:(nullable NSString *)keyIdToReturn {
+  @synchronized(self) {
+    _keyIdToReturn = keyIdToReturn;
+  }
+}
+
+- (NSError *)generateKeyErrorToReturn {
+  @synchronized(self) {
+    return _generateKeyErrorToReturn;
+  }
+}
+
+- (void)setGenerateKeyErrorToReturn:(nullable NSError *)generateKeyErrorToReturn {
+  @synchronized(self) {
+    _generateKeyErrorToReturn = generateKeyErrorToReturn;
+  }
+}
+
+- (NSInteger)attestKeyCallCount {
+  @synchronized(self) {
+    return _attestKeyCallCount;
+  }
+}
+
+- (void)setAttestKeyCallCount:(NSInteger)attestKeyCallCount {
+  @synchronized(self) {
+    _attestKeyCallCount = attestKeyCallCount;
+  }
+}
+
+- (NSData *)attestationToReturn {
+  @synchronized(self) {
+    return _attestationToReturn;
+  }
+}
+
+- (void)setAttestationToReturn:(nullable NSData *)attestationToReturn {
+  @synchronized(self) {
+    _attestationToReturn = attestationToReturn;
+  }
+}
+
+- (NSError *)attestKeyErrorToReturn {
+  @synchronized(self) {
+    return _attestKeyErrorToReturn;
+  }
+}
+
+- (void)setAttestKeyErrorToReturn:(nullable NSError *)attestKeyErrorToReturn {
+  @synchronized(self) {
+    _attestKeyErrorToReturn = attestKeyErrorToReturn;
+  }
+}
+
+- (NSInteger)generateAssertionCallCount {
+  @synchronized(self) {
+    return _generateAssertionCallCount;
+  }
+}
+
+- (void)setGenerateAssertionCallCount:(NSInteger)generateAssertionCallCount {
+  @synchronized(self) {
+    _generateAssertionCallCount = generateAssertionCallCount;
+  }
+}
+
+- (NSData *)assertionToReturn {
+  @synchronized(self) {
+    return _assertionToReturn;
+  }
+}
+
+- (void)setAssertionToReturn:(nullable NSData *)assertionToReturn {
+  @synchronized(self) {
+    _assertionToReturn = assertionToReturn;
+  }
+}
+
+- (NSError *)generateAssertionErrorToReturn {
+  @synchronized(self) {
+    return _generateAssertionErrorToReturn;
+  }
+}
+
+- (void)setGenerateAssertionErrorToReturn:(nullable NSError *)generateAssertionErrorToReturn {
+  @synchronized(self) {
+    _generateAssertionErrorToReturn = generateAssertionErrorToReturn;
   }
 }
 

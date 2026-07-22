@@ -20,6 +20,11 @@
 
 @implementation GACAppAttestArtifactStorageFake
 
+@synthesize setArtifactCallCount = _setArtifactCallCount;
+@synthesize setArtifactPromise = _setArtifactPromise;
+@synthesize getArtifactCallCount = _getArtifactCallCount;
+@synthesize getArtifactPromise = _getArtifactPromise;
+
 - (FBLPromise<NSData *> *)setArtifact:(nullable NSData *)artifact forKey:(NSString *)keyID {
   @synchronized(self) {
     _setArtifactCallCount++;
@@ -31,6 +36,30 @@
   @synchronized(self) {
     _getArtifactCallCount++;
     return _getArtifactPromise ?: [FBLPromise pendingPromise];
+  }
+}
+
+- (NSInteger)setArtifactCallCount {
+  @synchronized(self) {
+    return _setArtifactCallCount;
+  }
+}
+
+- (void)setSetArtifactPromise:(nullable FBLPromise<NSData *> *)promise {
+  @synchronized(self) {
+    _setArtifactPromise = promise;
+  }
+}
+
+- (NSInteger)getArtifactCallCount {
+  @synchronized(self) {
+    return _getArtifactCallCount;
+  }
+}
+
+- (void)setGetArtifactPromise:(nullable FBLPromise<NSData *> *)promise {
+  @synchronized(self) {
+    _getArtifactPromise = promise;
   }
 }
 

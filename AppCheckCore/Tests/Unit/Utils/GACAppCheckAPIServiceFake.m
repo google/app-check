@@ -19,6 +19,16 @@
 
 @implementation GACAppCheckAPIServiceFake
 
+@synthesize baseURL = _baseURL;
+@synthesize sendRequestPromise = _sendRequestPromise;
+@synthesize appCheckTokenPromise = _appCheckTokenPromise;
+@synthesize requestValidationBlock = _requestValidationBlock;
+@synthesize passedRequestURL = _passedRequestURL;
+@synthesize passedHTTPMethod = _passedHTTPMethod;
+@synthesize passedBody = _passedBody;
+@synthesize passedAdditionalHeaders = _passedAdditionalHeaders;
+@synthesize passedAPIResponse = _passedAPIResponse;
+
 - (FBLPromise<_GACURLSessionDataResponse *> *)
     sendRequestWithURL:(NSURL *)requestURL
             HTTPMethod:(NSString *)HTTPMethod
@@ -57,6 +67,114 @@
     return promise;
   }
   return [FBLPromise pendingPromise];
+}
+
+- (NSString *)baseURL {
+  @synchronized(self) {
+    return _baseURL;
+  }
+}
+
+- (void)setBaseURL:(NSString *)baseURL {
+  @synchronized(self) {
+    _baseURL = baseURL;
+  }
+}
+
+- (void)setSendRequestPromise:(nullable FBLPromise<_GACURLSessionDataResponse *> *)sendRequestPromise {
+  @synchronized(self) {
+    _sendRequestPromise = sendRequestPromise;
+  }
+}
+
+- (nullable FBLPromise<_GACURLSessionDataResponse *> *)sendRequestPromise {
+  @synchronized(self) {
+    return _sendRequestPromise;
+  }
+}
+
+- (void)setAppCheckTokenPromise:(nullable FBLPromise<GACAppCheckToken *> *)appCheckTokenPromise {
+  @synchronized(self) {
+    _appCheckTokenPromise = appCheckTokenPromise;
+  }
+}
+
+- (nullable FBLPromise<GACAppCheckToken *> *)appCheckTokenPromise {
+  @synchronized(self) {
+    return _appCheckTokenPromise;
+  }
+}
+
+- (void)setRequestValidationBlock:(nullable void (^)(void))requestValidationBlock {
+  @synchronized(self) {
+    _requestValidationBlock = requestValidationBlock;
+  }
+}
+
+- (nullable void (^)(void))requestValidationBlock {
+  @synchronized(self) {
+    return _requestValidationBlock;
+  }
+}
+
+- (nullable NSURL *)passedRequestURL {
+  @synchronized(self) {
+    return _passedRequestURL;
+  }
+}
+
+- (void)setPassedRequestURL:(nullable NSURL *)passedRequestURL {
+  @synchronized(self) {
+    _passedRequestURL = passedRequestURL;
+  }
+}
+
+- (nullable NSString *)passedHTTPMethod {
+  @synchronized(self) {
+    return _passedHTTPMethod;
+  }
+}
+
+- (void)setPassedHTTPMethod:(nullable NSString *)passedHTTPMethod {
+  @synchronized(self) {
+    _passedHTTPMethod = passedHTTPMethod;
+  }
+}
+
+- (nullable NSData *)passedBody {
+  @synchronized(self) {
+    return _passedBody;
+  }
+}
+
+- (void)setPassedBody:(nullable NSData *)passedBody {
+  @synchronized(self) {
+    _passedBody = passedBody;
+  }
+}
+
+- (nullable NSDictionary<NSString *, NSString *> *)passedAdditionalHeaders {
+  @synchronized(self) {
+    return _passedAdditionalHeaders;
+  }
+}
+
+- (void)setPassedAdditionalHeaders:(nullable NSDictionary<NSString *, NSString *> *)passedAdditionalHeaders {
+  @synchronized(self) {
+    _passedAdditionalHeaders = passedAdditionalHeaders;
+  }
+}
+
+- (nullable _GACURLSessionDataResponse *)passedAPIResponse {
+  @synchronized(self) {
+    return _passedAPIResponse;
+  }
+}
+
+- (void)setPassedAPIResponse:(nullable _GACURLSessionDataResponse *)passedAPIResponse {
+  @synchronized(self) {
+    _passedAPIResponse = passedAPIResponse;
+  }
 }
 
 @end

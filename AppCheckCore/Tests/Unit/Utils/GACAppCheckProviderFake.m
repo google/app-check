@@ -18,8 +18,60 @@
 
 @implementation GACAppCheckProviderFake
 
+@synthesize tokenToReturn = _tokenToReturn;
+@synthesize errorToReturn = _errorToReturn;
 @synthesize getTokenCallCount = _getTokenCallCount;
+@synthesize limitedUseTokenToReturn = _limitedUseTokenToReturn;
+@synthesize limitedUseErrorToReturn = _limitedUseErrorToReturn;
 @synthesize getLimitedUseTokenCallCount = _getLimitedUseTokenCallCount;
+
+- (nullable GACAppCheckToken *)tokenToReturn {
+  @synchronized(self) {
+    return _tokenToReturn;
+  }
+}
+
+- (void)setTokenToReturn:(nullable GACAppCheckToken *)tokenToReturn {
+  @synchronized(self) {
+    _tokenToReturn = tokenToReturn;
+  }
+}
+
+- (nullable NSError *)errorToReturn {
+  @synchronized(self) {
+    return _errorToReturn;
+  }
+}
+
+- (void)setErrorToReturn:(nullable NSError *)errorToReturn {
+  @synchronized(self) {
+    _errorToReturn = errorToReturn;
+  }
+}
+
+- (nullable GACAppCheckToken *)limitedUseTokenToReturn {
+  @synchronized(self) {
+    return _limitedUseTokenToReturn;
+  }
+}
+
+- (void)setLimitedUseTokenToReturn:(nullable GACAppCheckToken *)limitedUseTokenToReturn {
+  @synchronized(self) {
+    _limitedUseTokenToReturn = limitedUseTokenToReturn;
+  }
+}
+
+- (nullable NSError *)limitedUseErrorToReturn {
+  @synchronized(self) {
+    return _limitedUseErrorToReturn;
+  }
+}
+
+- (void)setLimitedUseErrorToReturn:(nullable NSError *)limitedUseErrorToReturn {
+  @synchronized(self) {
+    _limitedUseErrorToReturn = limitedUseErrorToReturn;
+  }
+}
 
 - (NSInteger)getTokenCallCount {
   @synchronized(self) {

@@ -20,6 +20,11 @@
 
 @implementation GACAppAttestKeyIDStorageFake
 
+@synthesize setAppAttestKeyIDCallCount = _setAppAttestKeyIDCallCount;
+@synthesize setAppAttestKeyIDPromise = _setAppAttestKeyIDPromise;
+@synthesize getAppAttestKeyIDCallCount = _getAppAttestKeyIDCallCount;
+@synthesize getAppAttestKeyIDPromise = _getAppAttestKeyIDPromise;
+
 - (FBLPromise<NSString *> *)setAppAttestKeyID:(nullable NSString *)keyID {
   @synchronized(self) {
     _setAppAttestKeyIDCallCount++;
@@ -31,6 +36,30 @@
   @synchronized(self) {
     _getAppAttestKeyIDCallCount++;
     return _getAppAttestKeyIDPromise ?: [FBLPromise pendingPromise];
+  }
+}
+
+- (NSInteger)setAppAttestKeyIDCallCount {
+  @synchronized(self) {
+    return _setAppAttestKeyIDCallCount;
+  }
+}
+
+- (void)setSetAppAttestKeyIDPromise:(nullable FBLPromise<NSString *> *)promise {
+  @synchronized(self) {
+    _setAppAttestKeyIDPromise = promise;
+  }
+}
+
+- (NSInteger)getAppAttestKeyIDCallCount {
+  @synchronized(self) {
+    return _getAppAttestKeyIDCallCount;
+  }
+}
+
+- (void)setGetAppAttestKeyIDPromise:(nullable FBLPromise<NSString *> *)promise {
+  @synchronized(self) {
+    _getAppAttestKeyIDPromise = promise;
   }
 }
 

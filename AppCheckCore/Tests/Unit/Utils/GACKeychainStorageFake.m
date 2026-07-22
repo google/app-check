@@ -18,6 +18,8 @@
 
 @implementation GACKeychainStorageFake
 
+@synthesize keychainError = _keychainError;
+
 - (instancetype)init {
   self = [super init];
   if (self) {
@@ -30,9 +32,13 @@
             objectClass:(Class)objectClass
             accessGroup:(nullable NSString *)accessGroup
       completionHandler:(void (^)(id<NSSecureCoding> _Nullable, NSError *_Nullable))handler {
-  if (self.keychainError) {
+  NSError *error;
+  @synchronized(self) {
+    error = _keychainError;
+  }
+  if (error) {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-      handler(nil, self.keychainError);
+      handler(nil, error);
     });
     return;
   }
@@ -53,9 +59,13 @@
                forKey:(NSString *)key
           accessGroup:(nullable NSString *)accessGroup
     completionHandler:(void (^)(id<NSSecureCoding> _Nullable, NSError *_Nullable))handler {
-  if (self.keychainError) {
+  NSError *error;
+  @synchronized(self) {
+    error = _keychainError;
+  }
+  if (error) {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-      handler(nil, self.keychainError);
+      handler(nil, error);
     });
     return;
   }
@@ -71,9 +81,13 @@
 - (void)removeObjectForKey:(NSString *)key
                accessGroup:(nullable NSString *)accessGroup
          completionHandler:(void (^)(NSError *_Nullable))handler {
-  if (self.keychainError) {
+  NSError *error;
+  @synchronized(self) {
+    error = _keychainError;
+  }
+  if (error) {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-      handler(self.keychainError);
+      handler(error);
     });
     return;
   }
@@ -84,6 +98,18 @@
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     handler(nil);
   });
+}
+
+- (nullable NSError *)keychainError {
+  @synchronized(self) {
+    return _keychainError;
+  }
+}
+
+- (void)setKeychainError:(nullable NSError *)keychainError {
+  @synchronized(self) {
+    _keychainError = keychainError;
+  }
 }
 
 @end

@@ -21,6 +21,9 @@ NS_ASSUME_NONNULL_BEGIN
 @implementation GACDeviceCheckTokenGeneratorFake
 
 @synthesize supported = _supported;
+@synthesize tokenToReturn = _tokenToReturn;
+@synthesize errorToReturn = _errorToReturn;
+@synthesize generateTokenCalled = _generateTokenCalled;
 
 - (void)generateTokenWithCompletionHandler:(void (^)(NSData *_Nullable token,
                                                      NSError *_Nullable error))completion {
@@ -33,6 +36,54 @@ NS_ASSUME_NONNULL_BEGIN
   }
   if (completion) {
     completion(token, error);
+  }
+}
+
+- (BOOL)isSupported {
+  @synchronized(self) {
+    return _supported;
+  }
+}
+
+- (void)setSupported:(BOOL)supported {
+  @synchronized(self) {
+    _supported = supported;
+  }
+}
+
+- (nullable NSData *)tokenToReturn {
+  @synchronized(self) {
+    return _tokenToReturn;
+  }
+}
+
+- (void)setTokenToReturn:(nullable NSData *)tokenToReturn {
+  @synchronized(self) {
+    _tokenToReturn = tokenToReturn;
+  }
+}
+
+- (nullable NSError *)errorToReturn {
+  @synchronized(self) {
+    return _errorToReturn;
+  }
+}
+
+- (void)setErrorToReturn:(nullable NSError *)errorToReturn {
+  @synchronized(self) {
+    _errorToReturn = errorToReturn;
+  }
+}
+
+- (BOOL)generateTokenCalled {
+  @synchronized(self) {
+    return _generateTokenCalled;
+  }
+}
+
+- (void)setGenerateTokenCalled:(BOOL)generateTokenCalled {
+  @synchronized(self) {
+    _generateTokenCalled = generateTokenCalled;
   }
 }
 

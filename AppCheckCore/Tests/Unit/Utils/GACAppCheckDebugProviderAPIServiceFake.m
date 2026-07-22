@@ -19,6 +19,11 @@
 
 @implementation GACAppCheckDebugProviderAPIServiceFake
 
+@synthesize tokenPromise = _tokenPromise;
+@synthesize limitedUseTokenPromise = _limitedUseTokenPromise;
+@synthesize passedDebugToken = _passedDebugToken;
+@synthesize passedLimitedUse = _passedLimitedUse;
+
 - (FBLPromise<GACAppCheckToken *> *)appCheckTokenWithDebugToken:(NSString *)debugToken
                                                      limitedUse:(BOOL)limitedUse {
   FBLPromise *promise;
@@ -35,6 +40,54 @@
     return promise;
   }
   return [FBLPromise pendingPromise];
+}
+
+- (nullable FBLPromise<GACAppCheckToken *> *)tokenPromise {
+  @synchronized(self) {
+    return _tokenPromise;
+  }
+}
+
+- (void)setTokenPromise:(nullable FBLPromise<GACAppCheckToken *> *)tokenPromise {
+  @synchronized(self) {
+    _tokenPromise = tokenPromise;
+  }
+}
+
+- (nullable FBLPromise<GACAppCheckToken *> *)limitedUseTokenPromise {
+  @synchronized(self) {
+    return _limitedUseTokenPromise;
+  }
+}
+
+- (void)setLimitedUseTokenPromise:(nullable FBLPromise<GACAppCheckToken *> *)limitedUseTokenPromise {
+  @synchronized(self) {
+    _limitedUseTokenPromise = limitedUseTokenPromise;
+  }
+}
+
+- (nullable NSString *)passedDebugToken {
+  @synchronized(self) {
+    return _passedDebugToken;
+  }
+}
+
+- (void)setPassedDebugToken:(nullable NSString *)passedDebugToken {
+  @synchronized(self) {
+    _passedDebugToken = passedDebugToken;
+  }
+}
+
+- (BOOL)passedLimitedUse {
+  @synchronized(self) {
+    return _passedLimitedUse;
+  }
+}
+
+- (void)setPassedLimitedUse:(BOOL)passedLimitedUse {
+  @synchronized(self) {
+    _passedLimitedUse = passedLimitedUse;
+  }
 }
 
 @end

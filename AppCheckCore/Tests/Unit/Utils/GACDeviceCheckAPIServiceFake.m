@@ -23,6 +23,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @implementation GACDeviceCheckAPIServiceFake
 
+@synthesize appCheckTokenPromise = _appCheckTokenPromise;
+@synthesize passedDeviceToken = _passedDeviceToken;
+@synthesize passedLimitedUse = _passedLimitedUse;
+@synthesize appCheckTokenWithDeviceTokenHandler = _appCheckTokenWithDeviceTokenHandler;
+
 - (instancetype)init {
   self = [super init];
   if (self) {
@@ -33,14 +38,66 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (FBLPromise<GACAppCheckToken *> *)appCheckTokenWithDeviceToken:(NSData *)deviceToken
                                                       limitedUse:(BOOL)limitedUse {
+  FBLPromise<GACAppCheckToken *> *promise;
+  void (^handler)(NSData *, BOOL);
   @synchronized(self) {
     _passedDeviceToken = deviceToken;
     _passedLimitedUse = limitedUse;
+    promise = _appCheckTokenPromise;
+    handler = _appCheckTokenWithDeviceTokenHandler;
   }
-  if (self.appCheckTokenWithDeviceTokenHandler) {
-    self.appCheckTokenWithDeviceTokenHandler(deviceToken, limitedUse);
+  if (handler) {
+    handler(deviceToken, limitedUse);
   }
-  return self.appCheckTokenPromise;
+  return promise ?: [FBLPromise pendingPromise];
+}
+
+- (FBLPromise<GACAppCheckToken *> *)appCheckTokenPromise {
+  @synchronized(self) {
+    return _appCheckTokenPromise;
+  }
+}
+
+- (void)setAppCheckTokenPromise:(FBLPromise<GACAppCheckToken *> *)appCheckTokenPromise {
+  @synchronized(self) {
+    _appCheckTokenPromise = appCheckTokenPromise;
+  }
+}
+
+- (nullable NSData *)passedDeviceToken {
+  @synchronized(self) {
+    return _passedDeviceToken;
+  }
+}
+
+- (void)setPassedDeviceToken:(nullable NSData *)passedDeviceToken {
+  @synchronized(self) {
+    _passedDeviceToken = passedDeviceToken;
+  }
+}
+
+- (BOOL)passedLimitedUse {
+  @synchronized(self) {
+    return _passedLimitedUse;
+  }
+}
+
+- (void)setPassedLimitedUse:(BOOL)passedLimitedUse {
+  @synchronized(self) {
+    _passedLimitedUse = passedLimitedUse;
+  }
+}
+
+- (nullable void (^)(NSData *, BOOL))appCheckTokenWithDeviceTokenHandler {
+  @synchronized(self) {
+    return _appCheckTokenWithDeviceTokenHandler;
+  }
+}
+
+- (void)setAppCheckTokenWithDeviceTokenHandler:(nullable void (^)(NSData *, BOOL))appCheckTokenWithDeviceTokenHandler {
+  @synchronized(self) {
+    _appCheckTokenWithDeviceTokenHandler = appCheckTokenWithDeviceTokenHandler;
+  }
 }
 
 @end

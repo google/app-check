@@ -20,6 +20,13 @@
 
 @implementation GACAppAttestAPIServiceFake
 
+@synthesize getRandomChallengeCallCount = _getRandomChallengeCallCount;
+@synthesize getRandomChallengePromise = _getRandomChallengePromise;
+@synthesize attestKeyCallCount = _attestKeyCallCount;
+@synthesize attestKeyPromise = _attestKeyPromise;
+@synthesize getAppCheckTokenCallCount = _getAppCheckTokenCallCount;
+@synthesize getAppCheckTokenPromise = _getAppCheckTokenPromise;
+
 - (FBLPromise<NSData *> *)getRandomChallenge {
   @synchronized(self) {
     _getRandomChallengeCallCount++;
@@ -44,6 +51,42 @@
   @synchronized(self) {
     _getAppCheckTokenCallCount++;
     return _getAppCheckTokenPromise ?: [FBLPromise pendingPromise];
+  }
+}
+
+- (NSInteger)getRandomChallengeCallCount {
+  @synchronized(self) {
+    return _getRandomChallengeCallCount;
+  }
+}
+
+- (void)setGetRandomChallengePromise:(nullable FBLPromise<NSData *> *)promise {
+  @synchronized(self) {
+    _getRandomChallengePromise = promise;
+  }
+}
+
+- (NSInteger)attestKeyCallCount {
+  @synchronized(self) {
+    return _attestKeyCallCount;
+  }
+}
+
+- (void)setAttestKeyPromise:(nullable FBLPromise<GACAppAttestAttestationResponse *> *)promise {
+  @synchronized(self) {
+    _attestKeyPromise = promise;
+  }
+}
+
+- (NSInteger)getAppCheckTokenCallCount {
+  @synchronized(self) {
+    return _getAppCheckTokenCallCount;
+  }
+}
+
+- (void)setGetAppCheckTokenPromise:(nullable FBLPromise<GACAppCheckToken *> *)promise {
+  @synchronized(self) {
+    _getAppCheckTokenPromise = promise;
   }
 }
 
