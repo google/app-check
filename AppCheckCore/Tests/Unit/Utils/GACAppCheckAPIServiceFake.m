@@ -24,6 +24,7 @@
             HTTPMethod:(NSString *)HTTPMethod
                   body:(nullable NSData *)body
      additionalHeaders:(nullable NSDictionary<NSString *, NSString *> *)additionalHeaders {
+  void (^validationBlock)(void);
   FBLPromise *promise;
   @synchronized(self) {
     _passedRequestURL = requestURL;
@@ -31,6 +32,11 @@
     _passedBody = body;
     _passedAdditionalHeaders = additionalHeaders;
     promise = _sendRequestPromise;
+    validationBlock = _requestValidationBlock;
+  }
+
+  if (validationBlock) {
+    validationBlock();
   }
 
   if (promise) {

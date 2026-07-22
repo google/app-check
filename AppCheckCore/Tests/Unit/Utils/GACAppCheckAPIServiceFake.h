@@ -27,6 +27,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, nullable) FBLPromise<_GACURLSessionDataResponse *> *sendRequestPromise;
 @property(nonatomic, nullable) FBLPromise<GACAppCheckToken *> *appCheckTokenPromise;
 
+@property(nonatomic, copy, nullable) void (^requestValidationBlock)(void);
+
 @property(nonatomic, nullable) NSURL *passedRequestURL;
 @property(nonatomic, nullable) NSString *passedHTTPMethod;
 @property(nonatomic, nullable) NSData *passedBody;

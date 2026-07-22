@@ -546,6 +546,9 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
     [resultPromise fulfill:response];
   }
   self.fakeAPIService.sendRequestPromise = resultPromise;
+  self.fakeAPIService.requestValidationBlock = ^{
+    XCTAssertFalse([NSThread isMainThread], @"Network requests must not be made on the main thread.");
+  };
 }
 
 - (void)expectTokenAPIRequestWithArtifact:(NSData *)attestation
@@ -653,7 +656,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
 
   // Validate challenge field.
   NSString *base64EncodedChallenge = decodedData[@"challenge"];
-  XCTAssert([base64EncodedAttestation isKindOfClass:[NSString class]]);
+  XCTAssert([base64EncodedChallenge isKindOfClass:[NSString class]]);
 
   NSData *decodedChallenge = [[NSData alloc] initWithBase64EncodedString:base64EncodedChallenge
                                                                  options:0];
@@ -661,7 +664,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
 
   // Validate key ID field.
   NSString *keyIDField = decodedData[@"key_id"];
-  XCTAssert([base64EncodedAttestation isKindOfClass:[NSString class]]);
+  XCTAssert([keyIDField isKindOfClass:[NSString class]]);
 
   // Validate limited-use field.
   NSNumber *decodedLimitedUse = decodedData[@"limited_use"];
