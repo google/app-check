@@ -60,7 +60,8 @@
   }
 }
 
-- (void)setLimitedUseTokenPromise:(nullable FBLPromise<GACAppCheckToken *> *)limitedUseTokenPromise {
+- (void)setLimitedUseTokenPromise:
+    (nullable FBLPromise<GACAppCheckToken *> *)limitedUseTokenPromise {
   @synchronized(self) {
     _limitedUseTokenPromise = limitedUseTokenPromise;
   }

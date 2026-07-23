@@ -547,7 +547,8 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   }
   self.fakeAPIService.sendRequestPromise = resultPromise;
   self.fakeAPIService.requestValidationBlock = ^{
-    XCTAssertFalse([NSThread isMainThread], @"Network requests must not be made on the main thread.");
+    XCTAssertFalse([NSThread isMainThread],
+                   @"Network requests must not be made on the main thread.");
   };
 }
 

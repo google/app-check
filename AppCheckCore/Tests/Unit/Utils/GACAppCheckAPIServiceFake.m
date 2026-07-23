@@ -81,7 +81,8 @@
   }
 }
 
-- (void)setSendRequestPromise:(nullable FBLPromise<_GACURLSessionDataResponse *> *)sendRequestPromise {
+- (void)setSendRequestPromise:
+    (nullable FBLPromise<_GACURLSessionDataResponse *> *)sendRequestPromise {
   @synchronized(self) {
     _sendRequestPromise = sendRequestPromise;
   }
@@ -159,7 +160,8 @@
   }
 }
 
-- (void)setPassedAdditionalHeaders:(nullable NSDictionary<NSString *, NSString *> *)passedAdditionalHeaders {
+- (void)setPassedAdditionalHeaders:
+    (nullable NSDictionary<NSString *, NSString *> *)passedAdditionalHeaders {
   @synchronized(self) {
     _passedAdditionalHeaders = passedAdditionalHeaders;
   }

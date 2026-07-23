@@ -94,7 +94,8 @@ NS_ASSUME_NONNULL_BEGIN
   }
 }
 
-- (void)setAppCheckTokenWithDeviceTokenHandler:(nullable void (^)(NSData *, BOOL))appCheckTokenWithDeviceTokenHandler {
+- (void)setAppCheckTokenWithDeviceTokenHandler:
+    (nullable void (^)(NSData *, BOOL))appCheckTokenWithDeviceTokenHandler {
   @synchronized(self) {
     _appCheckTokenWithDeviceTokenHandler = appCheckTokenWithDeviceTokenHandler;
   }
