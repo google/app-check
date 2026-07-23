@@ -64,7 +64,6 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 
 @property(nonatomic) GACAppCheckBackoffWrapperFake *fakeBackoffWrapper;
 
-- (void)verifyAllMocks;
 - (void)assertGetToken_WhenNoExistingKey_Success;
 - (void)assertGetToken_WhenKeyRegistered_Success;
 - (void)assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAttestationError:
@@ -840,9 +839,6 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 
   self.fakeArtifactStorage.getArtifactPromise = nil;
   self.fakeArtifactStorage.setArtifactPromise = nil;
-}
-
-- (void)verifyAllMocks {
 }
 
 - (GACAppCheckHTTPError *)attestationRejectionHTTPError {
