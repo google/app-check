@@ -15,15 +15,18 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefresher.h"
+#import "AppCheckCore/Sources/DeviceCheckProvider/GACDeviceCheckTokenGenerator.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface GACAppCheckTokenRefresherFake : NSObject <GACAppCheckTokenRefresherProtocol>
+@interface GACDeviceCheckTokenGeneratorFake : NSObject <GACDeviceCheckTokenGenerator>
 
-@property(nonatomic, copy, nullable) GACAppCheckTokenRefreshBlock tokenRefreshHandler;
-@property(nonatomic) NSInteger updateWithRefreshResultCallCount;
-@property(nonatomic, strong, nullable) GACAppCheckTokenRefreshResult *lastRefreshResult;
+@property(nonatomic, assign, getter=isSupported) BOOL supported;
+
+@property(nonatomic, copy, nullable) NSData *tokenToReturn;
+@property(nonatomic, strong, nullable) NSError *errorToReturn;
+
+@property(nonatomic, assign) BOOL generateTokenCalled;
 
 @end
 

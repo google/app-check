@@ -16,7 +16,6 @@
 
 #import <XCTest/XCTest.h>
 
-#import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
 #import "AppCheckCore/Sources/DeviceCheckProvider/API/GACDeviceCheckAPIService.h"
@@ -26,8 +25,9 @@
 #import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/_GACURLSessionDataResponse.h"
 
+#import "AppCheckCore/Tests/Unit/Utils/GACAppCheckAPIServiceFake.h"
 #import "AppCheckCore/Tests/Unit/Utils/GACFixtureLoader.h"
-#import "AppCheckCore/Tests/Utils/URLSession/GACURLSessionOCMockStub.h"
+#import "AppCheckCore/Tests/Unit/Utils/GACURLSessionFake.h"
 
 static NSString *const kResourceName = @"projects/project_id/apps/app_id";
 
@@ -36,7 +36,7 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
 @interface GACDeviceCheckAPIServiceTests : XCTestCase
 @property(nonatomic) GACDeviceCheckAPIService *APIService;
 
-@property(nonatomic) id mockAPIService;
+@property(nonatomic) GACAppCheckAPIServiceFake *mockAPIService;
 
 @end
 
@@ -45,8 +45,8 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
 - (void)setUp {
   [super setUp];
 
-  self.mockAPIService = OCMProtocolMock(@protocol(_GACAppCheckAPIServiceProtocol));
-  OCMStub([self.mockAPIService baseURL]).andReturn(@"https://test.appcheck.url.com/alpha");
+  self.mockAPIService = [[GACAppCheckAPIServiceFake alloc] init];
+  self.mockAPIService.baseURL = @"https://test.appcheck.url.com/alpha";
 
   self.APIService = [[GACDeviceCheckAPIService alloc] initWithAPIService:self.mockAPIService
                                                             resourceName:kResourceName];
@@ -54,7 +54,6 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
 
 - (void)tearDown {
   self.APIService = nil;
-  [self.mockAPIService stopMocking];
   self.mockAPIService = nil;
 
   [super tearDown];
@@ -78,31 +77,19 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
   NSString *expectedRequestURL =
       [NSString stringWithFormat:@"%@%@", [self.mockAPIService baseURL],
                                  @"/projects/project_id/apps/app_id:exchangeDeviceCheckToken"];
-  id URLValidationArg = [OCMArg checkWithBlock:^BOOL(NSURL *URL) {
-    XCTAssertEqualObjects(URL.absoluteString, expectedRequestURL);
-    return YES;
-  }];
-
-  id HTTPBodyValidationArg = [self HTTPBodyValidationArgWithDeviceToken:deviceTokenData
-                                                             limitedUse:limitedUse];
 
   NSData *responseBody =
       [GACFixtureLoader loadFixtureNamed:@"FACTokenExchangeResponseSuccess.json"];
   XCTAssertNotNil(responseBody);
 
-  NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:200];
+  NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:200];
   _GACURLSessionDataResponse *APIResponse =
       [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
 
-  OCMExpect([self.mockAPIService sendRequestWithURL:URLValidationArg
-                                         HTTPMethod:@"POST"
-                                               body:HTTPBodyValidationArg
-                                  additionalHeaders:@{@"Content-Type" : @"application/json"}])
-      .andReturn([FBLPromise resolvedWith:APIResponse]);
+  self.mockAPIService.sendRequestPromise = [FBLPromise resolvedWith:APIResponse];
 
   // 1.2. Stub response parsing.
-  OCMExpect([self.mockAPIService appCheckTokenWithAPIResponse:APIResponse])
-      .andReturn([FBLPromise resolvedWith:expectedResult]);
+  self.mockAPIService.appCheckTokenPromise = [FBLPromise resolvedWith:expectedResult];
 
   // 2. Send request.
   __auto_type tokenPromise = [self.APIService appCheckTokenWithDeviceToken:deviceTokenData
@@ -117,7 +104,17 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
   XCTAssertEqualObjects(tokenPromise.value.token, expectedResult.token);
   XCTAssertEqualObjects(tokenPromise.value.expirationDate, expectedResult.expirationDate);
 
-  OCMVerifyAll(self.mockAPIService);
+  XCTAssertEqualObjects(tokenPromise.value.token, expectedResult.token);
+  XCTAssertEqualObjects(tokenPromise.value.expirationDate, expectedResult.expirationDate);
+
+  XCTAssertEqualObjects(self.mockAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.mockAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.mockAPIService.passedAdditionalHeaders[@"Content-Type"],
+                        @"application/json");
+  [self assertHTTPBody:self.mockAPIService.passedBody
+           deviceToken:deviceTokenData
+            limitedUse:limitedUse];
+  XCTAssertEqualObjects(self.mockAPIService.passedAPIResponse, APIResponse);
 }
 
 - (void)testAppCheckTokenResponseParsingError {
@@ -131,33 +128,21 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
   NSString *expectedRequestURL =
       [NSString stringWithFormat:@"%@%@", [self.mockAPIService baseURL],
                                  @"/projects/project_id/apps/app_id:exchangeDeviceCheckToken"];
-  id URLValidationArg = [OCMArg checkWithBlock:^BOOL(NSURL *URL) {
-    XCTAssertEqualObjects(URL.absoluteString, expectedRequestURL);
-    return YES;
-  }];
-
-  id HTTPBodyValidationArg = [self HTTPBodyValidationArgWithDeviceToken:deviceTokenData
-                                                             limitedUse:NO];
 
   NSData *responseBody =
       [GACFixtureLoader loadFixtureNamed:@"FACTokenExchangeResponseSuccess.json"];
   XCTAssertNotNil(responseBody);
 
-  NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:200];
+  NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:200];
   _GACURLSessionDataResponse *APIResponse =
       [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
 
-  OCMExpect([self.mockAPIService sendRequestWithURL:URLValidationArg
-                                         HTTPMethod:@"POST"
-                                               body:HTTPBodyValidationArg
-                                  additionalHeaders:@{@"Content-Type" : @"application/json"}])
-      .andReturn([FBLPromise resolvedWith:APIResponse]);
+  self.mockAPIService.sendRequestPromise = [FBLPromise resolvedWith:APIResponse];
 
   // 1.2. Stub response parsing.
   FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
   [rejectedPromise reject:parsingError];
-  OCMExpect([self.mockAPIService appCheckTokenWithAPIResponse:APIResponse])
-      .andReturn(rejectedPromise);
+  self.mockAPIService.appCheckTokenPromise = rejectedPromise;
 
   // 2. Send request.
   __auto_type tokenPromise = [self.APIService appCheckTokenWithDeviceToken:deviceTokenData
@@ -170,7 +155,12 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
   XCTAssertEqualObjects(tokenPromise.error, parsingError);
   XCTAssertNil(tokenPromise.value);
 
-  OCMVerifyAll(self.mockAPIService);
+  XCTAssertEqualObjects(self.mockAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.mockAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.mockAPIService.passedAdditionalHeaders[@"Content-Type"],
+                        @"application/json");
+  [self assertHTTPBody:self.mockAPIService.passedBody deviceToken:deviceTokenData limitedUse:NO];
+  XCTAssertEqualObjects(self.mockAPIService.passedAPIResponse, APIResponse);
 }
 
 - (void)testAppCheckTokenNetworkError {
@@ -183,13 +173,7 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
   FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
   [rejectedPromise reject:APIError];
 
-  id HTTPBodyValidationArg = [self HTTPBodyValidationArgWithDeviceToken:deviceTokenData
-                                                             limitedUse:NO];
-  OCMExpect([self.mockAPIService sendRequestWithURL:[OCMArg any]
-                                         HTTPMethod:@"POST"
-                                               body:HTTPBodyValidationArg
-                                  additionalHeaders:@{@"Content-Type" : @"application/json"}])
-      .andReturn(rejectedPromise);
+  self.mockAPIService.sendRequestPromise = rejectedPromise;
 
   // 2. Send request.
   __auto_type tokenPromise = [self.APIService appCheckTokenWithDeviceToken:deviceTokenData
@@ -202,17 +186,14 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
   XCTAssertNil(tokenPromise.value);
   XCTAssertEqualObjects(tokenPromise.error, APIError);
 
-  OCMVerifyAll(self.mockAPIService);
+  [self assertHTTPBody:self.mockAPIService.passedBody deviceToken:deviceTokenData limitedUse:NO];
 }
 
 - (void)testAppCheckTokenEmptyDeviceToken {
   NSData *deviceTokenData = [NSData data];
 
   // 1. Stub API service.
-  OCMReject([self.mockAPIService sendRequestWithURL:[OCMArg any]
-                                         HTTPMethod:[OCMArg any]
-                                               body:[OCMArg any]
-                                  additionalHeaders:[OCMArg any]]);
+  // It shouldn't be called.
 
   // 2. Send request.
   __auto_type tokenPromise = [self.APIService appCheckTokenWithDeviceToken:deviceTokenData
@@ -232,30 +213,29 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
   NSString *failureReason = tokenPromise.error.userInfo[NSLocalizedFailureReasonErrorKey];
   XCTAssertEqualObjects(failureReason, @"DeviceCheck token must not be empty.");
 
-  OCMVerifyAll(self.mockAPIService);
+  XCTAssertNil(self.mockAPIService.passedRequestURL);
 }
 
 #pragma mark - Helpers
 
-- (id)HTTPBodyValidationArgWithDeviceToken:(NSData *)deviceToken limitedUse:(BOOL)limitedUse {
-  return [OCMArg checkWithBlock:^BOOL(NSData *body) {
-    NSDictionary<NSString *, id> *decodedData = [NSJSONSerialization JSONObjectWithData:body
-                                                                                options:0
-                                                                                  error:nil];
-    XCTAssert([decodedData isKindOfClass:[NSDictionary class]]);
+- (void)assertHTTPBody:(NSData *)body
+           deviceToken:(NSData *)deviceToken
+            limitedUse:(BOOL)limitedUse {
+  NSDictionary<NSString *, id> *decodedData = [NSJSONSerialization JSONObjectWithData:body
+                                                                              options:0
+                                                                                error:nil];
+  XCTAssert([decodedData isKindOfClass:[NSDictionary class]]);
 
-    NSString *base64EncodedDeviceToken = decodedData[@"device_token"];
-    XCTAssertNotNil(base64EncodedDeviceToken);
+  NSString *base64EncodedDeviceToken = decodedData[@"device_token"];
+  XCTAssertNotNil(base64EncodedDeviceToken);
 
-    NSNumber *decodedLimitedUse = decodedData[@"limited_use"];
-    XCTAssertNotNil(decodedLimitedUse);
-    XCTAssertEqualObjects(decodedLimitedUse, @(limitedUse));
+  NSNumber *decodedLimitedUse = decodedData[@"limited_use"];
+  XCTAssertNotNil(decodedLimitedUse);
+  XCTAssertEqualObjects(decodedLimitedUse, @(limitedUse));
 
-    NSData *decodedToken = [[NSData alloc] initWithBase64EncodedString:base64EncodedDeviceToken
-                                                               options:0];
-    XCTAssertEqualObjects(decodedToken, deviceToken);
-    return YES;
-  }];
+  NSData *decodedToken = [[NSData alloc] initWithBase64EncodedString:base64EncodedDeviceToken
+                                                             options:0];
+  XCTAssertEqualObjects(decodedToken, deviceToken);
 }
 
 @end

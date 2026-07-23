@@ -19,7 +19,6 @@
 #import <DeviceCheck/DeviceCheck.h>
 #import <XCTest/XCTest.h>
 
-#import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
 #import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAPIService.h"
@@ -36,6 +35,11 @@
 
 #import "AppCheckCore/Tests/Utils/AppCheckBackoffWrapperFake/GACAppCheckBackoffWrapperFake.h"
 
+#import "AppCheckCore/Tests/Unit/Utils/GACAppAttestAPIServiceFake.h"
+#import "AppCheckCore/Tests/Unit/Utils/GACAppAttestArtifactStorageFake.h"
+#import "AppCheckCore/Tests/Unit/Utils/GACAppAttestKeyIDStorageFake.h"
+#import "AppCheckCore/Tests/Unit/Utils/GACAppAttestServiceFake.h"
+
 GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 @interface GACAppAttestProvider (Tests)
 - (instancetype)initWithAppAttestService:(id<GACAppAttestService>)appAttestService
@@ -50,15 +54,29 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 
 @property(nonatomic) GACAppAttestProvider *provider;
 
-@property(nonatomic) OCMockObject<GACAppAttestService> *mockAppAttestService;
-@property(nonatomic) OCMockObject<GACAppAttestAPIServiceProtocol> *mockAPIService;
-@property(nonatomic) OCMockObject<GACAppAttestKeyIDStorageProtocol> *mockStorage;
-@property(nonatomic) OCMockObject<GACAppAttestArtifactStorageProtocol> *mockArtifactStorage;
+@property(nonatomic) GACAppAttestServiceFake *fakeAppAttestService;
+@property(nonatomic) GACAppAttestAPIServiceFake *fakeAPIService;
+@property(nonatomic) GACAppAttestKeyIDStorageFake *fakeStorage;
+@property(nonatomic) GACAppAttestArtifactStorageFake *fakeArtifactStorage;
 
 @property(nonatomic) NSData *randomChallenge;
 @property(nonatomic) NSData *randomChallengeHash;
 
 @property(nonatomic) GACAppCheckBackoffWrapperFake *fakeBackoffWrapper;
+
+- (void)assertGetToken_WhenNoExistingKey_Success;
+- (void)assertGetToken_WhenKeyRegistered_Success;
+- (void)assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAttestationError:
+    (NSError *)error;
+- (void)assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAssertionError:
+    (NSError *)error;
+- (void)expectAppAttestAvailabilityToBeCheckedAndNotExistingStoredKeyRequested;
+- (void)expectAppAttestKeyGeneratedAndAttestedWithKeyID:(NSString *)keyID
+                                        attestationData:(NSData *)attestationData;
+- (void)expectAttestationReset;
+- (NSError *)expectRandomChallengeRequestError;
+- (FBLPromise *)rejectedPromiseWithError:(NSError *)error;
+- (GACAppCheckHTTPError *)attestationRejectionHTTPError;
 
 @end
 
@@ -67,19 +85,19 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 - (void)setUp {
   [super setUp];
 
-  self.mockAppAttestService = OCMProtocolMock(@protocol(GACAppAttestService));
-  self.mockAPIService = OCMProtocolMock(@protocol(GACAppAttestAPIServiceProtocol));
-  self.mockStorage = OCMProtocolMock(@protocol(GACAppAttestKeyIDStorageProtocol));
-  self.mockArtifactStorage = OCMProtocolMock(@protocol(GACAppAttestArtifactStorageProtocol));
+  self.fakeAppAttestService = [[GACAppAttestServiceFake alloc] init];
+  self.fakeAPIService = [[GACAppAttestAPIServiceFake alloc] init];
+  self.fakeStorage = [[GACAppAttestKeyIDStorageFake alloc] init];
+  self.fakeArtifactStorage = [[GACAppAttestArtifactStorageFake alloc] init];
 
   self.fakeBackoffWrapper = [[GACAppCheckBackoffWrapperFake alloc] init];
   // Don't backoff by default.
   self.fakeBackoffWrapper.isNextOperationAllowed = YES;
 
-  self.provider = [[GACAppAttestProvider alloc] initWithAppAttestService:self.mockAppAttestService
-                                                              APIService:self.mockAPIService
-                                                            keyIDStorage:self.mockStorage
-                                                         artifactStorage:self.mockArtifactStorage
+  self.provider = [[GACAppAttestProvider alloc] initWithAppAttestService:self.fakeAppAttestService
+                                                              APIService:self.fakeAPIService
+                                                            keyIDStorage:self.fakeStorage
+                                                         artifactStorage:self.fakeArtifactStorage
                                                           backoffWrapper:self.fakeBackoffWrapper];
 
   self.randomChallenge = [@"random challenge" dataUsingEncoding:NSUTF8StringEncoding];
@@ -90,10 +108,10 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 
 - (void)tearDown {
   self.provider = nil;
-  self.mockArtifactStorage = nil;
-  self.mockStorage = nil;
-  self.mockAPIService = nil;
-  self.mockAppAttestService = nil;
+  self.fakeArtifactStorage = nil;
+  self.fakeStorage = nil;
+  self.fakeAPIService = nil;
+  self.fakeAppAttestService = nil;
   self.fakeBackoffWrapper = nil;
 }
 
@@ -115,22 +133,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   };
 
   // 1. Expect GACAppAttestService.isSupported.
-  [OCMExpect([self.mockAppAttestService isSupported]) andReturnValue:@(NO)];
-
-  // 2. Don't expect other operations.
-  OCMReject([self.mockStorage getAppAttestKeyID]);
-  OCMReject([self.mockAppAttestService generateKeyWithCompletionHandler:OCMOCK_ANY]);
-  OCMReject([self.mockArtifactStorage getArtifactForKey:OCMOCK_ANY]);
-  OCMReject([self.mockAPIService getRandomChallenge]);
-  OCMReject([self.mockStorage setAppAttestKeyID:OCMOCK_ANY]);
-  OCMReject([self.mockAppAttestService attestKey:OCMOCK_ANY
-                                  clientDataHash:OCMOCK_ANY
-                               completionHandler:OCMOCK_ANY]);
-  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
-                                                    keyID:OCMOCK_ANY
-                                                challenge:OCMOCK_ANY
-                                               limitedUse:NO])
-      .ignoringNonObjectArgs();
+  self.fakeAppAttestService.supported = NO;
 
   // 3. Call get token.
   XCTestExpectation *completionExpectation =
@@ -150,7 +153,11 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                enforceOrder:YES];
 
   // 4. Verify mocks.
-  [self verifyAllMocks];
+  XCTAssertEqual(self.fakeAppAttestService.generateKeyCallCount, 0);
+  XCTAssertEqual(self.fakeAppAttestService.attestKeyCallCount, 0);
+  XCTAssertEqual(self.fakeAPIService.getRandomChallengeCallCount, 0);
+  XCTAssertEqual(self.fakeStorage.setAppAttestKeyIDCallCount, 0);
+  XCTAssertEqual(self.fakeArtifactStorage.getArtifactCallCount, 0);
 }
 
 - (void)testGetToken_WhenNoExistingKey_Success {
@@ -162,35 +169,24 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
   // 1. Expect GACAppAttestService.isSupported.
-  [OCMExpect([self.mockAppAttestService isSupported]) andReturnValue:@(YES)];
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
-  OCMExpect([self.mockStorage getAppAttestKeyID])
-      .andReturn([FBLPromise resolvedWith:existingKeyID]);
-
-  // 3. Don't expect App Attest key to be generated.
-  OCMReject([self.mockAppAttestService generateKeyWithCompletionHandler:OCMOCK_ANY]);
-
-  // 4. Don't expect the key ID to be stored.
-  OCMReject([self.mockStorage setAppAttestKeyID:OCMOCK_ANY]);
+  self.fakeStorage.getAppAttestKeyIDPromise = [FBLPromise resolvedWith:existingKeyID];
 
   // 5. Expect a stored artifact to be requested.
   __auto_type rejectedPromise = [self rejectedPromiseWithError:[NSError errorWithDomain:self.name
                                                                                    code:NSNotFound
                                                                                userInfo:nil]];
-  OCMExpect([self.mockArtifactStorage getArtifactForKey:existingKeyID]).andReturn(rejectedPromise);
+  self.fakeArtifactStorage.getArtifactPromise = rejectedPromise;
 
   // 6. Expect random challenge to be requested.
-  OCMExpect([self.mockAPIService getRandomChallenge])
-      .andReturn([FBLPromise resolvedWith:self.randomChallenge]);
+  self.fakeAPIService.getRandomChallengePromise = [FBLPromise resolvedWith:self.randomChallenge];
 
   // 7. Expect the key to be attested with the challenge.
   NSData *attestationData = [@"attestation data" dataUsingEncoding:NSUTF8StringEncoding];
-  id attestCompletionArg = [OCMArg invokeBlockWithArgs:attestationData, [NSNull null], nil];
-  OCMExpect([self.mockAppAttestService attestKey:existingKeyID
-                                  clientDataHash:self.randomChallengeHash
-                               completionHandler:attestCompletionArg]);
+  self.fakeAppAttestService.attestationToReturn = attestationData;
 
   // 8. Expect key attestation request to be sent.
   GACAppCheckToken *FACToken = [[GACAppCheckToken alloc] initWithToken:@"FAC token"
@@ -198,19 +194,10 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   NSData *artifactData = [@"attestation artifact" dataUsingEncoding:NSUTF8StringEncoding];
   __auto_type attestKeyResponse =
       [[GACAppAttestAttestationResponse alloc] initWithArtifact:artifactData token:FACToken];
-  OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData
-                                                    keyID:existingKeyID
-                                                challenge:self.randomChallenge
-                                               limitedUse:NO])
-      .andReturn([FBLPromise resolvedWith:attestKeyResponse]);
-  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
-                                                    keyID:OCMOCK_ANY
-                                                challenge:OCMOCK_ANY
-                                               limitedUse:YES]);
+  self.fakeAPIService.attestKeyPromise = [FBLPromise resolvedWith:attestKeyResponse];
 
   // 9. Expect the artifact received from Firebase backend to be saved.
-  OCMExpect([self.mockArtifactStorage setArtifact:artifactData forKey:existingKeyID])
-      .andReturn([FBLPromise resolvedWith:artifactData]);
+  self.fakeArtifactStorage.setArtifactPromise = [FBLPromise resolvedWith:artifactData];
 
   // 10. Call get token.
   XCTestExpectation *completionExpectation =
@@ -229,7 +216,12 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                enforceOrder:YES];
 
   // 11. Verify mocks.
-  [self verifyAllMocks];
+  XCTAssertEqual(self.fakeStorage.getAppAttestKeyIDCallCount, 1);
+  XCTAssertEqual(self.fakeArtifactStorage.getArtifactCallCount, 1);
+  XCTAssertEqual(self.fakeAPIService.getRandomChallengeCallCount, 1);
+  XCTAssertEqual(self.fakeAppAttestService.attestKeyCallCount, 1);
+  XCTAssertEqual(self.fakeAPIService.attestKeyCallCount, 1);
+  XCTAssertEqual(self.fakeArtifactStorage.setArtifactCallCount, 1);
 
   // 12. Verify backoff result.
   XCTAssertEqualObjects(((GACAppCheckToken *)self.fakeBackoffWrapper.operationResult).token,
@@ -241,32 +233,20 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
   // 1. Expect GACAppAttestService.isSupported.
-  [OCMExpect([self.mockAppAttestService isSupported]) andReturnValue:@(YES)];
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
-  OCMExpect([self.mockStorage getAppAttestKeyID])
-      .andReturn([FBLPromise resolvedWith:existingKeyID]);
+  self.fakeStorage.getAppAttestKeyIDPromise = [FBLPromise resolvedWith:existingKeyID];
 
   // 3. Expect a stored artifact to be requested.
   __auto_type rejectedPromise = [self rejectedPromiseWithError:[NSError errorWithDomain:self.name
                                                                                    code:NSNotFound
                                                                                userInfo:nil]];
-  OCMExpect([self.mockArtifactStorage getArtifactForKey:existingKeyID]).andReturn(rejectedPromise);
+  self.fakeArtifactStorage.getArtifactPromise = rejectedPromise;
 
   // 4. Expect random challenge to be requested.
   NSError *challengeError = [self expectRandomChallengeRequestError];
-
-  // 5. Don't expect other steps.
-  OCMReject([self.mockStorage setAppAttestKeyID:OCMOCK_ANY]);
-  OCMReject([self.mockAppAttestService attestKey:OCMOCK_ANY
-                                  clientDataHash:OCMOCK_ANY
-                               completionHandler:OCMOCK_ANY]);
-  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
-                                                    keyID:OCMOCK_ANY
-                                                challenge:OCMOCK_ANY
-                                               limitedUse:NO])
-      .ignoringNonObjectArgs();
 
   // 6. Call get token.
   XCTestExpectation *completionExpectation =
@@ -284,7 +264,12 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                enforceOrder:YES];
 
   // 7. Verify mocks.
-  [self verifyAllMocks];
+  XCTAssertEqual(self.fakeStorage.getAppAttestKeyIDCallCount, 1);
+  XCTAssertEqual(self.fakeArtifactStorage.getArtifactCallCount, 1);
+  XCTAssertEqual(self.fakeAPIService.getRandomChallengeCallCount, 1);
+  XCTAssertEqual(self.fakeStorage.setAppAttestKeyIDCallCount, 0);
+  XCTAssertEqual(self.fakeAppAttestService.attestKeyCallCount, 0);
+  XCTAssertEqual(self.fakeAPIService.attestKeyCallCount, 0);
 
   // 8. Verify backoff error.
   XCTAssertEqualObjects(self.fakeBackoffWrapper.operationError, challengeError);
@@ -295,22 +280,20 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
   // 1. Expect GACAppAttestService.isSupported.
-  [OCMExpect([self.mockAppAttestService isSupported]) andReturnValue:@(YES)];
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
-  OCMExpect([self.mockStorage getAppAttestKeyID])
-      .andReturn([FBLPromise resolvedWith:existingKeyID]);
+  self.fakeStorage.getAppAttestKeyIDPromise = [FBLPromise resolvedWith:existingKeyID];
 
   // 3. Expect a stored artifact to be requested.
   __auto_type rejectedPromise = [self rejectedPromiseWithError:[NSError errorWithDomain:self.name
                                                                                    code:NSNotFound
                                                                                userInfo:nil]];
-  OCMExpect([self.mockArtifactStorage getArtifactForKey:existingKeyID]).andReturn(rejectedPromise);
+  self.fakeArtifactStorage.getArtifactPromise = rejectedPromise;
 
   // 4. Expect random challenge to be requested.
-  OCMExpect([self.mockAPIService getRandomChallenge])
-      .andReturn([FBLPromise resolvedWith:self.randomChallenge]);
+  self.fakeAPIService.getRandomChallengePromise = [FBLPromise resolvedWith:self.randomChallenge];
 
   // 5. Expect the key to be attested with the challenge.
   NSError *attestationError = [NSError errorWithDomain:@"testGetTokenWhenKeyAttestationError"
@@ -320,17 +303,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
       [_GACAppCheckErrorUtil appAttestAttestKeyFailedWithError:attestationError
                                                          keyId:existingKeyID
                                                 clientDataHash:self.randomChallengeHash];
-  id attestCompletionArg = [OCMArg invokeBlockWithArgs:[NSNull null], attestationError, nil];
-  OCMExpect([self.mockAppAttestService attestKey:existingKeyID
-                                  clientDataHash:self.randomChallengeHash
-                               completionHandler:attestCompletionArg]);
-
-  // 6. Don't exchange API request.
-  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
-                                                    keyID:OCMOCK_ANY
-                                                challenge:OCMOCK_ANY
-                                               limitedUse:NO])
-      .ignoringNonObjectArgs();
+  self.fakeAppAttestService.attestKeyErrorToReturn = attestationError;
 
   // 7. Call get token.
   XCTestExpectation *completionExpectation =
@@ -348,7 +321,11 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                enforceOrder:YES];
 
   // 8. Verify mocks.
-  [self verifyAllMocks];
+  XCTAssertEqual(self.fakeStorage.getAppAttestKeyIDCallCount, 1);
+  XCTAssertEqual(self.fakeArtifactStorage.getArtifactCallCount, 1);
+  XCTAssertEqual(self.fakeAPIService.getRandomChallengeCallCount, 1);
+  XCTAssertEqual(self.fakeAppAttestService.attestKeyCallCount, 1);
+  XCTAssertEqual(self.fakeAPIService.attestKeyCallCount, 0);
 
   // 9. Verify backoff error.
   XCTAssertEqualObjects(self.fakeBackoffWrapper.operationError, expectedError);
@@ -359,43 +336,30 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
   // 1. Expect GACAppAttestService.isSupported.
-  [OCMExpect([self.mockAppAttestService isSupported]) andReturnValue:@(YES)];
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
-  OCMExpect([self.mockStorage getAppAttestKeyID])
-      .andReturn([FBLPromise resolvedWith:existingKeyID]);
+  self.fakeStorage.getAppAttestKeyIDPromise = [FBLPromise resolvedWith:existingKeyID];
 
   // 3. Expect a stored artifact to be requested.
   __auto_type rejectedPromise = [self rejectedPromiseWithError:[NSError errorWithDomain:self.name
                                                                                    code:NSNotFound
                                                                                userInfo:nil]];
-  OCMExpect([self.mockArtifactStorage getArtifactForKey:existingKeyID]).andReturn(rejectedPromise);
+  self.fakeArtifactStorage.getArtifactPromise = rejectedPromise;
 
   // 4. Expect random challenge to be requested.
-  OCMExpect([self.mockAPIService getRandomChallenge])
-      .andReturn([FBLPromise resolvedWith:self.randomChallenge]);
+  self.fakeAPIService.getRandomChallengePromise = [FBLPromise resolvedWith:self.randomChallenge];
 
   // 5. Expect the key to be attested with the challenge.
   NSData *attestationData = [@"attestation data" dataUsingEncoding:NSUTF8StringEncoding];
-  id attestCompletionArg = [OCMArg invokeBlockWithArgs:attestationData, [NSNull null], nil];
-  OCMExpect([self.mockAppAttestService attestKey:existingKeyID
-                                  clientDataHash:self.randomChallengeHash
-                               completionHandler:attestCompletionArg]);
+  self.fakeAppAttestService.attestationToReturn = attestationData;
 
   // 6. Expect exchange request to be sent.
   NSError *exchangeError = [NSError errorWithDomain:@"testGetTokenWhenKeyAttestationExchangeError"
                                                code:0
                                            userInfo:nil];
-  OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData
-                                                    keyID:existingKeyID
-                                                challenge:self.randomChallenge
-                                               limitedUse:NO])
-      .andReturn([self rejectedPromiseWithError:exchangeError]);
-  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
-                                                    keyID:OCMOCK_ANY
-                                                challenge:OCMOCK_ANY
-                                               limitedUse:YES]);
+  self.fakeAPIService.attestKeyPromise = [self rejectedPromiseWithError:exchangeError];
 
   // 7. Call get token.
   XCTestExpectation *completionExpectation =
@@ -413,7 +377,11 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                enforceOrder:YES];
 
   // 8. Verify mocks.
-  [self verifyAllMocks];
+  XCTAssertEqual(self.fakeStorage.getAppAttestKeyIDCallCount, 1);
+  XCTAssertEqual(self.fakeArtifactStorage.getArtifactCallCount, 1);
+  XCTAssertEqual(self.fakeAPIService.getRandomChallengeCallCount, 1);
+  XCTAssertEqual(self.fakeAppAttestService.attestKeyCallCount, 1);
+  XCTAssertEqual(self.fakeAPIService.attestKeyCallCount, 1);
 
   // 9. Verify backoff error.
   XCTAssertEqualObjects(self.fakeBackoffWrapper.operationError, exchangeError);
@@ -432,63 +400,13 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 
   // 3. Expect exchange request to be sent.
   GACAppCheckHTTPError *APIError = [self attestationRejectionHTTPError];
-  OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData1
-                                                    keyID:keyID1
-                                                challenge:self.randomChallenge
-                                               limitedUse:NO])
-      .andReturn([self rejectedPromiseWithError:APIError]);
-  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
-                                                    keyID:OCMOCK_ANY
-                                                challenge:OCMOCK_ANY
-                                               limitedUse:YES]);
+  self.fakeAPIService.attestKeyPromise = [self rejectedPromiseWithError:APIError];
 
   // 4. Stored attestation to be reset.
   [self expectAttestationReset];
 
-  // 5. Expect App Attest availability to be requested and stored key ID request to fail.
-  [self expectAppAttestAvailabilityToBeCheckedAndNotExistingStoredKeyRequested];
-
-  // 6. Expect the App Attest key pair to be generated and attested.
-  NSString *keyID2 = @"keyID2";
-  NSData *attestationData2 = [[NSUUID UUID].UUIDString dataUsingEncoding:NSUTF8StringEncoding];
-  [self expectAppAttestKeyGeneratedAndAttestedWithKeyID:keyID2 attestationData:attestationData2];
-
-  // 7. Expect exchange request to be sent.
-  GACAppCheckToken *FACToken = [[GACAppCheckToken alloc] initWithToken:@"FAC token"
-                                                        expirationDate:[NSDate date]];
-  NSData *artifactData = [@"attestation artifact" dataUsingEncoding:NSUTF8StringEncoding];
-  __auto_type attestKeyResponse =
-      [[GACAppAttestAttestationResponse alloc] initWithArtifact:artifactData token:FACToken];
-  OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData2
-                                                    keyID:keyID2
-                                                challenge:self.randomChallenge
-                                               limitedUse:NO])
-      .andReturn([FBLPromise resolvedWith:attestKeyResponse]);
-  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
-                                                    keyID:OCMOCK_ANY
-                                                challenge:OCMOCK_ANY
-                                               limitedUse:YES]);
-
-  // 8. Expect the artifact received from Firebase backend to be saved.
-  OCMExpect([self.mockArtifactStorage setArtifact:artifactData forKey:keyID2])
-      .andReturn([FBLPromise resolvedWith:artifactData]);
-
-  // 9. Call get token.
-  XCTestExpectation *completionExpectation =
-      [self expectationWithDescription:@"completionExpectation"];
-  [self.provider
-      getTokenWithCompletion:^(GACAppCheckToken *_Nullable token, NSError *_Nullable error) {
-        [completionExpectation fulfill];
-
-        XCTAssertEqualObjects(token.token, FACToken.token);
-        XCTAssertEqualObjects(token.expirationDate, FACToken.expirationDate);
-        XCTAssertNil(error);
-      }];
-
-  [self waitForExpectations:@[ completionExpectation ] timeout:0.5 enforceOrder:YES];
-
-  // 10. Verify mocks.
-  [self verifyAllMocks];
+  // 5. Assert that attestation is tried successfully.
+  [self assertGetToken_WhenNoExistingKey_Success];
 }
 
 - (void)testGetToken_WhenAttestationIsRejected_ThenAttestationIsResetAndRetriedOnceError {
@@ -502,15 +420,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 
   // 3. Expect exchange request to be sent.
   GACAppCheckHTTPError *APIError = [self attestationRejectionHTTPError];
-  OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData1
-                                                    keyID:keyID1
-                                                challenge:self.randomChallenge
-                                               limitedUse:NO])
-      .andReturn([self rejectedPromiseWithError:APIError]);
-  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
-                                                    keyID:OCMOCK_ANY
-                                                challenge:OCMOCK_ANY
-                                               limitedUse:YES]);
+  self.fakeAPIService.attestKeyPromise = [self rejectedPromiseWithError:APIError];
 
   // 4. Stored attestation to be reset.
   [self expectAttestationReset];
@@ -524,21 +434,10 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   [self expectAppAttestKeyGeneratedAndAttestedWithKeyID:keyID2 attestationData:attestationData2];
 
   // 7. Expect exchange request to be sent.
-  OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData2
-                                                    keyID:keyID2
-                                                challenge:self.randomChallenge
-                                               limitedUse:NO])
-      .andReturn([self rejectedPromiseWithError:APIError]);
-  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
-                                                    keyID:OCMOCK_ANY
-                                                challenge:OCMOCK_ANY
-                                               limitedUse:YES]);
+  // fakeAPIService.attestKeyPromise is still rejectedPromiseWithError:APIError.
 
   // 8. Stored attestation to be reset.
   [self expectAttestationReset];
-
-  // 9. Don't expect the artifact received from Firebase backend to be saved.
-  OCMReject([self.mockArtifactStorage setArtifact:OCMOCK_ANY forKey:OCMOCK_ANY]);
 
   // 10. Call get token.
   XCTestExpectation *completionExpectation =
@@ -555,7 +454,8 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   [self waitForExpectations:@[ completionExpectation ] timeout:0.5 enforceOrder:YES];
 
   // 11. Verify mocks.
-  [self verifyAllMocks];
+  XCTAssertEqual(self.fakeAPIService.attestKeyCallCount, 2);
+  XCTAssertEqual(self.fakeArtifactStorage.setArtifactCallCount, 2);  // 2 resets
 }
 
 - (void)testGetToken_WhenExistingKeyIsRejectedByApple_ThenAttestationIsResetAndRetriedOnce_Success {
@@ -579,32 +479,18 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 
 - (void)testGetToken_WhenKeyRegisteredAndChallengeRequestError {
   // 1. Expect GACAppAttestService.isSupported.
-  [OCMExpect([self.mockAppAttestService isSupported]) andReturnValue:@(YES)];
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
-  OCMExpect([self.mockStorage getAppAttestKeyID])
-      .andReturn([FBLPromise resolvedWith:existingKeyID]);
+  self.fakeStorage.getAppAttestKeyIDPromise = [FBLPromise resolvedWith:existingKeyID];
 
   // 3. Expect a stored artifact to be requested.
   NSData *storedArtifact = [@"storedArtifact" dataUsingEncoding:NSUTF8StringEncoding];
-  OCMExpect([self.mockArtifactStorage getArtifactForKey:existingKeyID])
-      .andReturn([FBLPromise resolvedWith:storedArtifact]);
+  self.fakeArtifactStorage.getArtifactPromise = [FBLPromise resolvedWith:storedArtifact];
 
   // 4. Expect random challenge to be requested.
   NSError *challengeError = [self expectRandomChallengeRequestError];
-
-  // 5. Don't expect assertion to be requested.
-  OCMReject([self.mockAppAttestService generateAssertion:OCMOCK_ANY
-                                          clientDataHash:OCMOCK_ANY
-                                       completionHandler:OCMOCK_ANY]);
-
-  // 6. Don't expect assertion request to be sent.
-  OCMReject([self.mockAPIService getAppCheckTokenWithArtifact:OCMOCK_ANY
-                                                    challenge:OCMOCK_ANY
-                                                    assertion:OCMOCK_ANY
-                                                   limitedUse:NO])
-      .ignoringNonObjectArgs();
 
   // 7. Call get token.
   XCTestExpectation *completionExpectation =
@@ -620,26 +506,24 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   [self waitForExpectations:@[ completionExpectation ] timeout:0.5];
 
   // 8. Verify mocks.
-  [self verifyAllMocks];
+  XCTAssertEqual(self.fakeAppAttestService.generateAssertionCallCount, 0);
+  XCTAssertEqual(self.fakeAPIService.getAppCheckTokenCallCount, 0);
 }
 
 - (void)testGetToken_WhenKeyRegisteredAndGenerateAssertionError {
   // 1. Expect GACAppAttestService.isSupported.
-  [OCMExpect([self.mockAppAttestService isSupported]) andReturnValue:@(YES)];
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
-  OCMExpect([self.mockStorage getAppAttestKeyID])
-      .andReturn([FBLPromise resolvedWith:existingKeyID]);
+  self.fakeStorage.getAppAttestKeyIDPromise = [FBLPromise resolvedWith:existingKeyID];
 
   // 3. Expect a stored artifact to be requested.
   NSData *storedArtifact = [@"storedArtifact" dataUsingEncoding:NSUTF8StringEncoding];
-  OCMExpect([self.mockArtifactStorage getArtifactForKey:existingKeyID])
-      .andReturn([FBLPromise resolvedWith:storedArtifact]);
+  self.fakeArtifactStorage.getArtifactPromise = [FBLPromise resolvedWith:storedArtifact];
 
   // 4. Expect random challenge to be requested.
-  OCMExpect([self.mockAPIService getRandomChallenge])
-      .andReturn([FBLPromise resolvedWith:self.randomChallenge]);
+  self.fakeAPIService.getRandomChallengePromise = [FBLPromise resolvedWith:self.randomChallenge];
 
   // 5. Don't expect assertion to be requested.
   NSError *generateAssertionError =
@@ -654,18 +538,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
       [_GACAppCheckErrorUtil appAttestGenerateAssertionFailedWithError:generateAssertionError
                                                                  keyId:existingKeyID
                                                         clientDataHash:clientDataHash];
-  id completionBlockArg = [OCMArg invokeBlockWithArgs:[NSNull null], generateAssertionError, nil];
-  OCMExpect([self.mockAppAttestService
-      generateAssertion:existingKeyID
-         clientDataHash:[self dataHashForAssertionWithArtifactData:storedArtifact]
-      completionHandler:completionBlockArg]);
-
-  // 6. Don't expect assertion request to be sent.
-  OCMReject([self.mockAPIService getAppCheckTokenWithArtifact:OCMOCK_ANY
-                                                    challenge:OCMOCK_ANY
-                                                    assertion:OCMOCK_ANY
-                                                   limitedUse:NO])
-      .ignoringNonObjectArgs();
+  self.fakeAppAttestService.generateAssertionErrorToReturn = generateAssertionError;
 
   // 7. Call get token.
   XCTestExpectation *completionExpectation =
@@ -681,49 +554,35 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   [self waitForExpectations:@[ completionExpectation ] timeout:0.5];
 
   // 8. Verify mocks.
-  [self verifyAllMocks];
+  XCTAssertEqual(self.fakeAppAttestService.generateAssertionCallCount, 1);
+  XCTAssertEqual(self.fakeAPIService.getAppCheckTokenCallCount, 0);
 }
 
 - (void)testGetToken_WhenKeyRegisteredAndTokenExchangeRequestError {
   // 1. Expect GACAppAttestService.isSupported.
-  [OCMExpect([self.mockAppAttestService isSupported]) andReturnValue:@(YES)];
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
-  OCMExpect([self.mockStorage getAppAttestKeyID])
-      .andReturn([FBLPromise resolvedWith:existingKeyID]);
+  self.fakeStorage.getAppAttestKeyIDPromise = [FBLPromise resolvedWith:existingKeyID];
 
   // 3. Expect a stored artifact to be requested.
   NSData *storedArtifact = [@"storedArtifact" dataUsingEncoding:NSUTF8StringEncoding];
-  OCMExpect([self.mockArtifactStorage getArtifactForKey:existingKeyID])
-      .andReturn([FBLPromise resolvedWith:storedArtifact]);
+  self.fakeArtifactStorage.getArtifactPromise = [FBLPromise resolvedWith:storedArtifact];
 
   // 4. Expect random challenge to be requested.
-  OCMExpect([self.mockAPIService getRandomChallenge])
-      .andReturn([FBLPromise resolvedWith:self.randomChallenge]);
+  self.fakeAPIService.getRandomChallengePromise = [FBLPromise resolvedWith:self.randomChallenge];
 
   // 5. Don't expect assertion to be requested.
   NSData *assertion = [@"generatedAssertion" dataUsingEncoding:NSUTF8StringEncoding];
-  id completionBlockArg = [OCMArg invokeBlockWithArgs:assertion, [NSNull null], nil];
-  OCMExpect([self.mockAppAttestService
-      generateAssertion:existingKeyID
-         clientDataHash:[self dataHashForAssertionWithArtifactData:storedArtifact]
-      completionHandler:completionBlockArg]);
+  self.fakeAppAttestService.assertionToReturn = assertion;
 
   // 6. Expect assertion request to be sent.
   NSError *tokenExchangeError =
       [NSError errorWithDomain:@"testGetToken_WhenKeyRegisteredAndTokenExchangeRequestError"
                           code:0
                       userInfo:nil];
-  OCMExpect([self.mockAPIService getAppCheckTokenWithArtifact:storedArtifact
-                                                    challenge:self.randomChallenge
-                                                    assertion:assertion
-                                                   limitedUse:NO])
-      .andReturn([self rejectedPromiseWithError:tokenExchangeError]);
-  OCMReject([self.mockAPIService getAppCheckTokenWithArtifact:OCMOCK_ANY
-                                                    challenge:OCMOCK_ANY
-                                                    assertion:OCMOCK_ANY
-                                                   limitedUse:YES]);
+  self.fakeAPIService.getAppCheckTokenPromise = [self rejectedPromiseWithError:tokenExchangeError];
 
   // 7. Call get token.
   XCTestExpectation *completionExpectation =
@@ -739,7 +598,8 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   [self waitForExpectations:@[ completionExpectation ] timeout:0.5];
 
   // 8. Verify mocks.
-  [self verifyAllMocks];
+  XCTAssertEqual(self.fakeAppAttestService.generateAssertionCallCount, 1);
+  XCTAssertEqual(self.fakeAPIService.getAppCheckTokenCallCount, 1);
 }
 
 #pragma mark - Rejected Assertion
@@ -769,44 +629,30 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
   // 1. Expect GACAppAttestService.isSupported.
-  [OCMExpect([self.mockAppAttestService isSupported]) andReturnValue:@(YES)];
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
-  OCMExpect([self.mockStorage getAppAttestKeyID])
-      .andReturn([FBLPromise resolvedWith:existingKeyID]);
+  self.fakeStorage.getAppAttestKeyIDPromise = [FBLPromise resolvedWith:existingKeyID];
 
   // 3. Expect a stored artifact to be requested.
   NSData *storedArtifact = [@"storedArtifact" dataUsingEncoding:NSUTF8StringEncoding];
-  OCMExpect([self.mockArtifactStorage getArtifactForKey:existingKeyID])
-      .andReturn([FBLPromise resolvedWith:storedArtifact]);
+  self.fakeArtifactStorage.getArtifactPromise = [FBLPromise resolvedWith:storedArtifact];
 
   // 4. Expect random challenge to be requested.
   // 4.1. Create a pending promise to fulfill later.
   FBLPromise<NSData *> *challengeRequestPromise = [FBLPromise pendingPromise];
   // 4.2. Stub getRandomChallenge method.
-  OCMExpect([self.mockAPIService getRandomChallenge]).andReturn(challengeRequestPromise);
+  self.fakeAPIService.getRandomChallengePromise = challengeRequestPromise;
 
   // 5. Expect assertion to be requested.
   NSData *assertion = [@"generatedAssertion" dataUsingEncoding:NSUTF8StringEncoding];
-  id completionBlockArg = [OCMArg invokeBlockWithArgs:assertion, [NSNull null], nil];
-  OCMExpect([self.mockAppAttestService
-      generateAssertion:existingKeyID
-         clientDataHash:[self dataHashForAssertionWithArtifactData:storedArtifact]
-      completionHandler:completionBlockArg]);
+  self.fakeAppAttestService.assertionToReturn = assertion;
 
   // 6. Expect assertion request to be sent.
   GACAppCheckToken *FACToken = [[GACAppCheckToken alloc] initWithToken:@"FAC token"
                                                         expirationDate:[NSDate date]];
-  OCMExpect([self.mockAPIService getAppCheckTokenWithArtifact:storedArtifact
-                                                    challenge:self.randomChallenge
-                                                    assertion:assertion
-                                                   limitedUse:NO])
-      .andReturn([FBLPromise resolvedWith:FACToken]);
-  OCMReject([self.mockAPIService getAppCheckTokenWithArtifact:OCMOCK_ANY
-                                                    challenge:OCMOCK_ANY
-                                                    assertion:OCMOCK_ANY
-                                                   limitedUse:YES]);
+  self.fakeAPIService.getAppCheckTokenPromise = [FBLPromise resolvedWith:FACToken];
 
   // 7. Call get token several times.
   NSInteger callsCount = 10;
@@ -838,7 +684,8 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   [self waitForExpectations:expectations timeout:1];
 
   // 8. Verify mocks.
-  [self verifyAllMocks];
+  XCTAssertEqual(self.fakeAppAttestService.generateAssertionCallCount, 1);
+  XCTAssertEqual(self.fakeAPIService.getAppCheckTokenCallCount, 1);
 
   // 9. Check another get token call after.
   [self assertGetToken_WhenKeyRegistered_Success];
@@ -849,43 +696,28 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
   // 1. Expect GACAppAttestService.isSupported.
-  [OCMExpect([self.mockAppAttestService isSupported]) andReturnValue:@(YES)];
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
-  OCMExpect([self.mockStorage getAppAttestKeyID])
-      .andReturn([FBLPromise resolvedWith:existingKeyID]);
+  self.fakeStorage.getAppAttestKeyIDPromise = [FBLPromise resolvedWith:existingKeyID];
 
   // 3. Expect a stored artifact to be requested.
   NSData *storedArtifact = [@"storedArtifact" dataUsingEncoding:NSUTF8StringEncoding];
-  OCMExpect([self.mockArtifactStorage getArtifactForKey:existingKeyID])
-      .andReturn([FBLPromise resolvedWith:storedArtifact]);
+  self.fakeArtifactStorage.getArtifactPromise = [FBLPromise resolvedWith:storedArtifact];
 
   // 4. Expect random challenge to be requested.
-  OCMExpect([self.mockAPIService getRandomChallenge])
-      .andReturn([FBLPromise resolvedWith:self.randomChallenge]);
+  self.fakeAPIService.getRandomChallengePromise = [FBLPromise resolvedWith:self.randomChallenge];
 
-  // 5. Don't expect assertion to be requested.
+  // 5. Expect assertion to be requested.
   NSData *assertion = [@"generatedAssertion" dataUsingEncoding:NSUTF8StringEncoding];
-  id completionBlockArg = [OCMArg invokeBlockWithArgs:assertion, [NSNull null], nil];
-  OCMExpect([self.mockAppAttestService
-      generateAssertion:existingKeyID
-         clientDataHash:[self dataHashForAssertionWithArtifactData:storedArtifact]
-      completionHandler:completionBlockArg]);
+  self.fakeAppAttestService.assertionToReturn = assertion;
 
   // 6. Expect assertion request to be sent.
   // 6.1. Create a pending promise to reject later.
   FBLPromise<GACAppCheckToken *> *assertionRequestPromise = [FBLPromise pendingPromise];
   // 6.2. Stub assertion request.
-  OCMExpect([self.mockAPIService getAppCheckTokenWithArtifact:storedArtifact
-                                                    challenge:self.randomChallenge
-                                                    assertion:assertion
-                                                   limitedUse:NO])
-      .andReturn(assertionRequestPromise);
-  OCMReject([self.mockAPIService getAppCheckTokenWithArtifact:OCMOCK_ANY
-                                                    challenge:OCMOCK_ANY
-                                                    assertion:OCMOCK_ANY
-                                                   limitedUse:YES]);
+  self.fakeAPIService.getAppCheckTokenPromise = assertionRequestPromise;
   // 6.3. Create an expected error to be rejected with later.
   NSError *assertionRequestError = [NSError errorWithDomain:self.name code:0 userInfo:nil];
 
@@ -918,7 +750,8 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   [self waitForExpectations:expectations timeout:1];
 
   // 8. Verify mocks.
-  [self verifyAllMocks];
+  XCTAssertEqual(self.fakeAppAttestService.generateAssertionCallCount, 1);
+  XCTAssertEqual(self.fakeAPIService.getAppCheckTokenCallCount, 1);
 
   // 9. Check another get token call after.
   [self assertGetToken_WhenKeyRegistered_Success];
@@ -930,22 +763,6 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   // 1. Configure backoff.
   self.fakeBackoffWrapper.isNextOperationAllowed = NO;
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
-
-  // 2. Don't expect any operations.
-  OCMReject([self.mockAppAttestService isSupported]);
-  OCMReject([self.mockStorage getAppAttestKeyID]);
-  OCMReject([self.mockAppAttestService generateKeyWithCompletionHandler:OCMOCK_ANY]);
-  OCMReject([self.mockArtifactStorage getArtifactForKey:OCMOCK_ANY]);
-  OCMReject([self.mockAPIService getRandomChallenge]);
-  OCMReject([self.mockStorage setAppAttestKeyID:OCMOCK_ANY]);
-  OCMReject([self.mockAppAttestService attestKey:OCMOCK_ANY
-                                  clientDataHash:OCMOCK_ANY
-                               completionHandler:OCMOCK_ANY]);
-  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
-                                                    keyID:OCMOCK_ANY
-                                                challenge:OCMOCK_ANY
-                                               limitedUse:NO])
-      .ignoringNonObjectArgs();
 
   // 3. Call get token.
   XCTestExpectation *completionExpectation =
@@ -963,7 +780,13 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                enforceOrder:YES];
 
   // 4. Verify mocks.
-  [self verifyAllMocks];
+  XCTAssertEqual(self.fakeStorage.getAppAttestKeyIDCallCount, 0);
+  XCTAssertEqual(self.fakeAppAttestService.generateKeyCallCount, 0);
+  XCTAssertEqual(self.fakeArtifactStorage.getArtifactCallCount, 0);
+  XCTAssertEqual(self.fakeAPIService.getRandomChallengeCallCount, 0);
+  XCTAssertEqual(self.fakeStorage.setAppAttestKeyIDCallCount, 0);
+  XCTAssertEqual(self.fakeAppAttestService.attestKeyCallCount, 0);
+  XCTAssertEqual(self.fakeAPIService.attestKeyCallCount, 0);
 }
 
 #pragma mark - Helpers
@@ -984,16 +807,38 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   NSError *challengeError = [NSError errorWithDomain:@"testGetToken_WhenRandomChallengeError"
                                                 code:NSNotFound
                                             userInfo:nil];
-  OCMExpect([self.mockAPIService getRandomChallenge])
-      .andReturn([self rejectedPromiseWithError:challengeError]);
+  self.fakeAPIService.getRandomChallengePromise = [self rejectedPromiseWithError:challengeError];
   return challengeError;
 }
 
-- (void)verifyAllMocks {
-  OCMVerifyAll(self.mockAppAttestService);
-  OCMVerifyAll(self.mockAPIService);
-  OCMVerifyAll(self.mockStorage);
-  OCMVerifyAll(self.mockArtifactStorage);
+- (void)resetFakeCallCountsAndErrors {
+  self.fakeAppAttestService.generateKeyCallCount = 0;
+  self.fakeAppAttestService.attestKeyCallCount = 0;
+  self.fakeAppAttestService.generateAssertionCallCount = 0;
+  self.fakeAPIService.getRandomChallengeCallCount = 0;
+  self.fakeAPIService.attestKeyCallCount = 0;
+  self.fakeAPIService.getAppCheckTokenCallCount = 0;
+  self.fakeStorage.getAppAttestKeyIDCallCount = 0;
+  self.fakeStorage.setAppAttestKeyIDCallCount = 0;
+  self.fakeArtifactStorage.getArtifactCallCount = 0;
+  self.fakeArtifactStorage.setArtifactCallCount = 0;
+
+  self.fakeAppAttestService.generateKeyErrorToReturn = nil;
+  self.fakeAppAttestService.attestKeyErrorToReturn = nil;
+  self.fakeAppAttestService.generateAssertionErrorToReturn = nil;
+  self.fakeAppAttestService.keyIdToReturn = nil;
+  self.fakeAppAttestService.attestationToReturn = nil;
+  self.fakeAppAttestService.assertionToReturn = nil;
+
+  self.fakeAPIService.getRandomChallengePromise = nil;
+  self.fakeAPIService.attestKeyPromise = nil;
+  self.fakeAPIService.getAppCheckTokenPromise = nil;
+
+  self.fakeStorage.getAppAttestKeyIDPromise = nil;
+  self.fakeStorage.setAppAttestKeyIDPromise = nil;
+
+  self.fakeArtifactStorage.getArtifactPromise = nil;
+  self.fakeArtifactStorage.setArtifactPromise = nil;
 }
 
 - (GACAppCheckHTTPError *)attestationRejectionHTTPError {
@@ -1007,31 +852,27 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 }
 
 - (void)assertGetToken_WhenNoExistingKey_Success {
+  [self resetFakeCallCountsAndErrors];
+
   // 0. Expect backoff wrapper to be used.
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
-  // 1. Expect App Attest availability to be requested and stored key ID request to fail.
+  // 1. Expect App Attest availability to be checked and no existing stored key requested.
   [self expectAppAttestAvailabilityToBeCheckedAndNotExistingStoredKeyRequested];
 
   // 2. Expect App Attest key to be generated.
   NSString *generatedKeyID = @"generatedKeyID";
-  id completionArg = [OCMArg invokeBlockWithArgs:generatedKeyID, [NSNull null], nil];
-  OCMExpect([self.mockAppAttestService generateKeyWithCompletionHandler:completionArg]);
+  self.fakeAppAttestService.keyIdToReturn = generatedKeyID;
 
   // 3. Expect the key ID to be stored.
-  OCMExpect([self.mockStorage setAppAttestKeyID:generatedKeyID])
-      .andReturn([FBLPromise resolvedWith:generatedKeyID]);
+  self.fakeStorage.setAppAttestKeyIDPromise = [FBLPromise resolvedWith:generatedKeyID];
 
   // 4. Expect random challenge to be requested.
-  OCMExpect([self.mockAPIService getRandomChallenge])
-      .andReturn([FBLPromise resolvedWith:self.randomChallenge]);
+  self.fakeAPIService.getRandomChallengePromise = [FBLPromise resolvedWith:self.randomChallenge];
 
   // 5. Expect the key to be attested with the challenge.
   NSData *attestationData = [@"attestation data" dataUsingEncoding:NSUTF8StringEncoding];
-  id attestCompletionArg = [OCMArg invokeBlockWithArgs:attestationData, [NSNull null], nil];
-  OCMExpect([self.mockAppAttestService attestKey:generatedKeyID
-                                  clientDataHash:self.randomChallengeHash
-                               completionHandler:attestCompletionArg]);
+  self.fakeAppAttestService.attestationToReturn = attestationData;
 
   // 6. Expect key attestation request to be sent.
   GACAppCheckToken *FACToken = [[GACAppCheckToken alloc] initWithToken:@"FAC token"
@@ -1039,19 +880,10 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   NSData *artifactData = [@"attestation artifact" dataUsingEncoding:NSUTF8StringEncoding];
   __auto_type attestKeyResponse =
       [[GACAppAttestAttestationResponse alloc] initWithArtifact:artifactData token:FACToken];
-  OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData
-                                                    keyID:generatedKeyID
-                                                challenge:self.randomChallenge
-                                               limitedUse:NO])
-      .andReturn([FBLPromise resolvedWith:attestKeyResponse]);
-  OCMReject([self.mockAPIService attestKeyWithAttestation:OCMOCK_ANY
-                                                    keyID:OCMOCK_ANY
-                                                challenge:OCMOCK_ANY
-                                               limitedUse:YES]);
+  self.fakeAPIService.attestKeyPromise = [FBLPromise resolvedWith:attestKeyResponse];
 
   // 7. Expect the artifact received from Firebase backend to be saved.
-  OCMExpect([self.mockArtifactStorage setArtifact:artifactData forKey:generatedKeyID])
-      .andReturn([FBLPromise resolvedWith:artifactData]);
+  self.fakeArtifactStorage.setArtifactPromise = [FBLPromise resolvedWith:artifactData];
 
   // 8. Call get token.
   XCTestExpectation *completionExpectation =
@@ -1070,7 +902,12 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                enforceOrder:YES];
 
   // 9. Verify mocks.
-  [self verifyAllMocks];
+  XCTAssertEqual(self.fakeAppAttestService.generateKeyCallCount, 1);
+  XCTAssertEqual(self.fakeStorage.setAppAttestKeyIDCallCount, 1);
+  XCTAssertEqual(self.fakeAPIService.getRandomChallengeCallCount, 1);
+  XCTAssertEqual(self.fakeAppAttestService.attestKeyCallCount, 1);
+  XCTAssertEqual(self.fakeAPIService.attestKeyCallCount, 1);
+  XCTAssertEqual(self.fakeArtifactStorage.setArtifactCallCount, 1);
 
   // 10. Verify backoff result.
   XCTAssertEqualObjects(((GACAppCheckToken *)self.fakeBackoffWrapper.operationResult).token,
@@ -1078,46 +915,33 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 }
 
 - (void)assertGetToken_WhenKeyRegistered_Success {
+  [self resetFakeCallCountsAndErrors];
+
   // 0. Expect backoff wrapper to be used.
   self.fakeBackoffWrapper.backoffExpectation = [self expectationWithDescription:@"Backoff"];
 
   // 1. Expect GACAppAttestService.isSupported.
-  [OCMExpect([self.mockAppAttestService isSupported]) andReturnValue:@(YES)];
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = [NSUUID UUID].UUIDString;
-  OCMExpect([self.mockStorage getAppAttestKeyID])
-      .andReturn([FBLPromise resolvedWith:existingKeyID]);
+  self.fakeStorage.getAppAttestKeyIDPromise = [FBLPromise resolvedWith:existingKeyID];
 
   // 3. Expect a stored artifact to be requested.
   NSData *storedArtifact = [[NSUUID UUID].UUIDString dataUsingEncoding:NSUTF8StringEncoding];
-  OCMExpect([self.mockArtifactStorage getArtifactForKey:existingKeyID])
-      .andReturn([FBLPromise resolvedWith:storedArtifact]);
+  self.fakeArtifactStorage.getArtifactPromise = [FBLPromise resolvedWith:storedArtifact];
 
   // 4. Expect random challenge to be requested.
-  OCMExpect([self.mockAPIService getRandomChallenge])
-      .andReturn([FBLPromise resolvedWith:self.randomChallenge]);
+  self.fakeAPIService.getRandomChallengePromise = [FBLPromise resolvedWith:self.randomChallenge];
 
   // 5. Expect assertion to be requested.
   NSData *assertion = [[NSUUID UUID].UUIDString dataUsingEncoding:NSUTF8StringEncoding];
-  id completionBlockArg = [OCMArg invokeBlockWithArgs:assertion, [NSNull null], nil];
-  OCMExpect([self.mockAppAttestService
-      generateAssertion:existingKeyID
-         clientDataHash:[self dataHashForAssertionWithArtifactData:storedArtifact]
-      completionHandler:completionBlockArg]);
+  self.fakeAppAttestService.assertionToReturn = assertion;
 
   // 6. Expect assertion request to be sent.
   GACAppCheckToken *FACToken = [[GACAppCheckToken alloc] initWithToken:[NSUUID UUID].UUIDString
                                                         expirationDate:[NSDate date]];
-  OCMExpect([self.mockAPIService getAppCheckTokenWithArtifact:storedArtifact
-                                                    challenge:self.randomChallenge
-                                                    assertion:assertion
-                                                   limitedUse:NO])
-      .andReturn([FBLPromise resolvedWith:FACToken]);
-  OCMReject([self.mockAPIService getAppCheckTokenWithArtifact:OCMOCK_ANY
-                                                    challenge:OCMOCK_ANY
-                                                    assertion:OCMOCK_ANY
-                                                   limitedUse:YES]);
+  self.fakeAPIService.getAppCheckTokenPromise = [FBLPromise resolvedWith:FACToken];
 
   // 7. Call get token.
   XCTestExpectation *completionExpectation =
@@ -1135,7 +959,8 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                     timeout:0.5];
 
   // 8. Verify mocks.
-  [self verifyAllMocks];
+  XCTAssertEqual(self.fakeAppAttestService.generateAssertionCallCount, 1);
+  XCTAssertEqual(self.fakeAPIService.getAppCheckTokenCallCount, 1);
 
   // 9. Verify backoff result.
   XCTAssertEqualObjects(((GACAppCheckToken *)self.fakeBackoffWrapper.operationResult).token,
@@ -1145,28 +970,23 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 - (void)assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAttestationError:
     (NSError *)error {
   // 1. Expect GACAppAttestService.isSupported.
-  [OCMExpect([self.mockAppAttestService isSupported]) andReturnValue:@(YES)];
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
-  OCMExpect([self.mockStorage getAppAttestKeyID])
-      .andReturn([FBLPromise resolvedWith:existingKeyID]);
+  self.fakeStorage.getAppAttestKeyIDPromise = [FBLPromise resolvedWith:existingKeyID];
 
   // 3. Expect a stored artifact to be requested.
   __auto_type rejectedPromise = [self rejectedPromiseWithError:[NSError errorWithDomain:self.name
                                                                                    code:NSNotFound
                                                                                userInfo:nil]];
-  OCMExpect([self.mockArtifactStorage getArtifactForKey:existingKeyID]).andReturn(rejectedPromise);
+  self.fakeArtifactStorage.getArtifactPromise = rejectedPromise;
 
   // 4. Expect random challenge to be requested.
-  OCMExpect([self.mockAPIService getRandomChallenge])
-      .andReturn([FBLPromise resolvedWith:self.randomChallenge]);
+  self.fakeAPIService.getRandomChallengePromise = [FBLPromise resolvedWith:self.randomChallenge];
 
   // 5. Expect the key to be attested with the challenge.
-  id attestCompletionArg = [OCMArg invokeBlockWithArgs:[NSNull null], error, nil];
-  OCMExpect([self.mockAppAttestService attestKey:existingKeyID
-                                  clientDataHash:self.randomChallengeHash
-                               completionHandler:attestCompletionArg]);
+  self.fakeAppAttestService.attestKeyErrorToReturn = error;
 
   // 6. Stored attestation to be reset.
   [self expectAttestationReset];
@@ -1185,15 +1005,10 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
   NSData *artifactData = [@"attestation artifact" dataUsingEncoding:NSUTF8StringEncoding];
   __auto_type attestKeyResponse =
       [[GACAppAttestAttestationResponse alloc] initWithArtifact:artifactData token:appCheckToken];
-  OCMExpect([self.mockAPIService attestKeyWithAttestation:attestationData
-                                                    keyID:newKeyID
-                                                challenge:self.randomChallenge
-                                               limitedUse:NO])
-      .andReturn([FBLPromise resolvedWith:attestKeyResponse]);
+  self.fakeAPIService.attestKeyPromise = [FBLPromise resolvedWith:attestKeyResponse];
 
   // 10. Expect the artifact received from Firebase backend to be saved.
-  OCMExpect([self.mockArtifactStorage setArtifact:artifactData forKey:newKeyID])
-      .andReturn([FBLPromise resolvedWith:artifactData]);
+  self.fakeArtifactStorage.setArtifactPromise = [FBLPromise resolvedWith:artifactData];
 
   // 11. Call get token.
   XCTestExpectation *completionExpectation =
@@ -1208,36 +1023,26 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
       }];
 
   [self waitForExpectations:@[ completionExpectation ] timeout:0.5 enforceOrder:YES];
-
-  // 12. Verify mocks.
-  [self verifyAllMocks];
 }
 
 - (void)assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAssertionError:
     (NSError *)error {
   // 1. Expect GACAppAttestService.isSupported.
-  [OCMExpect([self.mockAppAttestService isSupported]) andReturnValue:@(YES)];
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   NSString *existingKeyID = @"existingKeyID";
-  OCMExpect([self.mockStorage getAppAttestKeyID])
-      .andReturn([FBLPromise resolvedWith:existingKeyID]);
+  self.fakeStorage.getAppAttestKeyIDPromise = [FBLPromise resolvedWith:existingKeyID];
 
   // 3. Expect a stored artifact to be requested.
   NSData *storedArtifact = [@"storedArtifact" dataUsingEncoding:NSUTF8StringEncoding];
-  OCMExpect([self.mockArtifactStorage getArtifactForKey:existingKeyID])
-      .andReturn([FBLPromise resolvedWith:storedArtifact]);
+  self.fakeArtifactStorage.getArtifactPromise = [FBLPromise resolvedWith:storedArtifact];
 
   // 4. Expect random challenge to be requested.
-  OCMExpect([self.mockAPIService getRandomChallenge])
-      .andReturn([FBLPromise resolvedWith:self.randomChallenge]);
+  self.fakeAPIService.getRandomChallengePromise = [FBLPromise resolvedWith:self.randomChallenge];
 
   // 5. Don't expect assertion to be requested.
-  id completionBlockArg = [OCMArg invokeBlockWithArgs:[NSNull null], error, nil];
-  OCMExpect([self.mockAppAttestService
-      generateAssertion:existingKeyID
-         clientDataHash:[self dataHashForAssertionWithArtifactData:storedArtifact]
-      completionHandler:completionBlockArg]);
+  self.fakeAppAttestService.generateAssertionErrorToReturn = error;
 
   // 6. Stored attestation to be reset.
   [self expectAttestationReset];
@@ -1248,7 +1053,7 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
 
 - (void)expectAppAttestAvailabilityToBeCheckedAndNotExistingStoredKeyRequested {
   // 1. Expect GACAppAttestService.isSupported.
-  [OCMExpect([self.mockAppAttestService isSupported]) andReturnValue:@(YES)];
+  self.fakeAppAttestService.supported = YES;
 
   // 2. Expect storage getAppAttestKeyID.
   FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
@@ -1256,36 +1061,31 @@ GAC_APP_ATTEST_PROVIDER_AVAILABILITY
                                        code:NSNotFound
                                    userInfo:nil];
   [rejectedPromise reject:error];
-  OCMExpect([self.mockStorage getAppAttestKeyID]).andReturn(rejectedPromise);
+  self.fakeStorage.getAppAttestKeyIDPromise = rejectedPromise;
 }
 
 - (void)expectAppAttestKeyGeneratedAndAttestedWithKeyID:(NSString *)keyID
                                         attestationData:(NSData *)attestationData {
   // 1. Expect App Attest key to be generated.
-  id completionArg = [OCMArg invokeBlockWithArgs:keyID, [NSNull null], nil];
-  OCMExpect([self.mockAppAttestService generateKeyWithCompletionHandler:completionArg]);
+  self.fakeAppAttestService.keyIdToReturn = keyID;
 
   // 2. Expect the key ID to be stored.
-  OCMExpect([self.mockStorage setAppAttestKeyID:keyID]).andReturn([FBLPromise resolvedWith:keyID]);
+  self.fakeStorage.setAppAttestKeyIDPromise = [FBLPromise resolvedWith:keyID];
 
   // 3. Expect random challenge to be requested.
-  OCMExpect([self.mockAPIService getRandomChallenge])
-      .andReturn([FBLPromise resolvedWith:self.randomChallenge]);
+  self.fakeAPIService.getRandomChallengePromise = [FBLPromise resolvedWith:self.randomChallenge];
 
   // 4. Expect the key to be attested with the challenge.
-  id attestCompletionArg = [OCMArg invokeBlockWithArgs:attestationData, [NSNull null], nil];
-  OCMExpect([self.mockAppAttestService attestKey:keyID
-                                  clientDataHash:self.randomChallengeHash
-                               completionHandler:attestCompletionArg]);
+  self.fakeAppAttestService.attestKeyErrorToReturn = nil;
+  self.fakeAppAttestService.attestationToReturn = attestationData;
 }
 
 - (void)expectAttestationReset {
   // 1. Expect stored key ID to be reset.
-  OCMExpect([self.mockStorage setAppAttestKeyID:nil]).andReturn([FBLPromise resolvedWith:nil]);
+  self.fakeStorage.setAppAttestKeyIDPromise = [FBLPromise resolvedWith:nil];
 
   // 2. Expect stored attestation artifact to be reset.
-  OCMExpect([self.mockArtifactStorage setArtifact:nil forKey:@""])
-      .andReturn([FBLPromise resolvedWith:nil]);
+  self.fakeArtifactStorage.setArtifactPromise = [FBLPromise resolvedWith:nil];
 }
 
 @end

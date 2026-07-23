@@ -18,7 +18,7 @@
 
 @class GACAppCheckToken;
 @class FBLPromise<ValueType>;
-@class GULKeychainStorage;
+@protocol GACKeychainStorageProtocol;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -52,11 +52,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 /** Designated initializer.
  *  @param tokenKey The key to store the token for the storage instance.
- *  @param keychainStorage An instance of `GULKeychainStorage` used as an underlying secure storage.
+ *  @param keychainStorage An instance of `GACKeychainStorageProtocol` used as an underlying secure
+ * storage.
  *  @param accessGroup The Keychain Access Group.
  */
 - (instancetype)initWithTokenKey:(NSString *)tokenKey
-                 keychainStorage:(GULKeychainStorage *)keychainStorage
+                 keychainStorage:(id<GACKeychainStorageProtocol>)keychainStorage
                      accessGroup:(nullable NSString *)accessGroup NS_DESIGNATED_INITIALIZER;
 
 @end

@@ -27,9 +27,7 @@
 
 #import <XCTest/XCTest.h>
 
-#import <OCMock/OCMock.h>
-
-#import <GoogleUtilities/GULKeychainStorage.h>
+#import "AppCheckCore/Tests/Unit/Utils/GACKeychainStorageFake.h"
 
 #import "FBLPromise+Testing.h"
 
@@ -133,19 +131,15 @@ static NSString *const kAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa";
 
 - (void)testGetArtifact_KeychainError {
   // 1. Set up storage mock.
-  id mockKeychainStorage = OCMClassMock([GULKeychainStorage class]);
+  GACKeychainStorageFake *fakeKeychainStorage = [[GACKeychainStorageFake alloc] init];
   GACAppAttestArtifactStorage *artifactStorage =
       [[GACAppAttestArtifactStorage alloc] initWithKeySuffix:self.keySuffix
-                                             keychainStorage:mockKeychainStorage
+                                             keychainStorage:fakeKeychainStorage
                                                  accessGroup:nil];
 
   // 2. Create and expect keychain error.
   NSError *gulsKeychainError = [NSError errorWithDomain:@"com.guls.keychain" code:-1 userInfo:nil];
-  id completionArg = [OCMArg invokeBlockWithArgs:[NSNull null], gulsKeychainError, nil];
-  OCMExpect([mockKeychainStorage getObjectForKey:[OCMArg any]
-                                     objectClass:[OCMArg any]
-                                     accessGroup:[OCMArg any]
-                               completionHandler:completionArg]);
+  fakeKeychainStorage.keychainError = gulsKeychainError;
 
   // 3. Get artifact and verify results.
   __auto_type getPromise = [artifactStorage getArtifactForKey:@"key"];
@@ -153,25 +147,18 @@ static NSString *const kAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa";
   XCTAssertNotNil(getPromise.error);
   XCTAssertEqualObjects(getPromise.error,
                         [_GACAppCheckErrorUtil keychainErrorWithError:gulsKeychainError]);
-
-  // 4. Verify storage mock.
-  OCMVerifyAll(mockKeychainStorage);
 }
 
 - (void)testSetArtifact_KeychainError {
   // 1. Set up storage mock.
-  id mockKeychainStorage = OCMClassMock([GULKeychainStorage class]);
+  GACKeychainStorageFake *fakeKeychainStorage = [[GACKeychainStorageFake alloc] init];
   GACAppAttestArtifactStorage *artifactStorage =
       [[GACAppAttestArtifactStorage alloc] initWithKeySuffix:self.keySuffix
-                                             keychainStorage:mockKeychainStorage
+                                             keychainStorage:fakeKeychainStorage
                                                  accessGroup:nil];
   // 2. Create and expect keychain error.
   NSError *gulsKeychainError = [NSError errorWithDomain:@"com.guls.keychain" code:-1 userInfo:nil];
-  id completionArg = [OCMArg invokeBlockWithArgs:[NSNull null], gulsKeychainError, nil];
-  OCMExpect([mockKeychainStorage setObject:[OCMArg any]
-                                    forKey:[OCMArg any]
-                               accessGroup:[OCMArg any]
-                         completionHandler:completionArg]);
+  fakeKeychainStorage.keychainError = gulsKeychainError;
 
   // 3. Set artifact and verify results.
   NSData *artifact = [@"artifact" dataUsingEncoding:NSUTF8StringEncoding];
@@ -180,25 +167,19 @@ static NSString *const kAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa";
   XCTAssertNotNil(setPromise.error);
   XCTAssertEqualObjects(setPromise.error,
                         [_GACAppCheckErrorUtil keychainErrorWithError:gulsKeychainError]);
-
-  // 4. Verify storage mock.
-  OCMVerifyAll(mockKeychainStorage);
 }
 
 - (void)testRemoveArtifact_KeychainError {
   // 1. Set up storage mock.
-  id mockKeychainStorage = OCMClassMock([GULKeychainStorage class]);
+  GACKeychainStorageFake *fakeKeychainStorage = [[GACKeychainStorageFake alloc] init];
   GACAppAttestArtifactStorage *artifactStorage =
       [[GACAppAttestArtifactStorage alloc] initWithKeySuffix:self.keySuffix
-                                             keychainStorage:mockKeychainStorage
+                                             keychainStorage:fakeKeychainStorage
                                                  accessGroup:nil];
 
   // 2. Create and expect keychain error.
   NSError *gulsKeychainError = [NSError errorWithDomain:@"com.guls.keychain" code:-1 userInfo:nil];
-  id completionArg = [OCMArg invokeBlockWithArgs:gulsKeychainError, nil];
-  OCMExpect([mockKeychainStorage removeObjectForKey:[OCMArg any]
-                                        accessGroup:[OCMArg any]
-                                  completionHandler:completionArg]);
+  fakeKeychainStorage.keychainError = gulsKeychainError;
 
   // 3. Remove artifact and verify results.
   __auto_type setPromise = [artifactStorage setArtifact:nil forKey:@"key"];
@@ -206,9 +187,6 @@ static NSString *const kAppID = @"1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa";
   XCTAssertNotNil(setPromise.error);
   XCTAssertEqualObjects(setPromise.error,
                         [_GACAppCheckErrorUtil keychainErrorWithError:gulsKeychainError]);
-
-  // 4. Verify storage mock.
-  OCMVerifyAll(mockKeychainStorage);
 }
 
 #pragma mark - Helpers

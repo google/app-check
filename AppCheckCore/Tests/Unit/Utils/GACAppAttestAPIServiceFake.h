@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,22 @@
  */
 
 #import <Foundation/Foundation.h>
+#import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAPIService.h"
+
+@class FBLPromise<ValueType>;
 
 NS_ASSUME_NONNULL_BEGIN
 
-typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
+@interface GACAppAttestAPIServiceFake : NSObject <GACAppAttestAPIServiceProtocol>
 
-@interface GACURLSessionOCMockStub : NSObject
+@property(nonatomic) NSInteger getRandomChallengeCallCount;
+@property(nonatomic, nullable) FBLPromise<NSData *> *getRandomChallengePromise;
 
-+ (id)stubURLSessionDataTaskWithResponse:(nullable NSHTTPURLResponse *)response
-                                    body:(nullable NSData *)body
-                                   error:(nullable NSError *)error
-                          URLSessionMock:(id)URLSessionMock
-                  requestValidationBlock:(nullable FIRRequestValidationBlock)requestValidationBlock;
+@property(nonatomic) NSInteger attestKeyCallCount;
+@property(nonatomic, nullable) FBLPromise<GACAppAttestAttestationResponse *> *attestKeyPromise;
 
-+ (NSHTTPURLResponse *)HTTPResponseWithCode:(NSInteger)statusCode;
+@property(nonatomic) NSInteger getAppCheckTokenCallCount;
+@property(nonatomic, nullable) FBLPromise<GACAppCheckToken *> *getAppCheckTokenPromise;
 
 @end
 

@@ -69,7 +69,6 @@ Pod::Spec.new do |s|
     ]
 
     unit_tests.resources = base_dir + 'Tests/Fixture/**/*'
-    unit_tests.dependency 'OCMock'
     unit_tests.requires_app_host = true
   end
 
