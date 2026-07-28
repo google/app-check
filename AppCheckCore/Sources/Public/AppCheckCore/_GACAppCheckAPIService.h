@@ -55,8 +55,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)initWithURLSession:(NSURLSession *)session
                            baseURL:(nullable NSString *)baseURL
                             APIKey:(nullable NSString *)APIKey
-                      requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks
-    NS_DESIGNATED_INITIALIZER;
+                      requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks;
 
 - (instancetype)init NS_UNAVAILABLE;
 

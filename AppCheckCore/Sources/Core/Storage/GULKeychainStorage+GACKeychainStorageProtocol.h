@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefresher.h"
+#import <GoogleUtilities/GULKeychainStorage.h>
+
+#import "AppCheckCore/Sources/Core/Storage/GACKeychainStorageProtocol.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface GACAppCheckTokenRefresherFake : NSObject <GACAppCheckTokenRefresherProtocol>
-
-@property(nonatomic, copy, nullable) GACAppCheckTokenRefreshBlock tokenRefreshHandler;
-@property(nonatomic) NSInteger updateWithRefreshResultCallCount;
-@property(nonatomic, strong, nullable) GACAppCheckTokenRefreshResult *lastRefreshResult;
-
+@interface GULKeychainStorage (GACKeychainStorageProtocol) <GACKeychainStorageProtocol>
 @end
 
 NS_ASSUME_NONNULL_END

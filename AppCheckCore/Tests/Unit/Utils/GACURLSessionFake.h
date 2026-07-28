@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,22 @@
 
 #import <Foundation/Foundation.h>
 
+@class FBLPromise<ValueType>;
+@class _GACURLSessionDataResponse;
+
 NS_ASSUME_NONNULL_BEGIN
 
 typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
 
-@interface GACURLSessionOCMockStub : NSObject
+@interface GACURLSessionFake : NSObject
 
-+ (id)stubURLSessionDataTaskWithResponse:(nullable NSHTTPURLResponse *)response
-                                    body:(nullable NSData *)body
-                                   error:(nullable NSError *)error
-                          URLSessionMock:(id)URLSessionMock
-                  requestValidationBlock:(nullable FIRRequestValidationBlock)requestValidationBlock;
+@property(nonatomic, nullable) FBLPromise<_GACURLSessionDataResponse *> *resultPromise;
+@property(nonatomic, nullable) NSURLRequest *lastRequest;
+@property(nonatomic, copy, nullable) FIRRequestValidationBlock requestValidationBlock;
+@property(nonatomic, assign) BOOL isInvoked;
+
+- (FBLPromise<_GACURLSessionDataResponse *> *)gac_dataTaskPromiseWithRequest:
+    (NSURLRequest *)URLRequest;
 
 + (NSHTTPURLResponse *)HTTPResponseWithCode:(NSInteger)statusCode;
 

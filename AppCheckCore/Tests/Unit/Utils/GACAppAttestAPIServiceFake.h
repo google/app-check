@@ -15,15 +15,22 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefresher.h"
+#import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAPIService.h"
+
+@class FBLPromise<ValueType>;
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface GACAppCheckTokenRefresherFake : NSObject <GACAppCheckTokenRefresherProtocol>
+@interface GACAppAttestAPIServiceFake : NSObject <GACAppAttestAPIServiceProtocol>
 
-@property(nonatomic, copy, nullable) GACAppCheckTokenRefreshBlock tokenRefreshHandler;
-@property(nonatomic) NSInteger updateWithRefreshResultCallCount;
-@property(nonatomic, strong, nullable) GACAppCheckTokenRefreshResult *lastRefreshResult;
+@property(nonatomic) NSInteger getRandomChallengeCallCount;
+@property(nonatomic, nullable) FBLPromise<NSData *> *getRandomChallengePromise;
+
+@property(nonatomic) NSInteger attestKeyCallCount;
+@property(nonatomic, nullable) FBLPromise<GACAppAttestAttestationResponse *> *attestKeyPromise;
+
+@property(nonatomic) NSInteger getAppCheckTokenCallCount;
+@property(nonatomic, nullable) FBLPromise<GACAppCheckToken *> *getAppCheckTokenPromise;
 
 @end
 

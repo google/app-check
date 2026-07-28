@@ -15,15 +15,18 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefresher.h"
+
+#import "AppCheckCore/Sources/DebugProvider/API/GACAppCheckDebugProviderAPIService.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface GACAppCheckTokenRefresherFake : NSObject <GACAppCheckTokenRefresherProtocol>
+@interface GACAppCheckDebugProviderAPIServiceFake
+    : NSObject <GACAppCheckDebugProviderAPIServiceProtocol>
 
-@property(nonatomic, copy, nullable) GACAppCheckTokenRefreshBlock tokenRefreshHandler;
-@property(nonatomic) NSInteger updateWithRefreshResultCallCount;
-@property(nonatomic, strong, nullable) GACAppCheckTokenRefreshResult *lastRefreshResult;
+@property(nonatomic, nullable) FBLPromise<GACAppCheckToken *> *tokenPromise;
+@property(nonatomic, nullable) FBLPromise<GACAppCheckToken *> *limitedUseTokenPromise;
+@property(nonatomic, nullable) NSString *passedDebugToken;
+@property(nonatomic, assign) BOOL passedLimitedUse;
 
 @end
 

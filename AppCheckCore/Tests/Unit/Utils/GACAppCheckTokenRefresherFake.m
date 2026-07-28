@@ -19,6 +19,8 @@
 @implementation GACAppCheckTokenRefresherFake
 
 @synthesize tokenRefreshHandler = _tokenRefreshHandler;
+@synthesize updateWithRefreshResultCallCount = _updateWithRefreshResultCallCount;
+@synthesize lastRefreshResult = _lastRefreshResult;
 
 - (GACAppCheckTokenRefreshBlock)tokenRefreshHandler {
   @synchronized(self) {
@@ -34,8 +36,32 @@
 
 - (void)updateWithRefreshResult:(GACAppCheckTokenRefreshResult *)refreshResult {
   @synchronized(self) {
-    self.updateWithRefreshResultCallCount++;
-    self.lastRefreshResult = refreshResult;
+    _updateWithRefreshResultCallCount++;
+    _lastRefreshResult = refreshResult;
+  }
+}
+
+- (NSInteger)updateWithRefreshResultCallCount {
+  @synchronized(self) {
+    return _updateWithRefreshResultCallCount;
+  }
+}
+
+- (void)setUpdateWithRefreshResultCallCount:(NSInteger)updateWithRefreshResultCallCount {
+  @synchronized(self) {
+    _updateWithRefreshResultCallCount = updateWithRefreshResultCallCount;
+  }
+}
+
+- (nullable GACAppCheckTokenRefreshResult *)lastRefreshResult {
+  @synchronized(self) {
+    return _lastRefreshResult;
+  }
+}
+
+- (void)setLastRefreshResult:(nullable GACAppCheckTokenRefreshResult *)lastRefreshResult {
+  @synchronized(self) {
+    _lastRefreshResult = lastRefreshResult;
   }
 }
 

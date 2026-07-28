@@ -16,7 +16,6 @@
 
 #import <XCTest/XCTest.h>
 
-#import <OCMock/OCMock.h>
 #import "FBLPromise+Testing.h"
 
 #import "AppCheckCore/Sources/AppAttestProvider/API/GACAppAttestAPIService.h"
@@ -28,9 +27,10 @@
 #import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/_GACURLSessionDataResponse.h"
 
+#import "AppCheckCore/Tests/Unit/Utils/GACAppCheckAPIServiceFake.h"
 #import "AppCheckCore/Tests/Unit/Utils/GACFixtureLoader.h"
+#import "AppCheckCore/Tests/Unit/Utils/GACURLSessionFake.h"
 #import "AppCheckCore/Tests/Utils/Date/GACDateTestUtils.h"
-#import "AppCheckCore/Tests/Utils/URLSession/GACURLSessionOCMockStub.h"
 
 static NSString *const kBaseURL = @"https://test.appcheck.url.com/beta";
 static NSString *const kResourceName = @"projects/project_id/apps/app_id";
@@ -39,7 +39,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
 
 @property(nonatomic) GACAppAttestAPIService *appAttestAPIService;
 
-@property(nonatomic) id mockAPIService;
+@property(nonatomic) GACAppCheckAPIServiceFake *fakeAPIService;
 
 @end
 
@@ -48,10 +48,10 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
 - (void)setUp {
   [super setUp];
 
-  self.mockAPIService = OCMProtocolMock(@protocol(_GACAppCheckAPIServiceProtocol));
-  OCMStub([self.mockAPIService baseURL]).andReturn(kBaseURL);
+  self.fakeAPIService = [[GACAppCheckAPIServiceFake alloc] init];
+  self.fakeAPIService.baseURL = kBaseURL;
 
-  self.appAttestAPIService = [[GACAppAttestAPIService alloc] initWithAPIService:self.mockAPIService
+  self.appAttestAPIService = [[GACAppAttestAPIService alloc] initWithAPIService:self.fakeAPIService
                                                                    resourceName:kResourceName];
 }
 
@@ -59,8 +59,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   [super tearDown];
 
   self.appAttestAPIService = nil;
-  [self.mockAPIService stopMocking];
-  self.mockAPIService = nil;
+  self.fakeAPIService = nil;
 }
 
 #pragma mark - Random challenge request
@@ -86,7 +85,11 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   // the string "random_challenge".
   XCTAssert([challengeString isEqualToString:@"random_challenge"]);
 
-  OCMVerifyAll(self.mockAPIService);
+  NSString *expectedRequestURL =
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
+                                 @"generateAppAttestChallenge"];
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
 }
 
 - (void)testGetRandomChallengeWhenAPIError {
@@ -117,7 +120,11 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   XCTAssertTrue([failureReason containsString:@"300"]);
   XCTAssertTrue([failureReason containsString:responseBodyString]);
 
-  OCMVerifyAll(self.mockAPIService);
+  NSString *expectedRequestURL =
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
+                                 @"generateAppAttestChallenge"];
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
 }
 
 - (void)testGetRandomChallengeWhenAPIResponseEmpty {
@@ -139,7 +146,11 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   NSString *failureReason = promise.error.userInfo[NSLocalizedFailureReasonErrorKey];
   XCTAssertEqualObjects(failureReason, @"Empty server response body.");
 
-  OCMVerifyAll(self.mockAPIService);
+  NSString *expectedRequestURL =
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
+                                 @"generateAppAttestChallenge"];
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
 }
 
 - (void)testGetRandomChallengeWhenAPIResponseInvalidFormat {
@@ -162,7 +173,11 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   NSString *failureReason = promise.error.userInfo[NSLocalizedFailureReasonErrorKey];
   XCTAssertEqualObjects(failureReason, @"JSON serialization error.");
 
-  OCMVerifyAll(self.mockAPIService);
+  NSString *expectedRequestURL =
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
+                                 @"generateAppAttestChallenge"];
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
 }
 
 - (void)testGetRandomChallengeWhenResponseMissingField {
@@ -249,7 +264,18 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   XCTAssertEqualObjects(promise.value.expirationDate, expectedToken.expirationDate);
   XCTAssertEqualObjects(promise.value.receivedAtDate, expectedToken.receivedAtDate);
 
-  OCMVerifyAll(self.mockAPIService);
+  NSString *expectedRequestURL =
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
+                                 @"exchangeAppAttestAssertion"];
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.fakeAPIService.passedAdditionalHeaders[@"Content-Type"],
+                        @"application/json");
+  [self assertTokenExchangeBody:self.fakeAPIService.passedBody
+                       artifact:artifact
+                      challenge:challenge
+                      assertion:assertion
+                     limitedUse:limitedUse];
 }
 
 - (void)testGetAppCheckTokenNetworkError {
@@ -285,7 +311,18 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   XCTAssertNil(promise.value);
   XCTAssertEqualObjects(promise.error, networkError);
 
-  OCMVerifyAll(self.mockAPIService);
+  NSString *expectedRequestURL =
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
+                                 @"exchangeAppAttestAssertion"];
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.fakeAPIService.passedAdditionalHeaders[@"Content-Type"],
+                        @"application/json");
+  [self assertTokenExchangeBody:self.fakeAPIService.passedBody
+                       artifact:artifact
+                      challenge:challenge
+                      assertion:assertion
+                     limitedUse:NO];
 }
 
 - (void)testGetAppCheckTokenUnexpectedResponse {
@@ -322,7 +359,18 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   XCTAssertNil(promise.value);
   XCTAssertNotNil(promise.error);
 
-  OCMVerifyAll(self.mockAPIService);
+  NSString *expectedRequestURL =
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
+                                 @"exchangeAppAttestAssertion"];
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.fakeAPIService.passedAdditionalHeaders[@"Content-Type"],
+                        @"application/json");
+  [self assertTokenExchangeBody:self.fakeAPIService.passedBody
+                       artifact:artifact
+                      challenge:challenge
+                      assertion:assertion
+                     limitedUse:NO];
 }
 
 #pragma mark - Attestation request
@@ -376,7 +424,18 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
       approximatelyEqualCurrentPlusTimeInterval:1800
                                       precision:10]);
 
-  OCMVerifyAll(self.mockAPIService);
+  NSString *expectedRequestURL =
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
+                                 @"exchangeAppAttestAttestation"];
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.fakeAPIService.passedAdditionalHeaders[@"Content-Type"],
+                        @"application/json");
+  [self assertAttestKeyBody:self.fakeAPIService.passedBody
+                attestation:attestation
+                  challenge:challenge
+                      keyID:keyID
+                 limitedUse:limitedUse];
 }
 
 - (void)testAttestKeyNetworkError {
@@ -407,7 +466,18 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   XCTAssertNil(promise.value);
   XCTAssertEqualObjects(promise.error, networkError);
 
-  OCMVerifyAll(self.mockAPIService);
+  NSString *expectedRequestURL =
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
+                                 @"exchangeAppAttestAttestation"];
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.fakeAPIService.passedAdditionalHeaders[@"Content-Type"],
+                        @"application/json");
+  [self assertAttestKeyBody:self.fakeAPIService.passedBody
+                attestation:attestation
+                  challenge:challenge
+                      keyID:keyID
+                 limitedUse:NO];
 }
 
 - (void)testAttestKeyUnexpectedResponse {
@@ -443,7 +513,18 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   XCTAssertNil(promise.value);
   XCTAssertNotNil(promise.error);
 
-  OCMVerifyAll(self.mockAPIService);
+  NSString *expectedRequestURL =
+      [NSString stringWithFormat:@"%@/%@:%@", [self.fakeAPIService baseURL], kResourceName,
+                                 @"exchangeAppAttestAttestation"];
+  XCTAssertEqualObjects(self.fakeAPIService.passedRequestURL.absoluteString, expectedRequestURL);
+  XCTAssertEqualObjects(self.fakeAPIService.passedHTTPMethod, @"POST");
+  XCTAssertEqualObjects(self.fakeAPIService.passedAdditionalHeaders[@"Content-Type"],
+                        @"application/json");
+  [self assertAttestKeyBody:self.fakeAPIService.passedBody
+                attestation:attestation
+                  challenge:challenge
+                      keyID:keyID
+                 limitedUse:NO];
 }
 
 #pragma mark - Helpers
@@ -451,42 +532,24 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
 - (_GACURLSessionDataResponse *)APIResponseWithCode:(NSInteger)code
                                        responseBody:(NSData *)responseBody {
   XCTAssertNotNil(responseBody);
-  NSHTTPURLResponse *HTTPResponse = [GACURLSessionOCMockStub HTTPResponseWithCode:code];
+  NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:code];
   _GACURLSessionDataResponse *APIResponse =
       [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
   return APIResponse;
 }
 
 - (void)stubMockAPIServiceRequestForChallengeRequestWithResponse:(id)response {
-  id URLValidationArg = [self URLValidationArgumentWithCustomMethod:@"generateAppAttestChallenge"];
-  OCMStub([self.mockAPIService sendRequestWithURL:URLValidationArg
-                                       HTTPMethod:@"POST"
-                                             body:nil
-                                additionalHeaders:nil])
-      .andDo(^(NSInvocation *invocation) {
-        XCTAssertFalse([NSThread isMainThread]);
-      })
-      .andReturn([FBLPromise resolvedWith:response]);
-}
-
-/// Returns an OCMock argument constraint for an App Check URL with the specified custom method.
-///
-/// The expected URL has the format "{`kBaseURL`}/{`kResourceName`}:{`customMethod`}", for example
-/// "https://firebaseappcheck.googleapis.com/v1/projects/project12345/apps/1:12345:ios:hashvalue".
-///
-/// @param customMethod The name of the custom action (e.g., "generateAppAttestChallenge") taken
-/// on the App Check-protected resource (e.g., for a Firebase app,
-/// "projects/project12345/apps/1:12345:ios:hashvalue); see AIP-136 (https://google.aip.dev/136) for
-/// more details on custom methods.
-- (id)URLValidationArgumentWithCustomMethod:(NSString *)customMethod {
-  NSString *expectedRequestURL = [NSString
-      stringWithFormat:@"%@/%@:%@", [self.mockAPIService baseURL], kResourceName, customMethod];
-
-  id URLValidationArg = [OCMArg checkWithBlock:^BOOL(NSURL *URL) {
-    XCTAssertEqualObjects(URL.absoluteString, expectedRequestURL);
-    return YES;
-  }];
-  return URLValidationArg;
+  FBLPromise *resultPromise = [FBLPromise pendingPromise];
+  if ([response isKindOfClass:[NSError class]]) {
+    [resultPromise reject:response];
+  } else {
+    [resultPromise fulfill:response];
+  }
+  self.fakeAPIService.sendRequestPromise = resultPromise;
+  self.fakeAPIService.requestValidationBlock = ^{
+    XCTAssertFalse([NSThread isMainThread],
+                   @"Network requests must not be made on the main thread.");
+  };
 }
 
 - (void)expectTokenAPIRequestWithArtifact:(NSData *)attestation
@@ -495,58 +558,54 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
                                limitedUse:(BOOL)limitedUse
                                  response:(nullable _GACURLSessionDataResponse *)response
                                     error:(nullable NSError *)error {
-  id URLValidationArg = [self URLValidationArgumentWithCustomMethod:@"exchangeAppAttestAssertion"];
-
-  id bodyValidationArg = [OCMArg checkWithBlock:^BOOL(NSData *requestBody) {
-    NSDictionary<NSString *, id> *decodedData = [NSJSONSerialization JSONObjectWithData:requestBody
-                                                                                options:0
-                                                                                  error:nil];
-
-    XCTAssert([decodedData isKindOfClass:[NSDictionary class]]);
-
-    // Validate artifact field.
-    NSString *base64EncodedArtifact = decodedData[@"artifact"];
-    XCTAssert([base64EncodedArtifact isKindOfClass:[NSString class]]);
-
-    NSData *decodedAttestation = [[NSData alloc] initWithBase64EncodedString:base64EncodedArtifact
-                                                                     options:0];
-    XCTAssertEqualObjects(decodedAttestation, attestation);
-
-    // Validate challenge field.
-    NSString *base64EncodedChallenge = decodedData[@"challenge"];
-    XCTAssert([base64EncodedChallenge isKindOfClass:[NSString class]]);
-
-    NSData *decodedChallenge = [[NSData alloc] initWithBase64EncodedString:base64EncodedChallenge
-                                                                   options:0];
-    XCTAssertEqualObjects(decodedChallenge, challenge);
-
-    // Validate assertion field.
-    NSString *base64EncodedAssertion = decodedData[@"assertion"];
-    XCTAssert([base64EncodedAssertion isKindOfClass:[NSString class]]);
-
-    // Validate limited-use field.
-    NSNumber *decodedLimitedUse = decodedData[@"limited_use"];
-    XCTAssertNotNil(decodedLimitedUse);
-    XCTAssertEqualObjects(decodedLimitedUse, @(limitedUse));
-
-    NSData *decodedAssertion = [[NSData alloc] initWithBase64EncodedString:base64EncodedAssertion
-                                                                   options:0];
-    XCTAssertEqualObjects(decodedAssertion, assertion);
-
-    return YES;
-  }];
-
   FBLPromise *responsePromise = [FBLPromise pendingPromise];
   if (error) {
     [responsePromise reject:error];
   } else {
     [responsePromise fulfill:response];
   }
-  OCMExpect([self.mockAPIService sendRequestWithURL:URLValidationArg
-                                         HTTPMethod:@"POST"
-                                               body:bodyValidationArg
-                                  additionalHeaders:@{@"Content-Type" : @"application/json"}])
-      .andReturn(responsePromise);
+  self.fakeAPIService.sendRequestPromise = responsePromise;
+}
+
+- (void)assertTokenExchangeBody:(NSData *)requestBody
+                       artifact:(NSData *)attestation
+                      challenge:(NSData *)challenge
+                      assertion:(NSData *)assertion
+                     limitedUse:(BOOL)limitedUse {
+  NSDictionary<NSString *, id> *decodedData = [NSJSONSerialization JSONObjectWithData:requestBody
+                                                                              options:0
+                                                                                error:nil];
+
+  XCTAssert([decodedData isKindOfClass:[NSDictionary class]]);
+
+  // Validate artifact field.
+  NSString *base64EncodedArtifact = decodedData[@"artifact"];
+  XCTAssert([base64EncodedArtifact isKindOfClass:[NSString class]]);
+
+  NSData *decodedAttestation = [[NSData alloc] initWithBase64EncodedString:base64EncodedArtifact
+                                                                   options:0];
+  XCTAssertEqualObjects(decodedAttestation, attestation);
+
+  // Validate challenge field.
+  NSString *base64EncodedChallenge = decodedData[@"challenge"];
+  XCTAssert([base64EncodedChallenge isKindOfClass:[NSString class]]);
+
+  NSData *decodedChallenge = [[NSData alloc] initWithBase64EncodedString:base64EncodedChallenge
+                                                                 options:0];
+  XCTAssertEqualObjects(decodedChallenge, challenge);
+
+  // Validate assertion field.
+  NSString *base64EncodedAssertion = decodedData[@"assertion"];
+  XCTAssert([base64EncodedAssertion isKindOfClass:[NSString class]]);
+
+  // Validate limited-use field.
+  NSNumber *decodedLimitedUse = decodedData[@"limited_use"];
+  XCTAssertNotNil(decodedLimitedUse);
+  XCTAssertEqualObjects(decodedLimitedUse, @(limitedUse));
+
+  NSData *decodedAssertion = [[NSData alloc] initWithBase64EncodedString:base64EncodedAssertion
+                                                                 options:0];
+  XCTAssertEqualObjects(decodedAssertion, assertion);
 }
 
 - (void)expectTokenWithAPIReponse:(nonnull _GACURLSessionDataResponse *)response
@@ -558,7 +617,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
     NSError *tokenError = [NSError errorWithDomain:self.name code:0 userInfo:nil];
     [tokenPromise reject:tokenError];
   }
-  OCMExpect([self.mockAPIService appCheckTokenWithAPIResponse:response]).andReturn(tokenPromise);
+  self.fakeAPIService.appCheckTokenPromise = tokenPromise;
 }
 
 - (void)expectAttestAPIRequestWithAttestation:(NSData *)attestation
@@ -567,46 +626,6 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
                                    limitedUse:(BOOL)limitedUse
                                      response:(nullable _GACURLSessionDataResponse *)response
                                         error:(nullable NSError *)error {
-  id URLValidationArg =
-      [self URLValidationArgumentWithCustomMethod:@"exchangeAppAttestAttestation"];
-
-  id bodyValidationArg = [OCMArg checkWithBlock:^BOOL(NSData *requestBody) {
-    NSDictionary<NSString *, id> *decodedData = [NSJSONSerialization JSONObjectWithData:requestBody
-                                                                                options:0
-                                                                                  error:nil];
-
-    XCTAssert([decodedData isKindOfClass:[NSDictionary class]]);
-
-    // Validate attestation field.
-    NSString *base64EncodedAttestation = decodedData[@"attestation_statement"];
-    XCTAssert([base64EncodedAttestation isKindOfClass:[NSString class]]);
-
-    NSData *decodedAttestation =
-        [[NSData alloc] initWithBase64EncodedString:base64EncodedAttestation options:0];
-    XCTAssertEqualObjects(decodedAttestation, attestation);
-
-    // Validate challenge field.
-    NSString *base64EncodedChallenge = decodedData[@"challenge"];
-    XCTAssert([base64EncodedAttestation isKindOfClass:[NSString class]]);
-
-    NSData *decodedChallenge = [[NSData alloc] initWithBase64EncodedString:base64EncodedChallenge
-                                                                   options:0];
-    XCTAssertEqualObjects(decodedChallenge, challenge);
-
-    // Validate key ID field.
-    NSString *keyIDField = decodedData[@"key_id"];
-    XCTAssert([base64EncodedAttestation isKindOfClass:[NSString class]]);
-
-    // Validate limited-use field.
-    NSNumber *decodedLimitedUse = decodedData[@"limited_use"];
-    XCTAssertNotNil(decodedLimitedUse);
-    XCTAssertEqualObjects(decodedLimitedUse, @(limitedUse));
-
-    XCTAssertEqualObjects(keyIDField, keyID);
-
-    return YES;
-  }];
-
   FBLPromise *resultPromise = [FBLPromise pendingPromise];
   if (error) {
     [resultPromise reject:error];
@@ -614,11 +633,46 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
     [resultPromise fulfill:response];
   }
 
-  OCMExpect([self.mockAPIService sendRequestWithURL:URLValidationArg
-                                         HTTPMethod:@"POST"
-                                               body:bodyValidationArg
-                                  additionalHeaders:@{@"Content-Type" : @"application/json"}])
-      .andReturn(resultPromise);
+  self.fakeAPIService.sendRequestPromise = resultPromise;
+}
+
+- (void)assertAttestKeyBody:(NSData *)requestBody
+                attestation:(NSData *)attestation
+                  challenge:(NSData *)challenge
+                      keyID:(NSString *)keyID
+                 limitedUse:(BOOL)limitedUse {
+  NSDictionary<NSString *, id> *decodedData = [NSJSONSerialization JSONObjectWithData:requestBody
+                                                                              options:0
+                                                                                error:nil];
+
+  XCTAssert([decodedData isKindOfClass:[NSDictionary class]]);
+
+  // Validate attestation field.
+  NSString *base64EncodedAttestation = decodedData[@"attestation_statement"];
+  XCTAssert([base64EncodedAttestation isKindOfClass:[NSString class]]);
+
+  NSData *decodedAttestation = [[NSData alloc] initWithBase64EncodedString:base64EncodedAttestation
+                                                                   options:0];
+  XCTAssertEqualObjects(decodedAttestation, attestation);
+
+  // Validate challenge field.
+  NSString *base64EncodedChallenge = decodedData[@"challenge"];
+  XCTAssert([base64EncodedChallenge isKindOfClass:[NSString class]]);
+
+  NSData *decodedChallenge = [[NSData alloc] initWithBase64EncodedString:base64EncodedChallenge
+                                                                 options:0];
+  XCTAssertEqualObjects(decodedChallenge, challenge);
+
+  // Validate key ID field.
+  NSString *keyIDField = decodedData[@"key_id"];
+  XCTAssert([keyIDField isKindOfClass:[NSString class]]);
+
+  // Validate limited-use field.
+  NSNumber *decodedLimitedUse = decodedData[@"limited_use"];
+  XCTAssertNotNil(decodedLimitedUse);
+  XCTAssertEqualObjects(decodedLimitedUse, @(limitedUse));
+
+  XCTAssertEqualObjects(keyIDField, keyID);
 }
 
 - (NSData *)generateRandomData {

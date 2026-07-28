@@ -29,6 +29,8 @@
 #import "AppCheckCore/Sources/Public/AppCheckCore/_GACAppCheckErrorUtil.h"
 #import "AppCheckCore/Sources/Public/AppCheckCore/_GACURLSessionDataResponse.h"
 
+#import "AppCheckCore/Sources/Core/_GACAppCheckAPIService+Internal.h"
+
 NS_ASSUME_NONNULL_BEGIN
 
 static NSString *const kAPIKeyHeaderKey = @"X-Goog-Api-Key";
@@ -48,6 +50,13 @@ static NSString *const kAppCheckUseStagingEnvKey = @"_AppCheckUseStaging";
 @property(nonatomic, readonly, nullable) NSString *APIKey;
 @property(nonatomic, readonly) NSArray<GACAppCheckAPIRequestHook> *requestHooks;
 
+- (instancetype)initWithURLSession:(NSURLSession *)session
+                           baseURL:(nullable NSString *)baseURL
+                            APIKey:(nullable NSString *)APIKey
+                      requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks
+                       environment:(NSDictionary<NSString *, NSString *> *)environment
+    NS_DESIGNATED_INITIALIZER;
+
 @end
 
 @implementation _GACAppCheckAPIService
@@ -58,7 +67,8 @@ static NSString *const kAppCheckUseStagingEnvKey = @"_AppCheckUseStaging";
 - (instancetype)initWithURLSession:(NSURLSession *)session
                            baseURL:(nullable NSString *)baseURL
                             APIKey:(nullable NSString *)APIKey
-                      requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks {
+                      requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks
+                       environment:(NSDictionary<NSString *, NSString *> *)environment {
   self = [super init];
   if (self) {
     _URLSession = session;
@@ -69,8 +79,7 @@ static NSString *const kAppCheckUseStagingEnvKey = @"_AppCheckUseStaging";
 
 #if !NDEBUG
     if (resolvedBaseURL == nil) {
-      BOOL useStaging =
-          [[[NSProcessInfo processInfo] environment][kAppCheckUseStagingEnvKey] boolValue];
+      BOOL useStaging = [environment[kAppCheckUseStagingEnvKey] boolValue];
       if (useStaging) {
         resolvedBaseURL = kStagingBaseURL;
         NSString *logMessage =
@@ -85,6 +94,17 @@ static NSString *const kAppCheckUseStagingEnvKey = @"_AppCheckUseStaging";
     _baseURL = resolvedBaseURL ?: kProdBaseURL;
   }
   return self;
+}
+
+- (instancetype)initWithURLSession:(NSURLSession *)session
+                           baseURL:(nullable NSString *)baseURL
+                            APIKey:(nullable NSString *)APIKey
+                      requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks {
+  return [self initWithURLSession:session
+                          baseURL:baseURL
+                           APIKey:APIKey
+                     requestHooks:requestHooks
+                      environment:[[NSProcessInfo processInfo] environment]];
 }
 
 - (FBLPromise<_GACURLSessionDataResponse *> *)

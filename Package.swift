@@ -42,10 +42,6 @@ let package = Package(
       "8.0.0" ..< "9.0.0"
     ),
     .package(
-      url: "https://github.com/erikdoe/ocmock.git",
-      revision: "2c0bfd373289f4a7716db5d6db471640f91a6507"
-    ),
-    .package(
       url: "https://github.com/google/interop-ios-for-google-sdks.git",
       "101.0.0" ..< "102.0.0"
     ),
@@ -79,7 +75,6 @@ let package = Package(
       name: "AppCheckCoreUnit",
       dependencies: [
         "AppCheckCore",
-        .product(name: "OCMock", package: "ocmock"),
       ],
       path: "AppCheckCore/Tests",
       exclude: [

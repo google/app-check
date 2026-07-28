@@ -15,15 +15,17 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefresher.h"
+
+#import "AppCheckCore/Sources/Core/Storage/GACKeychainStorageProtocol.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface GACAppCheckTokenRefresherFake : NSObject <GACAppCheckTokenRefresherProtocol>
+@interface GACKeychainStorageFake : NSObject <GACKeychainStorageProtocol>
 
-@property(nonatomic, copy, nullable) GACAppCheckTokenRefreshBlock tokenRefreshHandler;
-@property(nonatomic) NSInteger updateWithRefreshResultCallCount;
-@property(nonatomic, strong, nullable) GACAppCheckTokenRefreshResult *lastRefreshResult;
+@property(nonatomic, readonly) NSMutableDictionary<NSString *, id<NSSecureCoding>> *storage;
+
+/// Set this property to simulate a keychain error for all operations.
+@property(nonatomic, strong, nullable) NSError *keychainError;
 
 @end
 

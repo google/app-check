@@ -18,6 +18,10 @@
 
 @implementation GACFakeTimer
 
+@synthesize createHandler = _createHandler;
+@synthesize invalidationHandler = _invalidationHandler;
+@synthesize handler = _handler;
+
 - (GACTimerProvider)fakeTimerProvider {
   __weak __typeof__(self) weakSelf = self;
   return ^id<GACAppCheckTimerProtocol> _Nullable(NSDate *fireDate, dispatch_queue_t queue,
@@ -28,8 +32,8 @@
     }
 
     @synchronized(strongSelf) {
-      strongSelf.handler = handler;
-      void (^createHandler)(NSDate *) = strongSelf.createHandler;
+      strongSelf->_handler = handler;
+      void (^createHandler)(NSDate *) = strongSelf->_createHandler;
       if (createHandler) {
         createHandler(fireDate);
       }
@@ -40,9 +44,48 @@
 }
 
 - (void)invalidate {
-  void (^invalidationHandler)(void) = self.invalidationHandler;
+  void (^invalidationHandler)(void);
+  @synchronized(self) {
+    invalidationHandler = _invalidationHandler;
+  }
   if (invalidationHandler) {
     invalidationHandler();
+  }
+}
+
+- (nullable GACFakeTimerCreateHandler)createHandler {
+  @synchronized(self) {
+    return _createHandler;
+  }
+}
+
+- (void)setCreateHandler:(nullable GACFakeTimerCreateHandler)createHandler {
+  @synchronized(self) {
+    _createHandler = createHandler;
+  }
+}
+
+- (nullable dispatch_block_t)invalidationHandler {
+  @synchronized(self) {
+    return _invalidationHandler;
+  }
+}
+
+- (void)setInvalidationHandler:(nullable dispatch_block_t)invalidationHandler {
+  @synchronized(self) {
+    _invalidationHandler = invalidationHandler;
+  }
+}
+
+- (nullable dispatch_block_t)handler {
+  @synchronized(self) {
+    return _handler;
+  }
+}
+
+- (void)setHandler:(nullable dispatch_block_t)handler {
+  @synchronized(self) {
+    _handler = handler;
   }
 }
 

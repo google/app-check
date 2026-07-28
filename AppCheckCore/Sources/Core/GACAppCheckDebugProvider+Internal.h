@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefresher.h"
+#import "AppCheckCore/Sources/Public/AppCheckCore/GACAppCheckDebugProvider.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface GACAppCheckTokenRefresherFake : NSObject <GACAppCheckTokenRefresherProtocol>
+@interface GACAppCheckDebugProvider (Internal)
 
-@property(nonatomic, copy, nullable) GACAppCheckTokenRefreshBlock tokenRefreshHandler;
-@property(nonatomic) NSInteger updateWithRefreshResultCallCount;
-@property(nonatomic, strong, nullable) GACAppCheckTokenRefreshResult *lastRefreshResult;
+/// Internal initializer.
+- (instancetype)initWithServiceName:(NSString *)serviceName
+                       resourceName:(NSString *)resourceName
+                            baseURL:(nullable NSString *)baseURL
+                             APIKey:(NSString *)APIKey
+                       requestHooks:(nullable NSArray<GACAppCheckAPIRequestHook> *)requestHooks
+                        environment:(NSDictionary<NSString *, NSString *> *)environment;
 
 @end
 

@@ -15,15 +15,19 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "AppCheckCore/Sources/Core/TokenRefresh/GACAppCheckTokenRefresher.h"
+#import "AppCheckCore/Sources/AppAttestProvider/Storage/GACAppAttestKeyIDStorage.h"
+
+@class FBLPromise<ValueType>;
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface GACAppCheckTokenRefresherFake : NSObject <GACAppCheckTokenRefresherProtocol>
+@interface GACAppAttestKeyIDStorageFake : NSObject <GACAppAttestKeyIDStorageProtocol>
 
-@property(nonatomic, copy, nullable) GACAppCheckTokenRefreshBlock tokenRefreshHandler;
-@property(nonatomic) NSInteger updateWithRefreshResultCallCount;
-@property(nonatomic, strong, nullable) GACAppCheckTokenRefreshResult *lastRefreshResult;
+@property(nonatomic) NSInteger setAppAttestKeyIDCallCount;
+@property(nonatomic, nullable) FBLPromise<NSString *> *setAppAttestKeyIDPromise;
+
+@property(nonatomic) NSInteger getAppAttestKeyIDCallCount;
+@property(nonatomic, nullable) FBLPromise<NSString *> *getAppAttestKeyIDPromise;
 
 @end
 
