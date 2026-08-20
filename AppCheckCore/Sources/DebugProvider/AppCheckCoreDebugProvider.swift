@@ -24,7 +24,7 @@ private let kFirebaseDebugTokenEnvKey = "FIRAAppCheckDebugToken"
 private let kDebugTokenUserDefaultsKey = "AppCheckCoreDebugToken"
 private let kDebugTokenRegisteredUserDefaultsKey = "AppCheckCoreDebugTokenRegistered"
 
-@objc(AppCheckCoreDebugProvider)
+@objc(GACAppCheckDebugProvider)
 @objcMembers
 public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
   private let apiService: AppCheckCoreDebugProviderAPIServiceProtocol
@@ -48,6 +48,7 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
     super.init()
   }
 
+  @objc(initWithServiceName:resourceName:baseURL:APIKey:requestHooks:)
   public convenience init(serviceName: String,
                           resourceName: String,
                           baseURL: String?,

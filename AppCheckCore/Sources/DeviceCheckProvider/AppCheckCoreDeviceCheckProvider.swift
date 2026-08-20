@@ -17,13 +17,13 @@ import Foundation
   import DeviceCheck
 #endif
 
-@objc(AppCheckCoreDeviceCheckProvider)
+@objc(GACDeviceCheckProvider)
 public class AppCheckCoreDeviceCheckProvider: NSObject, AppCheckCoreProvider {
   private let apiService: AppCheckCoreDeviceCheckAPIServiceProtocol
   private let deviceTokenGenerator: AppCheckCoreDeviceCheckTokenGenerator
   private let backoffWrapper: AppCheckBackoffWrapperProtocol
 
-  @objc
+  @objc(initWithServiceName:resourceName:APIKey:requestHooks:)
   public init(serviceName: String, resourceName: String, apiKey: String,
               requestHooks: [AppCheckCoreAPIRequestHook]?) {
     let session = URLSession(configuration: .ephemeral)

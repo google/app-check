@@ -15,7 +15,7 @@
 import Foundation
 
 /// The class represents HTTP response received from `URLSession`.
-@objc(AppCheckCoreURLSessionDataResponse)
+@objc(GACURLSessionDataResponse)
 public class AppCheckCoreURLSessionDataResponse: NSObject {
   @objc public let httpResponse: HTTPURLResponse
   @objc public let httpBody: Data?

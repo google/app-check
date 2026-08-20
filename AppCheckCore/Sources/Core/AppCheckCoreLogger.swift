@@ -14,7 +14,7 @@
 
 import Foundation
 
-@objc(AppCheckCoreLogLevel)
+@objc(GACAppCheckLogLevel)
 public enum AppCheckCoreLogLevel: Int {
   case debug = 1
   case info = 2

@@ -51,6 +51,7 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
     super.init()
   }
 
+  @objc(initWithServiceName:resourceName:baseURL:APIKey:keychainAccessGroup:requestHooks:)
   public convenience init(serviceName: String,
                           resourceName: String,
                           baseURL: String?,

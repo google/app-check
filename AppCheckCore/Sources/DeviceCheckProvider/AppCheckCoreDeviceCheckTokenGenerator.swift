@@ -14,7 +14,7 @@
 
 import Foundation
 
-@objc(AppCheckCoreDeviceCheckTokenGenerator)
+@objc(GACDeviceCheckTokenGenerator)
 public protocol AppCheckCoreDeviceCheckTokenGenerator: NSObjectProtocol {
   @objc var isSupported: Bool { get }
 

@@ -28,7 +28,7 @@ private let kProdBaseURL = "https://firebaseappcheck.googleapis.com/v1"
   private let kAppCheckUseStagingEnvKey = "_AppCheckUseStaging"
 #endif
 
-@objc(AppCheckCoreAPIServiceProtocol)
+@objc(GACAppCheckAPIServiceProtocol)
 public protocol AppCheckCoreAPIServiceProtocol: NSObjectProtocol {
   @objc var baseURL: String { get }
 
@@ -44,7 +44,7 @@ public protocol AppCheckCoreAPIServiceProtocol: NSObjectProtocol {
     -> AppCheckCoreToken
 }
 
-@objc(AppCheckCoreAPIService)
+@objc(GACAppCheckAPIService)
 public class AppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
   public let baseURL: String
   private let urlSession: URLSession

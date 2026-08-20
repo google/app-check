@@ -14,12 +14,12 @@
 
 import Foundation
 
-@objc(AppCheckCoreDeviceCheckAPIServiceProtocol)
+@objc(GACDeviceCheckAPIServiceProtocol)
 protocol AppCheckCoreDeviceCheckAPIServiceProtocol: NSObjectProtocol {
   @objc func appCheckToken(deviceToken: Data, limitedUse: Bool) async throws -> AppCheckCoreToken
 }
 
-@objc(AppCheckCoreDeviceCheckAPIService)
+@objc(GACDeviceCheckAPIService)
 class AppCheckCoreDeviceCheckAPIService: NSObject, AppCheckCoreDeviceCheckAPIServiceProtocol {
   private let apiService: AppCheckCoreAPIServiceProtocol
   private let resourceName: String

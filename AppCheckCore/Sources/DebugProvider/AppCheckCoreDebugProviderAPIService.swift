@@ -14,12 +14,12 @@
 
 import Foundation
 
-@objc(AppCheckCoreDebugProviderAPIServiceProtocol)
+@objc(GACAppCheckDebugProviderAPIServiceProtocol)
 protocol AppCheckCoreDebugProviderAPIServiceProtocol: NSObjectProtocol {
   @objc func appCheckToken(debugToken: String, limitedUse: Bool) async throws -> AppCheckCoreToken
 }
 
-@objc(AppCheckCoreDebugProviderAPIService)
+@objc(GACAppCheckDebugProviderAPIService)
 class AppCheckCoreDebugProviderAPIService: NSObject, AppCheckCoreDebugProviderAPIServiceProtocol {
   private let apiService: AppCheckCoreAPIServiceProtocol
   private let resourceName: String
