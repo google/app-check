@@ -30,7 +30,7 @@ class AppCheckCoreTokenRefresherTests: XCTestCase {
     initialTokenRefreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                                expirationDate: receivedAtDate
                                                                  .addingTimeInterval(1000),
-                                                               receivedAt: receivedAtDate)
+                                                               receivedAtDate: receivedAtDate)
   }
 
   override func tearDown() {
@@ -44,7 +44,7 @@ class AppCheckCoreTokenRefresherTests: XCTestCase {
   func testInitialRefreshWhenAutoRefreshAllowed() {
     initialTokenRefreshResult = AppCheckCoreTokenRefreshResult(status: .never,
                                                                expirationDate: nil,
-                                                               receivedAt: nil)
+                                                               receivedAtDate: nil)
     let refresher = createRefresher()
 
     settings.isTokenAutoRefreshEnabled = true
@@ -69,7 +69,7 @@ class AppCheckCoreTokenRefresherTests: XCTestCase {
     let initialTokenReceivedDate = Date()
     let initialRefreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                               expirationDate: initialTokenExpirationDate,
-                                                              receivedAt: initialTokenReceivedDate)
+                                                              receivedAtDate: initialTokenReceivedDate)
 
     wait(for: [initialTimerCreatedExpectation, initialRefreshExpectation], timeout: 1)
 
@@ -94,7 +94,7 @@ class AppCheckCoreTokenRefresherTests: XCTestCase {
     let nextRefreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                            expirationDate: expectedRefreshDate
                                                              .addingTimeInterval(60 * 60),
-                                                           receivedAt: expectedRefreshDate)
+                                                           receivedAtDate: expectedRefreshDate)
     let nextRefreshExpectation = expectation(description: "next refresh")
     refresher.tokenRefreshHandler = { completion in
       nextRefreshExpectation.fulfill()
@@ -137,7 +137,7 @@ class AppCheckCoreTokenRefresherTests: XCTestCase {
       .addingTimeInterval(60 * 60)
     let refreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                        expirationDate: refreshedTokenExpirationDate,
-                                                       receivedAt: initialTokenRefreshResult
+                                                       receivedAtDate: initialTokenRefreshResult
                                                          .tokenExpirationDate!)
 
     settings.isTokenAutoRefreshEnabled = true
@@ -186,7 +186,7 @@ class AppCheckCoreTokenRefresherTests: XCTestCase {
           let refreshFailure = AppCheckCoreTokenRefreshResult(
             status: .failure,
             expirationDate: nil,
-            receivedAt: nil
+            receivedAtDate: nil
           )
           completion(refreshFailure)
         }
@@ -228,7 +228,7 @@ class AppCheckCoreTokenRefresherTests: XCTestCase {
     let refreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                        expirationDate: Date(timeIntervalSinceNow: 60 *
                                                          60),
-                                                       receivedAt: Date())
+                                                       receivedAtDate: Date())
     let refreshExpectation = expectation(description: "refresh")
     refreshExpectation.isInverted = true
 
@@ -260,7 +260,7 @@ class AppCheckCoreTokenRefresherTests: XCTestCase {
     let refreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                        expirationDate: expectedTimerFireDate
                                                          .addingTimeInterval(60 * 60),
-                                                       receivedAt: expectedTimerFireDate)
+                                                       receivedAtDate: expectedTimerFireDate)
     let noRefreshExpectation = expectation(description: "initial refresh")
     noRefreshExpectation.isInverted = true
     refresher.tokenRefreshHandler = { completion in
@@ -286,7 +286,7 @@ class AppCheckCoreTokenRefresherTests: XCTestCase {
       .addingTimeInterval(10 * 60)
     let newRefreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                           expirationDate: newExpirationDate,
-                                                          receivedAt: initialTokenRefreshResult
+                                                          receivedAtDate: initialTokenRefreshResult
                                                             .tokenExpirationDate!)
 
     settings.isTokenAutoRefreshEnabled = true
@@ -314,7 +314,7 @@ class AppCheckCoreTokenRefresherTests: XCTestCase {
     let newRefreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                           expirationDate: Date(timeIntervalSinceNow: 60 *
                                                             60),
-                                                          receivedAt: initialTokenRefreshResult
+                                                          receivedAtDate: initialTokenRefreshResult
                                                             .tokenExpirationDate!)
 
     settings.isTokenAutoRefreshEnabled = false
@@ -338,7 +338,7 @@ class AppCheckCoreTokenRefresherTests: XCTestCase {
     let newExpirationDate = Date(timeIntervalSinceNow: 0.5 * 60)
     let newRefreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                           expirationDate: newExpirationDate,
-                                                          receivedAt: Date())
+                                                          receivedAtDate: Date())
 
     settings.isTokenAutoRefreshEnabled = true
 

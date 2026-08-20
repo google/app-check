@@ -27,9 +27,9 @@ public class AppCheckCoreHTTPError: NSError, @unchecked Sendable {
 
     let responseString = String(data: actualData, encoding: .utf8) ?? ""
     let failureReason = """
-    The server responded with an error: 
-     - URL: \(httpResponse.url?.absoluteString ?? "unknown") 
-     - HTTP status code: \(httpResponse.statusCode) 
+    The server responded with an error:
+     - URL: \(httpResponse.url?.absoluteString ?? "unknown")
+     - HTTP status code: \(httpResponse.statusCode)
      - Response body: \(responseString)
     """
 

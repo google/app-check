@@ -116,30 +116,44 @@ class AppCheckCoreFakeTimer: NSObject, AppCheckCoreTimerProtocol {
 
 class AppCheckCoreKeychainStorageFake: GULKeychainStorage {
   var keychainError: Error?
-  var storedObject: Any?
+  var storedObject: NSSecureCoding?
 
-  override func getObject(forKey key: String,
-                          objectClass: AnyClass,
-                          accessGroup: String?) throws -> Any {
-    if let error = keychainError {
-      throw error
-    }
-    return storedObject as Any
+  init() {
+    super.init(service: "test")
   }
 
-  override func setObject(_ object: Any,
+  override func getObjectForKey(_ key: String,
+                                objectClass: AnyClass,
+                                accessGroup: String?,
+                                completionHandler: @escaping ((any NSSecureCoding)?, Error?)
+                                  -> Void) {
+    if let error = keychainError {
+      completionHandler(nil, error)
+    } else {
+      completionHandler(storedObject, nil)
+    }
+  }
+
+  override func setObject(_ object: any NSSecureCoding,
                           forKey key: String,
-                          accessGroup: String?) throws {
+                          accessGroup: String?,
+                          completionHandler: @escaping ((any NSSecureCoding)?, Error?) -> Void) {
     if let error = keychainError {
-      throw error
+      completionHandler(nil, error)
+    } else {
+      storedObject = object
+      completionHandler(object, nil)
     }
-    storedObject = object
   }
 
-  override func removeObject(forKey key: String, accessGroup: String?) throws {
+  override func removeObject(forKey key: String,
+                             accessGroup: String?,
+                             completionHandler: @escaping (Error?) -> Void) {
     if let error = keychainError {
-      throw error
+      completionHandler(error)
+    } else {
+      storedObject = nil
+      completionHandler(nil)
     }
-    storedObject = nil
   }
 }
