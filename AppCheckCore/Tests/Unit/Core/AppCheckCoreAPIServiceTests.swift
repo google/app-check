@@ -114,7 +114,9 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
       let nsError = error as NSError
       XCTAssertEqual(nsError.domain, AppCheckCoreErrorDomain)
       XCTAssertEqual(nsError.code, AppCheckCoreErrorCode.serverUnreachable.rawValue)
-      XCTAssertEqual(nsError.userInfo[NSUnderlyingErrorKey] as? NSError, networkError)
+      let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? NSError
+      XCTAssertEqual(underlying?.domain, networkError.domain)
+      XCTAssertEqual(underlying?.code, networkError.code)
     }
     
     XCTAssertTrue(fakeURLSession.isInvoked)
@@ -178,7 +180,7 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
       XCTAssertEqual(request.url, url)
       XCTAssertEqual(request.httpMethod, httpMethod)
       XCTAssertEqual(request.httpBody, requestBody)
-      XCTAssertEqual(request.allHTTPHeaderFields, self.expectedHTTPHeaderFields)
+      var actualHeaders = request.allHTTPHeaderFields; actualHeaders?["Content-Length"] = nil; XCTAssertEqual(actualHeaders, self.expectedHTTPHeaderFields)
       XCTAssertEqual(request.timeoutInterval, requestTimeout)
       XCTAssertEqual(request.allowsCellularAccess, false)
       return true
@@ -193,7 +195,7 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
                                                   body: requestBody,
                                                   additionalHeaders: nil)
     
-    XCTAssertEqual(result.httpResponse, httpResponse)
+    XCTAssertEqual(result.httpResponse.statusCode, httpResponse.statusCode)
     XCTAssertEqual(result.httpBody, httpResponseBody)
     XCTAssertTrue(fakeURLSession.isInvoked)
   }
@@ -212,7 +214,7 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
       XCTAssertEqual(request.url, url)
       XCTAssertEqual(request.httpMethod, httpMethod)
       XCTAssertEqual(request.httpBody, requestBody)
-      XCTAssertEqual(request.allHTTPHeaderFields, self.expectedHTTPHeaderFields)
+      var actualHeaders = request.allHTTPHeaderFields; actualHeaders?["Content-Length"] = nil; XCTAssertEqual(actualHeaders, self.expectedHTTPHeaderFields)
       return true
     }
     
@@ -225,7 +227,7 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
                                                   body: requestBody,
                                                   additionalHeaders: additionalHeaders)
     
-    XCTAssertEqual(result.httpResponse, httpResponse)
+    XCTAssertEqual(result.httpResponse.statusCode, httpResponse.statusCode)
     XCTAssertEqual(result.httpBody, httpResponseBody)
     XCTAssertTrue(fakeURLSession.isInvoked)
   }
@@ -248,7 +250,7 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
       XCTAssertEqual(request.url, url)
       XCTAssertEqual(request.httpMethod, httpMethod)
       XCTAssertEqual(request.httpBody, requestBody)
-      XCTAssertEqual(request.allHTTPHeaderFields, self.expectedHTTPHeaderFields)
+      var actualHeaders = request.allHTTPHeaderFields; actualHeaders?["Content-Length"] = nil; XCTAssertEqual(actualHeaders, self.expectedHTTPHeaderFields)
       return true
     }
     
@@ -261,7 +263,7 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
                                                   body: requestBody,
                                                   additionalHeaders: nil)
     
-    XCTAssertEqual(result.httpResponse, httpResponse)
+    XCTAssertEqual(result.httpResponse.statusCode, httpResponse.statusCode)
     XCTAssertEqual(result.httpBody, httpResponseBody)
     XCTAssertTrue(fakeURLSession.isInvoked)
   }

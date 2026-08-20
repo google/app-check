@@ -191,7 +191,7 @@ class AppCheckCoreAppAttestAPIServiceTests: XCTestCase {
         let expectedArtifactString = "valid Firebase app attest artifact"
         let responseDict: [String: Any] = [
             "artifact": expectedArtifactString.data(using: .utf8)!.base64EncodedString(),
-            "token": [
+            "appCheckToken": [
                 "token": "valid_app_check_token",
                 "ttl": "1800s"
             ]

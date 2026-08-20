@@ -19,12 +19,31 @@ class AppCheckCoreURLSessionFake {
             guard let self = self else {
                 throw NSError(domain: "AppCheckCoreURLSessionFake", code: -1, userInfo: nil)
             }
+            
+            var finalRequest = request
+            if finalRequest.httpBody == nil, let stream = finalRequest.httpBodyStream {
+                let data = NSMutableData()
+                stream.open()
+                while stream.hasBytesAvailable {
+                    var buffer = [UInt8](repeating: 0, count: 1024)
+                    let len = stream.read(&buffer, maxLength: buffer.count)
+                    if len > 0 {
+                        data.append(buffer, length: len)
+                    } else if len < 0 {
+                        break
+                    }
+                }
+                stream.close()
+                finalRequest.httpBody = data as Data
+            }
+            
             self.isInvoked = true
-            self.lastRequest = request
+            self.lastRequest = finalRequest
             
             if let validationBlock = self.requestValidationBlock {
-                _ = validationBlock(request)
+                _ = validationBlock(finalRequest)
             }
+
             
             if let resultError = self.resultError {
                 throw resultError
