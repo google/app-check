@@ -34,7 +34,7 @@ class AppCheckCoreBackoffWrapperTests: XCTestCase {
     setUpErrorHandler(with: .none)
     errorHandlerExpectation.isInverted = true
     
-    let result = try await backoffWrapper.applyBackoff(toOperation: operationProvider, errorHandler: errorHandler)
+    let result = try await backoffWrapper.applyBackoffToOperation( operationProvider, errorHandler: errorHandler)
     
     await fulfillment(of: [operationFinishExpectation, errorHandlerExpectation], timeout: 5.0)
     
@@ -48,7 +48,7 @@ class AppCheckCoreBackoffWrapperTests: XCTestCase {
     setUpErrorHandler(with: .oneDay)
     
     do {
-      _ = try await backoffWrapper.applyBackoff(toOperation: operationProvider, errorHandler: errorHandler)
+      _ = try await backoffWrapper.applyBackoffToOperation( operationProvider, errorHandler: errorHandler)
       XCTFail("Expected error")
     } catch {
       XCTAssertEqual(error as NSError, operationResult as? NSError)
@@ -65,7 +65,7 @@ class AppCheckCoreBackoffWrapperTests: XCTestCase {
     currentDate = currentDate.addingTimeInterval(12 * 60 * 60)
     
     do {
-      _ = try await backoffWrapper.applyBackoff(toOperation: operationProvider, errorHandler: errorHandler)
+      _ = try await backoffWrapper.applyBackoffToOperation( operationProvider, errorHandler: errorHandler)
       XCTFail("Expected error")
     } catch {
       XCTAssertTrue(isBackoffError(error as NSError))
@@ -82,7 +82,7 @@ class AppCheckCoreBackoffWrapperTests: XCTestCase {
     currentDate = currentDate.addingTimeInterval(11 * 60 * 60 + 59 * 60)
     
     do {
-      _ = try await backoffWrapper.applyBackoff(toOperation: operationProvider, errorHandler: errorHandler)
+      _ = try await backoffWrapper.applyBackoffToOperation( operationProvider, errorHandler: errorHandler)
       XCTFail("Expected error")
     } catch {
       XCTAssertTrue(isBackoffError(error as NSError))
@@ -97,7 +97,7 @@ class AppCheckCoreBackoffWrapperTests: XCTestCase {
     currentDate = currentDate.addingTimeInterval(12 * 60 * 60 + 1 * 60)
     
     do {
-      _ = try await backoffWrapper.applyBackoff(toOperation: operationProvider, errorHandler: errorHandler)
+      _ = try await backoffWrapper.applyBackoffToOperation( operationProvider, errorHandler: errorHandler)
       XCTFail("Expected error")
     } catch {
       XCTAssertEqual(error as NSError, operationResult as? NSError)
@@ -113,7 +113,7 @@ class AppCheckCoreBackoffWrapperTests: XCTestCase {
     setUpErrorHandler(with: .exponential)
     
     do {
-      _ = try await backoffWrapper.applyBackoff(toOperation: operationProvider, errorHandler: errorHandler)
+      _ = try await backoffWrapper.applyBackoffToOperation( operationProvider, errorHandler: errorHandler)
       XCTFail("Expected error")
     } catch {
       XCTAssertEqual(error as NSError, operationResult as? NSError)
@@ -139,7 +139,7 @@ class AppCheckCoreBackoffWrapperTests: XCTestCase {
     setUpErrorHandler(with: .none)
     errorHandlerExpectation.isInverted = true
     
-    let result = try await backoffWrapper.applyBackoff(toOperation: operationProvider, errorHandler: errorHandler)
+    let result = try await backoffWrapper.applyBackoffToOperation( operationProvider, errorHandler: errorHandler)
     await fulfillment(of: [operationFinishExpectation, errorHandlerExpectation], timeout: 5.0)
     XCTAssertEqual(result as? NSObject, operationResult as? NSObject)
     
@@ -148,7 +148,7 @@ class AppCheckCoreBackoffWrapperTests: XCTestCase {
     setUpErrorHandler(with: .exponential)
     
     do {
-      _ = try await backoffWrapper.applyBackoff(toOperation: operationProvider, errorHandler: errorHandler)
+      _ = try await backoffWrapper.applyBackoffToOperation( operationProvider, errorHandler: errorHandler)
       XCTFail("Expected error")
     } catch {
       XCTAssertEqual(error as NSError, operationResult as? NSError)
@@ -227,7 +227,7 @@ class AppCheckCoreBackoffWrapperTests: XCTestCase {
     errorHandlerExpectation.isInverted = true
     
     do {
-      _ = try await backoffWrapper.applyBackoff(toOperation: operationProvider, errorHandler: errorHandler)
+      _ = try await backoffWrapper.applyBackoffToOperation( operationProvider, errorHandler: errorHandler)
       XCTFail("Expected error")
     } catch {
       XCTAssertTrue(isBackoffError(error as NSError))
@@ -242,7 +242,7 @@ class AppCheckCoreBackoffWrapperTests: XCTestCase {
     setUpErrorHandler(with: .exponential)
     
     do {
-      _ = try await backoffWrapper.applyBackoff(toOperation: operationProvider, errorHandler: errorHandler)
+      _ = try await backoffWrapper.applyBackoffToOperation( operationProvider, errorHandler: errorHandler)
       XCTFail("Expected error")
     } catch {
       XCTAssertFalse(isBackoffError(error as NSError))

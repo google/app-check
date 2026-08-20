@@ -48,10 +48,12 @@ class AppCheckCoreTests: XCTestCase {
     let expectedToken = validToken()
     configuredExpectations_GetTokenWhenNoCache(expectedToken: expectedToken)
     
-    let result = await appCheck.token(forcingRefresh: false)
-    
-    XCTAssertEqual(result.token, expectedToken)
-    XCTAssertNil(result.error)
+    do {
+      let result = try await appCheck.token(forcingRefresh: false)
+      XCTAssertEqual(result, expectedToken)
+    } catch {
+      XCTFail("Unexpected error: \(error)")
+    }
     
     XCTAssertEqual(fakeAppCheckProvider.getTokenCallCount, 1)
     XCTAssertEqual(fakeStorage.lastSetToken, expectedToken)
@@ -67,10 +69,12 @@ class AppCheckCoreTests: XCTestCase {
     let expectedToken = validToken()
     configuredExpectations_GetTokenForcingRefreshWhenCacheIsValid(expectedToken: expectedToken)
     
-    let result = await appCheck.token(forcingRefresh: true)
-    
-    XCTAssertEqual(result.token, expectedToken)
-    XCTAssertNil(result.error)
+    do {
+      let result = try await appCheck.token(forcingRefresh: true)
+      XCTAssertEqual(result, expectedToken)
+    } catch {
+      XCTFail("Unexpected error: \(error)")
+    }
     
     XCTAssertEqual(fakeAppCheckProvider.getTokenCallCount, 1)
     XCTAssertEqual(fakeStorage.lastSetToken, expectedToken)
@@ -82,10 +86,12 @@ class AppCheckCoreTests: XCTestCase {
     let expectedToken = validToken()
     configuredExpectations_GetTokenWhenCachedTokenExpired(expectedToken: expectedToken)
     
-    let result = await appCheck.token(forcingRefresh: false)
-    
-    XCTAssertEqual(result.token, expectedToken)
-    XCTAssertNil(result.error)
+    do {
+      let result = try await appCheck.token(forcingRefresh: false)
+      XCTAssertEqual(result, expectedToken)
+    } catch {
+      XCTFail("Unexpected error: \(error)")
+    }
     
     XCTAssertEqual(fakeAppCheckProvider.getTokenCallCount, 1)
     XCTAssertEqual(fakeStorage.lastSetToken, expectedToken)
@@ -99,12 +105,13 @@ class AppCheckCoreTests: XCTestCase {
     
     configuredExpectations_GetTokenWhenError(error: providerError, token: cachedToken)
     
-    let result = await appCheck.token(forcingRefresh: false)
-    
-    XCTAssertEqual(result.token.token, kPlaceholderTokenValue)
-    XCTAssertNotNil(result.error)
-    XCTAssertEqual(result.error as NSError?, providerError)
-    XCTAssertNotEqual((result.error as NSError?)?.domain, AppCheckCoreErrorDomain)
+    do {
+      _ = try await appCheck.token(forcingRefresh: false)
+      XCTFail("Expected error")
+    } catch {
+      XCTAssertEqual(error as NSError, providerError)
+      XCTAssertNotEqual((error as NSError).domain, AppCheckCoreErrorDomain)
+    }
     
     XCTAssertEqual(fakeAppCheckProvider.getTokenCallCount, 1)
     XCTAssertEqual(fakeTokenDelegate.tokenDidUpdateCallCount, 0)
@@ -175,10 +182,12 @@ class AppCheckCoreTests: XCTestCase {
     let expectedToken = validToken()
     fakeAppCheckProvider.limitedUseTokenToReturn = expectedToken
     
-    let result = await appCheck.limitedUseToken()
-    
-    XCTAssertEqual(result.token, expectedToken)
-    XCTAssertNil(result.error)
+    do {
+      let result = try await appCheck.limitedUseToken()
+      XCTAssertEqual(result, expectedToken)
+    } catch {
+      XCTFail("Unexpected error: \(error)")
+    }
     
     XCTAssertEqual(fakeAppCheckProvider.getLimitedUseTokenCallCount, 1)
     XCTAssertEqual(fakeStorage.lastSetToken, nil)
@@ -186,15 +195,16 @@ class AppCheckCoreTests: XCTestCase {
   }
   
   func testLimitedUseToken_WhenTokenGenerationErrors() async {
-    let providerError = AppCheckCoreErrorUtil.keychainError(withError: internalError()) as NSError
+    let providerError = AppCheckCoreErrorUtil.keychainError(with: internalError()) as NSError
     fakeAppCheckProvider.limitedUseErrorToReturn = providerError
     
-    let result = await appCheck.limitedUseToken()
-    
-    XCTAssertEqual(result.token.token, kPlaceholderTokenValue)
-    XCTAssertNotNil(result.error)
-    XCTAssertEqual(result.error as NSError?, providerError)
-    XCTAssertEqual((result.error as NSError?)?.domain, AppCheckCoreErrorDomain)
+    do {
+      _ = try await appCheck.limitedUseToken()
+      XCTFail("Expected error")
+    } catch {
+      XCTAssertEqual(error as NSError, providerError)
+      XCTAssertEqual((error as NSError).domain, AppCheckCoreErrorDomain)
+    }
     
     XCTAssertEqual(fakeAppCheckProvider.getLimitedUseTokenCallCount, 1)
     XCTAssertEqual(fakeAppCheckProvider.getTokenCallCount, 0)
@@ -231,9 +241,12 @@ class AppCheckCoreTests: XCTestCase {
     await withTaskGroup(of: Void.self) { group in
       for _ in 0..<getTokenCallsCount {
         group.addTask {
-          let result = await self.appCheck.token(forcingRefresh: false)
-          XCTAssertEqual(result.token, expectedToken)
-          XCTAssertNil(result.error)
+          do {
+            let result = try await self.appCheck.token(forcingRefresh: false)
+            XCTAssertEqual(result, expectedToken)
+          } catch {
+            XCTFail("Unexpected error")
+          }
         }
       }
     }
@@ -269,10 +282,12 @@ class AppCheckCoreTests: XCTestCase {
     await withTaskGroup(of: Void.self) { group in
       for _ in 0..<getTokenCallsCount {
         group.addTask {
-          let result = await self.appCheck.token(forcingRefresh: false)
-          XCTAssertEqual(result.token.token, kPlaceholderTokenValue)
-          XCTAssertNotNil(result.error)
-          XCTAssertEqual(result.error as NSError?, storageError)
+          do {
+            _ = try await self.appCheck.token(forcingRefresh: false)
+            XCTFail("Expected error")
+          } catch {
+            XCTAssertEqual(error as NSError, storageError)
+          }
         }
       }
     }
@@ -306,10 +321,12 @@ class AppCheckCoreTests: XCTestCase {
     
     configuredExpectation_GetTokenWhenCacheTokenIsValid(expectedToken: cachedToken)
     
-    let result = await appCheck.token(forcingRefresh: false)
-    
-    XCTAssertEqual(result.token, cachedToken)
-    XCTAssertNil(result.error)
+    do {
+      let result = try await appCheck.token(forcingRefresh: false)
+      XCTAssertEqual(result, cachedToken)
+    } catch {
+      XCTFail("Unexpected error: \(error)")
+    }
     
     XCTAssertEqual(fakeAppCheckProvider.getTokenCallCount, initialCallCount)
   }

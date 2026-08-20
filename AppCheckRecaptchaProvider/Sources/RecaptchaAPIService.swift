@@ -43,9 +43,9 @@ final class RecaptchaAPIService: NSObject {
 
   func appCheckToken(with recaptchaToken: String,
                      limitedUse: Bool) async throws -> AppCheckCoreToken {
-    let urlString = "\\(apiService.baseURL)/\\(resourceName):\\(Constants.exchangeEndpoint)"
+    let urlString = "\(apiService.baseURL)/\(resourceName):\(Constants.exchangeEndpoint)"
     guard let url = URL(string: urlString) else {
-      throw AppCheckCoreErrorUtil.error(withFailureReason: "Invalid URL string: \\(urlString)")
+      throw AppCheckCoreErrorUtil.error(withFailureReason: "Invalid URL string: \(urlString)")
     }
 
     let httpBody = try self.httpBody(with: recaptchaToken, limitedUse: limitedUse)

@@ -280,7 +280,7 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
     let token = try await apiService.appCheckToken(withAPIResponse: apiResponse)
     
     XCTAssertEqual(token.token, expectedFACToken)
-    XCTAssertTrue(AppCheckCoreDateTestUtils.isDate(token.expirationDate, approximatelyEqualCurrentPlusTimeInterval: 1800, precision: 10))
+    XCTAssertEqual(token.expirationDate.timeIntervalSinceNow, 1800, accuracy: 10)
   }
   
   func testAppCheckTokenWithAPIResponseInvalidFormat() async {
@@ -334,7 +334,7 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
     fakeURLSession.requestValidationBlock = requestValidationBlock
     fakeURLSession.resultError = error
     if error == nil {
-      fakeURLSession.resultResponse = AppCheckCoreURLSessionDataResponse(response: response, httpBody: body)
+      fakeURLSession.resultResponse = AppCheckCoreURLSessionDataResponse(response: response!, httpBody: body)
     } else {
       fakeURLSession.resultResponse = nil
     }

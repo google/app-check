@@ -284,7 +284,7 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
           userInfo: nil
         )
         let backoffType = errorHandler(serverUnreachableError)
-        XCTAssertEqual(backoffType, .typeExponential)
+        XCTAssertEqual(backoffType, .exponential)
       }
       
     } catch {
@@ -322,7 +322,7 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
           userInfo: nil
         )
         let backoffType = errorHandler(otherError)
-        XCTAssertEqual(backoffType, .typeNone)
+        XCTAssertEqual(backoffType, .none)
       }
       
     } catch {

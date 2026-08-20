@@ -137,7 +137,7 @@ class AppCheckCoreDebugProviderTests: XCTestCase {
         fakeAPIService.tokenResult = .success(validToken)
         
         // 2. Validate get token.
-        let token = try await withCheckedThrowingContinuation { continuation in
+        let token = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AppCheckCoreToken, Error>) in
             provider.getToken { token, error in
                 if let error = error {
                     continuation.resume(throwing: error)
@@ -194,7 +194,7 @@ class AppCheckCoreDebugProviderTests: XCTestCase {
         fakeAPIService.limitedUseTokenResult = .success(validToken)
         
         // 2. Validate get limited-use token.
-        let token = try await withCheckedThrowingContinuation { continuation in
+        let token = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AppCheckCoreToken, Error>) in
             provider.getLimitedUseToken { token, error in
                 if let error = error {
                     continuation.resume(throwing: error)

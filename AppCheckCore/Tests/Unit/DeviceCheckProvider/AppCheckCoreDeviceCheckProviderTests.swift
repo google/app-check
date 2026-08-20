@@ -33,11 +33,11 @@ class AppCheckCoreDeviceCheckTokenGeneratorFake: NSObject, AppCheckCoreDeviceChe
     func generateToken(completionHandler: @escaping (Data?, Error?) -> Void) {
         generateTokenCalled = true
         if let error = errorToReturn {
-            completion(nil, error)
+            completionHandler(nil, error)
         } else if let token = tokenToReturn {
-            completion(token, nil)
+            completionHandler(token, nil)
         } else {
-            completion(nil, NSError(domain: "FakeError", code: -1, userInfo: nil))
+            completionHandler(nil, NSError(domain: "FakeError", code: -1, userInfo: nil))
         }
     }
 }

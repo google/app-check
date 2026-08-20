@@ -28,6 +28,7 @@ private class MockAppCheckAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
             case .failure(let error): throw error
             }
         }
+        throw NSError(domain: "MockAppCheckAPIService", code: -1, userInfo: nil)
     }
     
     func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) async throws -> AppCheckCoreToken {
@@ -38,12 +39,13 @@ private class MockAppCheckAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
             case .failure(let error): throw error
             }
         }
+        throw NSError(domain: "MockAppCheckAPIService", code: -1, userInfo: nil)
     }
 }
 
 class AppCheckCoreDebugProviderAPIServiceTests: XCTestCase {
     var debugAPIService: AppCheckCoreDebugProviderAPIService!
-    var mockAPIService: MockAppCheckAPIService!
+    private var mockAPIService: MockAppCheckAPIService!
     
     let kResourceName = "projects/test_project_id/apps/test_app_id"
     

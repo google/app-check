@@ -9,9 +9,8 @@ public class AppCheckCore: NSObject {
     @objc public let appCheckProvider: AppCheckCoreProvider
     @objc public let settings: AppCheckCoreSettingsProtocol
     @objc public weak var tokenDelegate: AppCheckCoreTokenDelegate?
-    // Placeholders for Storage and TokenRefresher until migrated
-    // private let storage: Any
-    // private let tokenRefresher: Any
+    @objc public let storage: AppCheckCoreStorageProtocol
+    @objc public let tokenRefresher: AppCheckCoreTokenRefresherProtocol
 
     @objc public init(serviceName: String,
                       resourceName: String,
@@ -21,6 +20,25 @@ public class AppCheckCore: NSObject {
                       keychainAccessGroup: String?) {
         self.serviceName = serviceName
         self.appCheckProvider = appCheckProvider
+        self.settings = settings
+        self.tokenDelegate = tokenDelegate
+        let tokenKey = "app_check_token.\(serviceName).\(resourceName)"
+        self.storage = AppCheckCoreStorage(tokenKey: tokenKey, accessGroup: keychainAccessGroup)
+        let refreshResult = AppCheckCoreTokenRefreshResult(status: .never, expirationDate: nil, receivedAtDate: nil)
+        self.tokenRefresher = AppCheckCoreTokenRefresher(refreshResult: refreshResult, settings: settings)
+        super.init()
+    }
+    
+    @objc internal init(serviceName: String,
+                        appCheckProvider: AppCheckCoreProvider,
+                        storage: AppCheckCoreStorageProtocol,
+                        tokenRefresher: AppCheckCoreTokenRefresherProtocol,
+                        settings: AppCheckCoreSettingsProtocol,
+                        tokenDelegate: AppCheckCoreTokenDelegate?) {
+        self.serviceName = serviceName
+        self.appCheckProvider = appCheckProvider
+        self.storage = storage
+        self.tokenRefresher = tokenRefresher
         self.settings = settings
         self.tokenDelegate = tokenDelegate
         super.init()
