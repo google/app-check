@@ -27,7 +27,7 @@ class AppCheckCoreTokenResultTests: XCTestCase {
     let expectedReceivedAtDate = Date(timeIntervalSince1970: 1_693_317_600.0)
     let expectedToken = AppCheckCoreToken(token: kTestTokenValue,
                                           expirationDate: expectedExpirationDate,
-                                          receivedAtDate: expectedReceivedAtDate)
+                                          receivedAt: expectedReceivedAtDate)
 
     let tokenResult = AppCheckCoreTokenResult(token: expectedToken)
 

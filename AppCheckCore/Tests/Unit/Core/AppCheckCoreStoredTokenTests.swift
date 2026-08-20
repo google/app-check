@@ -41,7 +41,7 @@ class AppCheckCoreStoredTokenTests: XCTestCase {
     let date = Date()
     let originalToken = AppCheckCoreToken(token: "___",
                                           expirationDate: date,
-                                          receivedAtDate: date)
+                                          receivedAt: date)
 
     let storedToken = AppCheckCoreStoredToken()
     storedToken.update(with: originalToken)

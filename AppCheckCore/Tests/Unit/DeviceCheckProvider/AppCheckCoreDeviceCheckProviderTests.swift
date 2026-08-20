@@ -131,7 +131,7 @@ class AppCheckCoreDeviceCheckProviderTests: XCTestCase {
     let validToken = AppCheckCoreToken(
       token: "valid_token",
       expirationDate: Date.distantFuture,
-      receivedAtDate: Date()
+      receivedAt: Date()
     )
     fakeAPIService.appCheckTokenResult = .success(validToken)
 
@@ -340,7 +340,7 @@ class AppCheckCoreDeviceCheckProviderTests: XCTestCase {
     let validToken = AppCheckCoreToken(
       token: "valid_token",
       expirationDate: Date.distantFuture,
-      receivedAtDate: Date()
+      receivedAt: Date()
     )
     fakeAPIService.appCheckTokenResult = .success(validToken)
 

@@ -132,7 +132,7 @@ private let kAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
         } catch {
           let nsError = error as NSError
           let expectedError = AppCheckCoreErrorUtil
-            .keychainError(withError: gulsKeychainError) as NSError
+            .keychainError(with: gulsKeychainError) as NSError
           XCTAssertEqual(nsError, expectedError)
         }
       }
@@ -158,7 +158,7 @@ private let kAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
         } catch {
           let nsError = error as NSError
           let expectedError = AppCheckCoreErrorUtil
-            .keychainError(withError: gulsKeychainError) as NSError
+            .keychainError(with: gulsKeychainError) as NSError
           XCTAssertEqual(nsError, expectedError)
         }
       }
@@ -183,7 +183,7 @@ private let kAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
         } catch {
           let nsError = error as NSError
           let expectedError = AppCheckCoreErrorUtil
-            .keychainError(withError: gulsKeychainError) as NSError
+            .keychainError(with: gulsKeychainError) as NSError
           XCTAssertEqual(nsError, expectedError)
         }
       }

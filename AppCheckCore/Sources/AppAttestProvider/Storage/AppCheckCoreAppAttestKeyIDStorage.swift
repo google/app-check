@@ -13,7 +13,11 @@
 // limitations under the License.
 
 import Foundation
-import GoogleUtilities_UserDefaults
+#if COCOAPODS
+  import GoogleUtilities
+#else
+  import GoogleUtilities_UserDefaults
+#endif
 
 @objc(GACAppAttestKeyIDStorageProtocol)
 public protocol AppCheckCoreAppAttestKeyIDStorageProtocol: NSObjectProtocol {

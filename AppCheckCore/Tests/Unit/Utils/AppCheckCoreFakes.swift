@@ -107,3 +107,39 @@ class AppCheckCoreFakeTimer: NSObject, AppCheckCoreTimerProtocol {
     handler?()
   }
 }
+
+#if COCOAPODS
+  import GoogleUtilities
+#else
+  import GoogleUtilities_UserDefaults
+#endif
+
+class AppCheckCoreKeychainStorageFake: GULKeychainStorage {
+  var keychainError: Error?
+  var storedObject: Any?
+
+  override func getObject(forKey key: String,
+                          objectClass: AnyClass,
+                          accessGroup: String?) throws -> Any {
+    if let error = keychainError {
+      throw error
+    }
+    return storedObject as Any
+  }
+
+  override func setObject(_ object: Any,
+                          forKey key: String,
+                          accessGroup: String?) throws {
+    if let error = keychainError {
+      throw error
+    }
+    storedObject = object
+  }
+
+  override func removeObject(forKey key: String, accessGroup: String?) throws {
+    if let error = keychainError {
+      throw error
+    }
+    storedObject = nil
+  }
+}

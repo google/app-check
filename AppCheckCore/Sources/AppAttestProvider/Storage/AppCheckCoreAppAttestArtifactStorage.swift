@@ -13,7 +13,11 @@
 // limitations under the License.
 
 import Foundation
-import GoogleUtilities_Environment
+#if COCOAPODS
+  import GoogleUtilities
+#else
+  import GoogleUtilities_Environment
+#endif
 
 @objc(GACAppAttestArtifactStorageProtocol)
 public protocol AppCheckCoreAppAttestArtifactStorageProtocol: NSObjectProtocol {

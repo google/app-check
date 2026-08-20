@@ -150,7 +150,7 @@ class AppCheckCoreDebugProviderTests: XCTestCase {
     let validToken = AppCheckCoreToken(
       token: "valid_token",
       expirationDate: Date(),
-      receivedAtDate: Date()
+      receivedAt: Date()
     )
     fakeAPIService.tokenResult = .success(validToken)
 
@@ -217,7 +217,7 @@ class AppCheckCoreDebugProviderTests: XCTestCase {
     let validToken = AppCheckCoreToken(
       token: "valid_token",
       expirationDate: Date(),
-      receivedAtDate: Date()
+      receivedAt: Date()
     )
     fakeAPIService.limitedUseTokenResult = .success(validToken)
 
@@ -284,7 +284,7 @@ class AppCheckCoreDebugProviderTests: XCTestCase {
     let validToken = AppCheckCoreToken(
       token: "valid_token",
       expirationDate: Date(),
-      receivedAtDate: Date()
+      receivedAt: Date()
     )
     fakeAPIService.tokenResult = .success(validToken)
 

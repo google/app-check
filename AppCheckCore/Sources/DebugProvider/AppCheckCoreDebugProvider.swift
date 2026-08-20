@@ -17,7 +17,11 @@ import Foundation
 #if canImport(GoogleUtilities)
   import GoogleUtilities
 #endif
-import GoogleUtilities_UserDefaults
+#if COCOAPODS
+  import GoogleUtilities
+#else
+  import GoogleUtilities_UserDefaults
+#endif
 
 private let kDebugTokenEnvKey = "AppCheckDebugToken"
 private let kFirebaseDebugTokenEnvKey = "FIRAAppCheckDebugToken"

@@ -46,7 +46,7 @@ private let kGoogleAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
       func testSetAndGetToken() async throws {
         let tokenToStore = AppCheckCoreToken(token: "token",
                                              expirationDate: Date.distantPast,
-                                             receivedAtDate: Date())
+                                             receivedAt: Date())
 
         let storedToken = try await storage.setToken(tokenToStore)
         XCTAssertEqual(storedToken, tokenToStore)
@@ -58,7 +58,7 @@ private let kGoogleAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
       }
 
       func testRemoveToken() async throws {
-        let removedToken = try await storage.setToken(nil)
+        let removedToken = try await storage.setToken(nil as AppCheckCoreToken?)
         XCTAssertNil(removedToken)
 
         let retrievedToken = try await storage.getToken()
@@ -83,7 +83,7 @@ private let kGoogleAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
         } catch {
           let nsError = error as NSError
           let expectedError = AppCheckCoreErrorUtil
-            .keychainError(withError: gulsKeychainError) as NSError
+            .keychainError(with: gulsKeychainError) as NSError
           XCTAssertEqual(nsError, expectedError)
         }
       }
@@ -102,14 +102,14 @@ private let kGoogleAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
         // 3. Set token and verify results.
         let tokenToStore = AppCheckCoreToken(token: "token",
                                              expirationDate: Date.distantPast,
-                                             receivedAtDate: Date())
+                                             receivedAt: Date())
         do {
           _ = try await storage.setToken(tokenToStore)
           XCTFail("Expected error to be thrown")
         } catch {
           let nsError = error as NSError
           let expectedError = AppCheckCoreErrorUtil
-            .keychainError(withError: gulsKeychainError) as NSError
+            .keychainError(with: gulsKeychainError) as NSError
           XCTAssertEqual(nsError, expectedError)
         }
       }
@@ -127,12 +127,12 @@ private let kGoogleAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
 
         // 3. Remove token and verify results.
         do {
-          _ = try await storage.setToken(nil)
+          _ = try await storage.setToken(nil as AppCheckCoreToken?)
           XCTFail("Expected error to be thrown")
         } catch {
           let nsError = error as NSError
           let expectedError = AppCheckCoreErrorUtil
-            .keychainError(withError: gulsKeychainError) as NSError
+            .keychainError(with: gulsKeychainError) as NSError
           XCTAssertEqual(nsError, expectedError)
         }
       }
@@ -141,7 +141,7 @@ private let kGoogleAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
         // 1. Set token with a storage.
         let tokenToStore = AppCheckCoreToken(token: "token",
                                              expirationDate: Date.distantPast,
-                                             receivedAtDate: Date())
+                                             receivedAt: Date())
 
         let storedToken = try await storage.setToken(tokenToStore)
         XCTAssertEqual(storedToken, tokenToStore)

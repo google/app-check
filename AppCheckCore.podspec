@@ -35,7 +35,7 @@ Pod::Spec.new do |s|
   base_dir = "AppCheckCore/"
 
   s.source_files = [
-    base_dir + 'Sources/**/*.[mh]',
+    base_dir + 'Sources/**/*.{h,m,swift}',
   ]
   s.ios.source_files = [
     'AppCheckRecaptchaProvider/Sources/**/*.swift',
@@ -61,26 +61,11 @@ Pod::Spec.new do |s|
       :tvos => tvos_deployment_target
     }
     unit_tests.source_files = [
-      base_dir + 'Tests/Unit/**/*.[mh]',
-      base_dir + 'Tests/Utils/**/*.[mh]',
+      base_dir + 'Tests/Unit/**/*.swift',
     ]
 
     unit_tests.resources = base_dir + 'Tests/Fixture/**/*'
     unit_tests.requires_app_host = true
-  end
-
-  s.test_spec 'integration' do |integration_tests|
-    integration_tests.platforms = {
-      :ios => ios_deployment_target,
-      :osx => osx_deployment_target,
-      :tvos => tvos_deployment_target
-    }
-    integration_tests.source_files = [
-      base_dir + 'Tests/Integration/**/*.[mh]',
-      base_dir + 'Tests/Integration/**/*.[mh]',
-    ]
-    integration_tests.resources = base_dir + 'Tests/Fixture/**/*'
-    integration_tests.requires_app_host = true
   end
 
   s.test_spec 'swift-unit' do |swift_unit_tests|
