@@ -93,7 +93,8 @@ class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
   var expectedError: Error?
 
   func sendRequest(withURL url: URL, httpMethod: String, body: Data?,
-                   additionalHeaders: [String: String]?) async throws -> AppCheckCoreURLSessionDataResponse {
+                   additionalHeaders: [String: String]?) async throws
+    -> AppCheckCoreURLSessionDataResponse {
     lastRequest = RequestData(
       url: url,
       httpMethod: httpMethod,
@@ -112,7 +113,8 @@ class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
     }
   }
 
-  func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) async throws -> AppCheckCoreToken {
+  func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) async throws
+    -> AppCheckCoreToken {
     if let expectedError {
       throw expectedError
     } else {
@@ -133,7 +135,8 @@ class MockBackoffWrapper: NSObject, AppCheckBackoffWrapperProtocol {
   var capturedErrorHandler: ((Error) -> AppCheckBackoffType)?
 
   func applyBackoffToOperation(_ operationProvider: @escaping () async throws -> Any,
-                    errorHandler: @escaping (Error) -> AppCheckBackoffType) async throws -> Any {
+                               errorHandler: @escaping (Error) -> AppCheckBackoffType) async throws
+    -> Any {
     applyBackoffCalled = true
     capturedErrorHandler = errorHandler
     if shouldReturnError {

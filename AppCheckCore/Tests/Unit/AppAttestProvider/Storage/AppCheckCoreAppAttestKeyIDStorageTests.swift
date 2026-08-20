@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import XCTest
 @testable import AppCheckCore
+import XCTest
 
 private let kAppName = "AppCheckCoreAppAttestKeyIDStorageTestsApp"
 private let kAppID = "app_id"
@@ -94,14 +94,18 @@ class AppCheckCoreAppAttestKeyIDStorageTests: XCTestCase {
 
   // MARK: - Helpers
 
-  func assertIndependentSetGetForStorages(
-    appName1: String,
-    appID1: String,
-    appName2: String,
-    appID2: String
-  ) async throws {
-    let keySuffix1 = AppCheckCoreAppAttestKeyIDStorageTests.storageKeySuffix(appName: appName1, appID: appID1)
-    let keySuffix2 = AppCheckCoreAppAttestKeyIDStorageTests.storageKeySuffix(appName: appName2, appID: appID2)
+  func assertIndependentSetGetForStorages(appName1: String,
+                                          appID1: String,
+                                          appName2: String,
+                                          appID2: String) async throws {
+    let keySuffix1 = AppCheckCoreAppAttestKeyIDStorageTests.storageKeySuffix(
+      appName: appName1,
+      appID: appID1
+    )
+    let keySuffix2 = AppCheckCoreAppAttestKeyIDStorageTests.storageKeySuffix(
+      appName: appName2,
+      appID: appID2
+    )
 
     // Create two storages.
     let storage1 = AppCheckCoreAppAttestKeyIDStorage(keySuffix: keySuffix1)

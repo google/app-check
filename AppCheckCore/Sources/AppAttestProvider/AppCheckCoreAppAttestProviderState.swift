@@ -34,37 +34,37 @@ public class AppCheckCoreAppAttestProviderState: NSObject {
 
   @objc(initUnsupportedWithError:)
   public init(unsupportedWithError error: Error) {
-    self.state = .unsupported
-    self.appAttestUnsupportedError = error
-    self.appAttestKeyID = nil
-    self.attestationArtifact = nil
+    state = .unsupported
+    appAttestUnsupportedError = error
+    appAttestKeyID = nil
+    attestationArtifact = nil
     super.init()
   }
 
   @objc(initWithSupportedInitialState)
   public init(supportedInitialState: Void = ()) {
-    self.state = .supportedInitial
-    self.appAttestUnsupportedError = nil
-    self.appAttestKeyID = nil
-    self.attestationArtifact = nil
+    state = .supportedInitial
+    appAttestUnsupportedError = nil
+    appAttestKeyID = nil
+    attestationArtifact = nil
     super.init()
   }
 
   @objc(initWithGeneratedKeyID:)
   public init(generatedKeyID keyID: String) {
-    self.state = .keyGenerated
-    self.appAttestKeyID = keyID
-    self.appAttestUnsupportedError = nil
-    self.attestationArtifact = nil
+    state = .keyGenerated
+    appAttestKeyID = keyID
+    appAttestUnsupportedError = nil
+    attestationArtifact = nil
     super.init()
   }
 
   @objc(initWithRegisteredKeyID:artifact:)
   public init(registeredKeyID keyID: String, artifact: Data) {
-    self.state = .keyRegistered
-    self.appAttestKeyID = keyID
-    self.attestationArtifact = artifact
-    self.appAttestUnsupportedError = nil
+    state = .keyRegistered
+    appAttestKeyID = keyID
+    attestationArtifact = artifact
+    appAttestUnsupportedError = nil
     super.init()
   }
 }

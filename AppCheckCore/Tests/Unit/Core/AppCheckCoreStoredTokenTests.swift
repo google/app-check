@@ -1,8 +1,7 @@
-import XCTest
 @testable import AppCheckCore
+import XCTest
 
 class AppCheckCoreStoredTokenTests: XCTestCase {
-
   func testSecureCoding() throws {
     let tokenToArchive = AppCheckCoreStoredToken()
     tokenToArchive.token = "some_token"
@@ -13,8 +12,10 @@ class AppCheckCoreStoredTokenTests: XCTestCase {
                                                          requiringSecureCoding: true)
     XCTAssertNotNil(archivedToken)
 
-    let unarchivedToken = try NSKeyedUnarchiver.unarchivedObject(ofClass: AppCheckCoreStoredToken.self,
-                                                                 from: archivedToken)
+    let unarchivedToken = try NSKeyedUnarchiver.unarchivedObject(
+      ofClass: AppCheckCoreStoredToken.self,
+      from: archivedToken
+    )
     XCTAssertNotNil(unarchivedToken)
     XCTAssertEqual(unarchivedToken?.token, tokenToArchive.token)
     XCTAssertEqual(unarchivedToken?.expirationDate, tokenToArchive.expirationDate)
@@ -25,8 +26,8 @@ class AppCheckCoreStoredTokenTests: XCTestCase {
   func testConvertingToAndFromAppCheckCoreToken() {
     let date = Date()
     let originalToken = AppCheckCoreToken(token: "___",
-                                         expirationDate: date,
-                                         receivedAtDate: date)
+                                          expirationDate: date,
+                                          receivedAtDate: date)
 
     let storedToken = AppCheckCoreStoredToken()
     storedToken.update(with: originalToken)

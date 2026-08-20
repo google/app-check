@@ -53,9 +53,10 @@ final class RecaptchaAPIService: NSObject {
     let response = try await apiService.sendRequest(withURL: url,
                                                     httpMethod: Constants.httpMethodPost,
                                                     body: httpBody,
-                                                    additionalHeaders: [Constants.contentTypeKey: Constants.jsonContentType])
-    
-    return try await self.apiService.appCheckToken(withAPIResponse: response)
+                                                    additionalHeaders: [Constants
+                                                      .contentTypeKey: Constants.jsonContentType])
+
+    return try await apiService.appCheckToken(withAPIResponse: response)
   }
 
   private func httpBody(with recaptchaToken: String,

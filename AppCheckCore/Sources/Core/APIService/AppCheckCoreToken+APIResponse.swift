@@ -20,42 +20,44 @@ private let kResponseFieldToken = "token"
 private let kResponseFieldTTL = "ttl"
 
 public extension AppCheckCoreToken {
-    @objc(initWithTokenExchangeResponse:requestDate:error:)
-    convenience init(tokenExchangeResponse response: Data, requestDate: Date) throws {
-        guard !response.isEmpty else {
-            throw AppCheckCoreErrorUtil.error(withFailureReason: "Empty server response body.")
-        }
-        
-        let responseDict: [String: Any]
-        do {
-            guard let dict = try JSONSerialization.jsonObject(with: response, options: []) as? [String: Any] else {
-                throw AppCheckCoreErrorUtil.jsonSerializationError(nil)
-            }
-            responseDict = dict
-        } catch {
-            throw AppCheckCoreErrorUtil.jsonSerializationError(error)
-        }
-        
-        try self.init(responseDict: responseDict, requestDate: requestDate)
+  @objc(initWithTokenExchangeResponse:requestDate:error:)
+  convenience init(tokenExchangeResponse response: Data, requestDate: Date) throws {
+    guard !response.isEmpty else {
+      throw AppCheckCoreErrorUtil.error(withFailureReason: "Empty server response body.")
     }
 
-    @objc(initWithResponseDict:requestDate:error:)
-    convenience init(responseDict: [String: Any], requestDate: Date) throws {
-        guard let token = responseDict[kResponseFieldToken] as? String else {
-            throw AppCheckCoreErrorUtil.appCheckTokenResponseError(withMissingField: kResponseFieldToken)
-        }
-        
-        guard let timeToLiveString = responseDict[kResponseFieldTTL] as? String, !timeToLiveString.isEmpty else {
-            throw AppCheckCoreErrorUtil.appCheckTokenResponseError(withMissingField: kResponseFieldTTL)
-        }
-        
-        let timeToLiveValueString = timeToLiveString.replacingOccurrences(of: "s", with: "")
-        guard let secondsToLive = TimeInterval(timeToLiveValueString), secondsToLive > 0 else {
-            throw AppCheckCoreErrorUtil.appCheckTokenResponseError(withMissingField: kResponseFieldTTL)
-        }
-        
-        let expirationDate = requestDate.addingTimeInterval(secondsToLive)
-        
-        self.init(token: token, expirationDate: expirationDate, receivedAtDate: requestDate)
+    let responseDict: [String: Any]
+    do {
+      guard let dict = try JSONSerialization
+        .jsonObject(with: response, options: []) as? [String: Any] else {
+        throw AppCheckCoreErrorUtil.jsonSerializationError(nil)
+      }
+      responseDict = dict
+    } catch {
+      throw AppCheckCoreErrorUtil.jsonSerializationError(error)
     }
+
+    try self.init(responseDict: responseDict, requestDate: requestDate)
+  }
+
+  @objc(initWithResponseDict:requestDate:error:)
+  convenience init(responseDict: [String: Any], requestDate: Date) throws {
+    guard let token = responseDict[kResponseFieldToken] as? String else {
+      throw AppCheckCoreErrorUtil.appCheckTokenResponseError(withMissingField: kResponseFieldToken)
+    }
+
+    guard let timeToLiveString = responseDict[kResponseFieldTTL] as? String,
+          !timeToLiveString.isEmpty else {
+      throw AppCheckCoreErrorUtil.appCheckTokenResponseError(withMissingField: kResponseFieldTTL)
+    }
+
+    let timeToLiveValueString = timeToLiveString.replacingOccurrences(of: "s", with: "")
+    guard let secondsToLive = TimeInterval(timeToLiveValueString), secondsToLive > 0 else {
+      throw AppCheckCoreErrorUtil.appCheckTokenResponseError(withMissingField: kResponseFieldTTL)
+    }
+
+    let expirationDate = requestDate.addingTimeInterval(secondsToLive)
+
+    self.init(token: token, expirationDate: expirationDate, receivedAtDate: requestDate)
+  }
 }

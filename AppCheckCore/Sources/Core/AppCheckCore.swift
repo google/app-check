@@ -5,196 +5,201 @@ public typealias AppCheckCoreTokenHandler = (AppCheckCoreTokenResult) -> Void
 @objc(GACAppCheck)
 @objcMembers
 public class AppCheckCore: NSObject {
-    @objc public let serviceName: String
-    @objc public let appCheckProvider: AppCheckCoreProvider
-    @objc public let settings: AppCheckCoreSettingsProtocol
-    @objc public weak var tokenDelegate: AppCheckCoreTokenDelegate?
-    @objc public let storage: AppCheckCoreStorageProtocol
-    @objc public let tokenRefresher: AppCheckCoreTokenRefresherProtocol
+  public let serviceName: String
+  public let appCheckProvider: AppCheckCoreProvider
+  public let settings: AppCheckCoreSettingsProtocol
+  public weak var tokenDelegate: AppCheckCoreTokenDelegate?
+  public let storage: AppCheckCoreStorageProtocol
+  public let tokenRefresher: AppCheckCoreTokenRefresherProtocol
 
-    @objc public init(serviceName: String,
-                      resourceName: String,
-                      appCheckProvider: AppCheckCoreProvider,
-                      settings: AppCheckCoreSettingsProtocol,
-                      tokenDelegate: AppCheckCoreTokenDelegate?,
-                      keychainAccessGroup: String?) {
-        self.serviceName = serviceName
-        self.appCheckProvider = appCheckProvider
-        self.settings = settings
-        self.tokenDelegate = tokenDelegate
-        let tokenKey = "app_check_token.\(serviceName).\(resourceName)"
-        self.storage = AppCheckCoreStorage(tokenKey: tokenKey, accessGroup: keychainAccessGroup)
-        let refreshResult = AppCheckCoreTokenRefreshResult(status: .never, expirationDate: nil, receivedAtDate: nil)
-        self.tokenRefresher = AppCheckCoreTokenRefresher(refreshResult: refreshResult, settings: settings)
-        super.init()
-        
-        self.tokenRefresher.tokenRefreshHandler = { [weak self] completion in
-            self?.periodicTokenRefresh(completion: completion)
-        }
+  public init(serviceName: String,
+              resourceName: String,
+              appCheckProvider: AppCheckCoreProvider,
+              settings: AppCheckCoreSettingsProtocol,
+              tokenDelegate: AppCheckCoreTokenDelegate?,
+              keychainAccessGroup: String?) {
+    self.serviceName = serviceName
+    self.appCheckProvider = appCheckProvider
+    self.settings = settings
+    self.tokenDelegate = tokenDelegate
+    let tokenKey = "app_check_token.\(serviceName).\(resourceName)"
+    storage = AppCheckCoreStorage(tokenKey: tokenKey, accessGroup: keychainAccessGroup)
+    let refreshResult = AppCheckCoreTokenRefreshResult(
+      status: .never,
+      expirationDate: nil,
+      receivedAtDate: nil
+    )
+    tokenRefresher = AppCheckCoreTokenRefresher(refreshResult: refreshResult, settings: settings)
+    super.init()
+
+    tokenRefresher.tokenRefreshHandler = { [weak self] completion in
+      self?.periodicTokenRefresh(completion: completion)
     }
-    
-    @objc internal init(serviceName: String,
-                        appCheckProvider: AppCheckCoreProvider,
-                        storage: AppCheckCoreStorageProtocol,
-                        tokenRefresher: AppCheckCoreTokenRefresherProtocol,
-                        settings: AppCheckCoreSettingsProtocol,
-                        tokenDelegate: AppCheckCoreTokenDelegate?) {
-        self.serviceName = serviceName
-        self.appCheckProvider = appCheckProvider
-        self.storage = storage
-        self.tokenRefresher = tokenRefresher
-        self.settings = settings
-        self.tokenDelegate = tokenDelegate
-        super.init()
-        
-        self.tokenRefresher.tokenRefreshHandler = { [weak self] completion in
-            self?.periodicTokenRefresh(completion: completion)
-        }
+  }
+
+  init(serviceName: String,
+       appCheckProvider: AppCheckCoreProvider,
+       storage: AppCheckCoreStorageProtocol,
+       tokenRefresher: AppCheckCoreTokenRefresherProtocol,
+       settings: AppCheckCoreSettingsProtocol,
+       tokenDelegate: AppCheckCoreTokenDelegate?) {
+    self.serviceName = serviceName
+    self.appCheckProvider = appCheckProvider
+    self.storage = storage
+    self.tokenRefresher = tokenRefresher
+    self.settings = settings
+    self.tokenDelegate = tokenDelegate
+    super.init()
+
+    self.tokenRefresher.tokenRefreshHandler = { [weak self] completion in
+      self?.periodicTokenRefresh(completion: completion)
     }
+  }
 
-    private func periodicTokenRefresh(completion: @escaping AppCheckCoreTokenRefreshCompletion) {
-        Task {
-            do {
-                let token = try await self.token(forcingRefresh: false)
-                let refreshResult = AppCheckCoreTokenRefreshResult(status: .success,
-                                                                 expirationDate: token.expirationDate,
-                                                                 receivedAtDate: token.receivedAtDate)
-                completion(refreshResult)
-            } catch {
-                let refreshResult = AppCheckCoreTokenRefreshResult(status: .failure,
-                                                                 expirationDate: nil,
-                                                                 receivedAtDate: nil)
-                completion(refreshResult)
-            }
-        }
-    }
-
-
-    private var ongoingTask: Task<AppCheckCoreToken, Error>?
-    private let lock = NSLock()
-    private let kTokenExpirationThreshold: TimeInterval = 5 * 60 // 5 minutes
-
-    private enum GetTokenAction {
-        case wait(Task<AppCheckCoreToken, Error>)
-        case run(Task<AppCheckCoreToken, Error>)
-    }
-
-    public func token(forcingRefresh: Bool) async throws -> AppCheckCoreToken {
-        let action: GetTokenAction = lock.execute {
-            // If not forcing refresh and there is an ongoing task, return it
-            if let ongoing = ongoingTask {
-                return .wait(ongoing)
-            }
-
-            // Create a new task and store it
-            let task = Task { () -> AppCheckCoreToken in
-                defer {
-                    self.lock.execute {
-                        self.ongoingTask = nil
-                    }
-                }
-                return try await self.createRetrieveOrRefreshToken(forcingRefresh: forcingRefresh)
-            }
-            self.ongoingTask = task
-            return .run(task)
-        }
-
-        switch action {
-        case .wait(let ongoingTask):
-            return try await ongoingTask.value
-        case .run(let newTask):
-            return try await newTask.value
-        }
-    }
-
-    private func createRetrieveOrRefreshToken(forcingRefresh: Bool) async throws -> AppCheckCoreToken {
-        do {
-            let token = try await getCachedValidToken(forcingRefresh: forcingRefresh)
-            return token
-        } catch {
-            return try await refreshToken()
-        }
-    }
-
-    private func getCachedValidToken(forcingRefresh: Bool) async throws -> AppCheckCoreToken {
-        if forcingRefresh {
-            throw AppCheckCoreErrorUtil.cachedTokenNotFound()
-        }
-
-        guard let token = try await self.storage.getToken() else {
-            throw AppCheckCoreErrorUtil.cachedTokenNotFound()
-        }
-
-        let isTokenExpiredOrExpiresSoon = token.expirationDate.timeIntervalSinceNow < kTokenExpirationThreshold
-        if isTokenExpiredOrExpiresSoon {
-            throw AppCheckCoreErrorUtil.cachedTokenExpired()
-        }
-
-        return token
-    }
-
-    private func refreshToken() async throws -> AppCheckCoreToken {
-        let token: AppCheckCoreToken = try await withCheckedThrowingContinuation { continuation in
-            self.appCheckProvider.getToken { token, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else if let token = token {
-                    continuation.resume(returning: token)
-                } else {
-                    continuation.resume(throwing: AppCheckCoreErrorCode.unknown)
-                }
-            }
-        }
-
-        _ = try await self.storage.setToken(token)
-
+  private func periodicTokenRefresh(completion: @escaping AppCheckCoreTokenRefreshCompletion) {
+    Task {
+      do {
+        let token = try await self.token(forcingRefresh: false)
         let refreshResult = AppCheckCoreTokenRefreshResult(status: .success,
-                                                         expirationDate: token.expirationDate,
-                                                         receivedAtDate: token.receivedAtDate)
-        self.tokenRefresher.updateWithRefreshResult(refreshResult)
-        
-        if let tokenDelegate = self.tokenDelegate {
-            tokenDelegate.tokenDidUpdate(token, serviceName: self.serviceName)
+                                                           expirationDate: token.expirationDate,
+                                                           receivedAtDate: token.receivedAtDate)
+        completion(refreshResult)
+      } catch {
+        let refreshResult = AppCheckCoreTokenRefreshResult(status: .failure,
+                                                           expirationDate: nil,
+                                                           receivedAtDate: nil)
+        completion(refreshResult)
+      }
+    }
+  }
+
+  private var ongoingTask: Task<AppCheckCoreToken, Error>?
+  private let lock = NSLock()
+  private let kTokenExpirationThreshold: TimeInterval = 5 * 60 // 5 minutes
+
+  private enum GetTokenAction {
+    case wait(Task<AppCheckCoreToken, Error>)
+    case run(Task<AppCheckCoreToken, Error>)
+  }
+
+  public func token(forcingRefresh: Bool) async throws -> AppCheckCoreToken {
+    let action: GetTokenAction = lock.execute {
+      // If not forcing refresh and there is an ongoing task, return it
+      if let ongoing = ongoingTask {
+        return .wait(ongoing)
+      }
+
+      // Create a new task and store it
+      let task = Task { () -> AppCheckCoreToken in
+        defer {
+          self.lock.execute {
+            self.ongoingTask = nil
+          }
         }
-        
-        return token
+        return try await self.createRetrieveOrRefreshToken(forcingRefresh: forcingRefresh)
+      }
+      self.ongoingTask = task
+      return .run(task)
     }
 
-    @objc(tokenForcingRefresh:completion:)
-    public func token(forcingRefresh: Bool, completion: @escaping AppCheckCoreTokenHandler) {
-        Task {
-            do {
-                let token = try await self.token(forcingRefresh: forcingRefresh)
-                completion(AppCheckCoreTokenResult(token: token))
-            } catch {
-                completion(AppCheckCoreTokenResult(error: error))
-            }
-        }
+    switch action {
+    case let .wait(ongoingTask):
+      return try await ongoingTask.value
+    case let .run(newTask):
+      return try await newTask.value
+    }
+  }
+
+  private func createRetrieveOrRefreshToken(forcingRefresh: Bool) async throws
+    -> AppCheckCoreToken {
+    do {
+      let token = try await getCachedValidToken(forcingRefresh: forcingRefresh)
+      return token
+    } catch {
+      return try await refreshToken()
+    }
+  }
+
+  private func getCachedValidToken(forcingRefresh: Bool) async throws -> AppCheckCoreToken {
+    if forcingRefresh {
+      throw AppCheckCoreErrorUtil.cachedTokenNotFound()
     }
 
-    public func limitedUseToken() async throws -> AppCheckCoreToken {
-        return try await withCheckedThrowingContinuation { continuation in
-            self.appCheckProvider.getLimitedUseToken { token, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else if let token = token {
-                    continuation.resume(returning: token)
-                } else {
-                    continuation.resume(throwing: AppCheckCoreErrorCode.unknown)
-                }
-            }
-        }
+    guard let token = try await storage.getToken() else {
+      throw AppCheckCoreErrorUtil.cachedTokenNotFound()
     }
 
-    @objc(limitedUseTokenWithCompletion:)
-    public func limitedUseToken(completion: @escaping AppCheckCoreTokenHandler) {
-        Task {
-            do {
-                let token = try await self.limitedUseToken()
-                completion(AppCheckCoreTokenResult(token: token))
-            } catch {
-                completion(AppCheckCoreTokenResult(error: error))
-            }
-        }
+    let isTokenExpiredOrExpiresSoon = token.expirationDate
+      .timeIntervalSinceNow < kTokenExpirationThreshold
+    if isTokenExpiredOrExpiresSoon {
+      throw AppCheckCoreErrorUtil.cachedTokenExpired()
     }
+
+    return token
+  }
+
+  private func refreshToken() async throws -> AppCheckCoreToken {
+    let token: AppCheckCoreToken = try await withCheckedThrowingContinuation { continuation in
+      self.appCheckProvider.getToken { token, error in
+        if let error = error {
+          continuation.resume(throwing: error)
+        } else if let token = token {
+          continuation.resume(returning: token)
+        } else {
+          continuation.resume(throwing: AppCheckCoreErrorCode.unknown)
+        }
+      }
+    }
+
+    _ = try await storage.setToken(token)
+
+    let refreshResult = AppCheckCoreTokenRefreshResult(status: .success,
+                                                       expirationDate: token.expirationDate,
+                                                       receivedAtDate: token.receivedAtDate)
+    tokenRefresher.updateWithRefreshResult(refreshResult)
+
+    if let tokenDelegate = tokenDelegate {
+      tokenDelegate.tokenDidUpdate(token, serviceName: serviceName)
+    }
+
+    return token
+  }
+
+  @objc(tokenForcingRefresh:completion:)
+  public func token(forcingRefresh: Bool, completion: @escaping AppCheckCoreTokenHandler) {
+    Task {
+      do {
+        let token = try await self.token(forcingRefresh: forcingRefresh)
+        completion(AppCheckCoreTokenResult(token: token))
+      } catch {
+        completion(AppCheckCoreTokenResult(error: error))
+      }
+    }
+  }
+
+  public func limitedUseToken() async throws -> AppCheckCoreToken {
+    return try await withCheckedThrowingContinuation { continuation in
+      self.appCheckProvider.getLimitedUseToken { token, error in
+        if let error = error {
+          continuation.resume(throwing: error)
+        } else if let token = token {
+          continuation.resume(returning: token)
+        } else {
+          continuation.resume(throwing: AppCheckCoreErrorCode.unknown)
+        }
+      }
+    }
+  }
+
+  @objc(limitedUseTokenWithCompletion:)
+  public func limitedUseToken(completion: @escaping AppCheckCoreTokenHandler) {
+    Task {
+      do {
+        let token = try await self.limitedUseToken()
+        completion(AppCheckCoreTokenResult(token: token))
+      } catch {
+        completion(AppCheckCoreTokenResult(error: error))
+      }
+    }
+  }
 }

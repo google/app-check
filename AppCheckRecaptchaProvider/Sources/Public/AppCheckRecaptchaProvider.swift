@@ -119,7 +119,8 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
   }
 
   @objc(getLimitedUseTokenWithCompletion:)
-  public func getLimitedUseToken(completion handler: @escaping (AppCheckCoreToken?, (any Error)?) -> Void) {
+  public func getLimitedUseToken(completion handler: @escaping (AppCheckCoreToken?, (any Error)?)
+    -> Void) {
     Task {
       do {
         let token = try await getToken(limitedUse: true)
@@ -135,7 +136,7 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
       throw AppCheckCoreErrorUtil.missingRecaptchaSDKError()
     }
     let recaptchaToken = try await tokenGenerator.getRecaptchaToken()
-    return try await self.apiService.appCheckToken(
+    return try await apiService.appCheckToken(
       with: recaptchaToken,
       limitedUse: limitedUse
     )

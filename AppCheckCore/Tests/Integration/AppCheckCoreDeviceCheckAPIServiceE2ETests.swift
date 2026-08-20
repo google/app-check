@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import XCTest
 @testable import AppCheckCore
+import XCTest
 
 // TODO: Replace with real resource name to run on CI
 private let kResourceName = "projects/test-project-id/google-app-id"
@@ -24,52 +24,52 @@ private let kResourceName = "projects/test-project-id/google-app-id"
 // does not support adding a host app to test targets.
 #if !SWIFT_PACKAGE
 
-// Skip keychain tests on Catalyst and macOS. Tests are skipped because they
-// involve interactions with the keychain that require a provisioning profile.
-// See go/firebase-macos-keychain-popups for more details.
-#if !targetEnvironment(macCatalyst) && !os(macOS)
+  // Skip keychain tests on Catalyst and macOS. Tests are skipped because they
+  // involve interactions with the keychain that require a provisioning profile.
+  // See go/firebase-macos-keychain-popups for more details.
+  #if !targetEnvironment(macCatalyst) && !os(macOS)
 
-// TODO(ncooke3): Fix these tests up and get them running on CI.
+    // TODO(ncooke3): Fix these tests up and get them running on CI.
 
-class AppCheckCoreDeviceCheckAPIServiceE2ETests: XCTestCase {
-  var deviceCheckAPIService: AppCheckCoreDeviceCheckAPIService!
-  var APIService: AppCheckCoreAPIService!
-  var URLSession: Foundation.URLSession!
+    class AppCheckCoreDeviceCheckAPIServiceE2ETests: XCTestCase {
+      var deviceCheckAPIService: AppCheckCoreDeviceCheckAPIService!
+      var APIService: AppCheckCoreAPIService!
+      var URLSession: Foundation.URLSession!
 
-  override func setUp() {
-    super.setUp()
-    URLSession = Foundation.URLSession(configuration: .default)
-    APIService = AppCheckCoreAPIService(
-      urlSession: URLSession,
-      baseURL: nil,
-      apiKey: nil,
-      requestHooks: nil
-    )
-    deviceCheckAPIService = AppCheckCoreDeviceCheckAPIService(
-      apiService: APIService,
-      resourceName: kResourceName
-    )
-  }
+      override func setUp() {
+        super.setUp()
+        URLSession = Foundation.URLSession(configuration: .default)
+        APIService = AppCheckCoreAPIService(
+          urlSession: URLSession,
+          baseURL: nil,
+          apiKey: nil,
+          requestHooks: nil
+        )
+        deviceCheckAPIService = AppCheckCoreDeviceCheckAPIService(
+          apiService: APIService,
+          resourceName: kResourceName
+        )
+      }
 
-  override func tearDown() {
-    deviceCheckAPIService = nil
-    APIService = nil
-    URLSession = nil
-    super.tearDown()
-  }
+      override func tearDown() {
+        deviceCheckAPIService = nil
+        APIService = nil
+        URLSession = nil
+        super.tearDown()
+      }
 
-  // TODO: Re-enable the test once secret with "GoogleService-Info.plist" is configured.
-  func temporaryDisabled_testAppCheckTokenSuccess() async throws {
-    let appCheckToken = try await deviceCheckAPIService.appCheckToken(
-      deviceToken: Data(),
-      limitedUse: false
-    )
+      // TODO: Re-enable the test once secret with "GoogleService-Info.plist" is configured.
+      func temporaryDisabled_testAppCheckTokenSuccess() async throws {
+        let appCheckToken = try await deviceCheckAPIService.appCheckToken(
+          deviceToken: Data(),
+          limitedUse: false
+        )
 
-    XCTAssertNotNil(appCheckToken.token)
-    XCTAssertNotNil(appCheckToken.expirationDate)
-  }
-}
+        XCTAssertNotNil(appCheckToken.token)
+        XCTAssertNotNil(appCheckToken.expirationDate)
+      }
+    }
 
-#endif // !targetEnvironment(macCatalyst) && !os(macOS)
+  #endif // !targetEnvironment(macCatalyst) && !os(macOS)
 
 #endif // !SWIFT_PACKAGE

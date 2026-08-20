@@ -33,12 +33,14 @@ private let kHTTPMethodPost = "POST"
 @objc(GACAppAttestAPIServiceProtocol)
 public protocol AppCheckCoreAppAttestAPIServiceProtocol: NSObjectProtocol {
   @objc func getRandomChallenge() async throws -> Data
-  
+
   @objc
-  func attestKey(withAttestation attestation: Data, keyID: String, challenge: Data, limitedUse: Bool) async throws -> AppCheckCoreAppAttestAttestationResponse
-  
+  func attestKey(withAttestation attestation: Data, keyID: String, challenge: Data,
+                 limitedUse: Bool) async throws -> AppCheckCoreAppAttestAttestationResponse
+
   @objc
-  func getAppCheckToken(withArtifact artifact: Data, challenge: Data, assertion: Data, limitedUse: Bool) async throws -> AppCheckCoreToken
+  func getAppCheckToken(withArtifact artifact: Data, challenge: Data, assertion: Data,
+                        limitedUse: Bool) async throws -> AppCheckCoreToken
 }
 
 @objc(GACAppAttestAPIService)
@@ -58,50 +60,86 @@ public class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPI
   @objc
   public func getRandomChallenge() async throws -> Data {
     let url = urlForEndpoint(kGenerateAppAttestChallengeEndpoint)
-    let response = try await apiService.sendRequest(withURL: url, httpMethod: kHTTPMethodPost, body: nil, additionalHeaders: nil)
+    let response = try await apiService.sendRequest(
+      withURL: url,
+      httpMethod: kHTTPMethodPost,
+      body: nil,
+      additionalHeaders: nil
+    )
     return try randomChallengeWithAPIResponse(response)
   }
 
   @objc
-  public func attestKey(withAttestation attestation: Data, keyID: String, challenge: Data, limitedUse: Bool) async throws -> AppCheckCoreAppAttestAttestationResponse {
+  public func attestKey(withAttestation attestation: Data, keyID: String, challenge: Data,
+                        limitedUse: Bool) async throws -> AppCheckCoreAppAttestAttestationResponse {
     let url = urlForEndpoint(kExchangeAppAttestAttestationEndpoint)
-    let body = try httpBody(withAttestation: attestation, keyID: keyID, challenge: challenge, limitedUse: limitedUse)
-    
-    let urlResponse = try await apiService.sendRequest(withURL: url, httpMethod: kHTTPMethodPost, body: body, additionalHeaders: [kContentTypeKey: kJSONContentType])
-    
+    let body = try httpBody(
+      withAttestation: attestation,
+      keyID: keyID,
+      challenge: challenge,
+      limitedUse: limitedUse
+    )
+
+    let urlResponse = try await apiService.sendRequest(
+      withURL: url,
+      httpMethod: kHTTPMethodPost,
+      body: body,
+      additionalHeaders: [kContentTypeKey: kJSONContentType]
+    )
+
     guard let responseData = urlResponse.httpBody else {
       throw AppCheckCoreErrorUtil.error(withFailureReason: "Invalid or missing response data.")
     }
-    let response = try AppCheckCoreAppAttestAttestationResponse(responseData: responseData, requestDate: Date())
-    
+    let response = try AppCheckCoreAppAttestAttestationResponse(
+      responseData: responseData,
+      requestDate: Date()
+    )
+
     return response
   }
 
   @objc
-  public func getAppCheckToken(withArtifact artifact: Data, challenge: Data, assertion: Data, limitedUse: Bool) async throws -> AppCheckCoreToken {
+  public func getAppCheckToken(withArtifact artifact: Data, challenge: Data, assertion: Data,
+                               limitedUse: Bool) async throws -> AppCheckCoreToken {
     let url = urlForEndpoint(kExchangeAppAttestAssertionEndpoint)
-    let body = try httpBody(withArtifact: artifact, challenge: challenge, assertion: assertion, limitedUse: limitedUse)
-    
-    let urlResponse = try await apiService.sendRequest(withURL: url, httpMethod: kHTTPMethodPost, body: body, additionalHeaders: [kContentTypeKey: kJSONContentType])
-    
+    let body = try httpBody(
+      withArtifact: artifact,
+      challenge: challenge,
+      assertion: assertion,
+      limitedUse: limitedUse
+    )
+
+    let urlResponse = try await apiService.sendRequest(
+      withURL: url,
+      httpMethod: kHTTPMethodPost,
+      body: body,
+      additionalHeaders: [kContentTypeKey: kJSONContentType]
+    )
+
     let token = try await apiService.appCheckToken(withAPIResponse: urlResponse)
     // We assume AppCheckCoreToken is identical to AppCheckCoreToken or bridges correctly
-    return token 
+    return token
   }
 
   // MARK: - Challenge parsing
 
-  private func randomChallengeWithAPIResponse(_ response: AppCheckCoreURLSessionDataResponse) throws -> Data {
+  private func randomChallengeWithAPIResponse(_ response: AppCheckCoreURLSessionDataResponse) throws
+    -> Data {
     guard let responseData = response.httpBody else {
       throw AppCheckCoreErrorUtil.error(withFailureReason: "Empty server response body.")
     }
-    
+
     if responseData.isEmpty {
       throw AppCheckCoreErrorUtil.error(withFailureReason: "Empty server response body.")
     }
 
-    guard let responseDict = try? JSONSerialization.jsonObject(with: responseData, options: []) as? [String: Any] else {
-      throw AppCheckCoreErrorUtil.jsonSerializationError(NSError(domain: NSCocoaErrorDomain, code: 0, userInfo: nil))
+    guard let responseDict = try? JSONSerialization
+      .jsonObject(with: responseData, options: []) as? [String: Any] else {
+      throw AppCheckCoreErrorUtil.jsonSerializationError(NSError(
+        domain: NSCocoaErrorDomain,
+        code: 0,
+        userInfo: nil
+      ))
     }
 
     guard let challengeBase64 = responseDict["challenge"] as? String else {
@@ -117,7 +155,8 @@ public class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPI
 
   // MARK: - Body Builders
 
-  private func httpBody(withAttestation attestation: Data, keyID: String, challenge: Data, limitedUse: Bool) throws -> Data {
+  private func httpBody(withAttestation attestation: Data, keyID: String, challenge: Data,
+                        limitedUse: Bool) throws -> Data {
     if attestation.isEmpty || keyID.isEmpty || challenge.isEmpty {
       throw AppCheckCoreErrorUtil.error(withFailureReason: "Missing or empty request parameter.")
     }
@@ -126,13 +165,14 @@ public class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPI
       kRequestFieldKeyID: keyID,
       kRequestFieldAttestation: attestation.base64EncodedString(),
       kRequestFieldChallenge: challenge.base64EncodedString(),
-      kRequestFieldLimitedUse: limitedUse
+      kRequestFieldLimitedUse: limitedUse,
     ]
 
     return try httpBody(withJSONObject: jsonObject)
   }
 
-  private func httpBody(withArtifact artifact: Data, challenge: Data, assertion: Data, limitedUse: Bool) throws -> Data {
+  private func httpBody(withArtifact artifact: Data, challenge: Data, assertion: Data,
+                        limitedUse: Bool) throws -> Data {
     if artifact.isEmpty || challenge.isEmpty || assertion.isEmpty {
       throw AppCheckCoreErrorUtil.error(withFailureReason: "Missing or empty request parameter.")
     }
@@ -141,7 +181,7 @@ public class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPI
       kRequestFieldArtifact: artifact.base64EncodedString(),
       kRequestFieldChallenge: challenge.base64EncodedString(),
       kRequestFieldAssertion: assertion.base64EncodedString(),
-      kRequestFieldLimitedUse: limitedUse
+      kRequestFieldLimitedUse: limitedUse,
     ]
 
     return try httpBody(withJSONObject: jsonObject)

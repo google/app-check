@@ -26,14 +26,15 @@ public protocol AppCheckCoreAppAttestKeyIDStorageProtocol: NSObjectProtocol {
 private let kKeyIDStorageDefaultsSuiteName = "com.firebase.AppCheckCoreAppAttestKeyIDStorage"
 
 @objc(GACAppAttestKeyIDStorage)
-public class AppCheckCoreAppAttestKeyIDStorage: NSObject, AppCheckCoreAppAttestKeyIDStorageProtocol {
+public class AppCheckCoreAppAttestKeyIDStorage: NSObject,
+  AppCheckCoreAppAttestKeyIDStorageProtocol {
   private let keySuffix: String
   private let userDefaults: GULUserDefaults
 
   @objc(initWithKeySuffix:)
   public init(keySuffix: String) {
     self.keySuffix = keySuffix
-    self.userDefaults = GULUserDefaults(suiteName: kKeyIDStorageDefaultsSuiteName)
+    userDefaults = GULUserDefaults(suiteName: kKeyIDStorageDefaultsSuiteName)
     super.init()
   }
 

@@ -38,7 +38,7 @@ final class RecaptchaTokenGenerator {
        backoffWrapper: AppCheckBackoffWrapperProtocol) {
     self.recaptchaAction = recaptchaAction
     self.backoffWrapper = backoffWrapper
-    
+
     recaptchaClientTask = Task {
       try await withCheckedThrowingContinuation { continuation in
         recaptchaClass.fetchClient(withSiteKey: siteKey) { client, error in
@@ -55,7 +55,7 @@ final class RecaptchaTokenGenerator {
 
   func getRecaptchaToken() async throws -> String {
     let client = try await recaptchaClientTask.value
-    
+
     let operationProvider: () async throws -> Any = {
       try await withCheckedThrowingContinuation { continuation in
         let recaptchaAction = self.recaptchaAction
@@ -78,8 +78,8 @@ final class RecaptchaTokenGenerator {
       return .none
     }
 
-    let result = try await self.backoffWrapper.applyBackoffToOperation(
-       operationProvider,
+    let result = try await backoffWrapper.applyBackoffToOperation(
+      operationProvider,
       errorHandler: errorHandler
     )
 

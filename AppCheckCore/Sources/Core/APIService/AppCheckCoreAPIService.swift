@@ -26,145 +26,155 @@ private let kBundleIdKey = "X-Ios-Bundle-Identifier"
 private let kProdBaseURL = "https://firebaseappcheck.googleapis.com/v1"
 
 #if !NDEBUG
-private let kStagingBaseURL = "https://staging-firebaseappcheck.sandbox.googleapis.com/v1"
-private let kAppCheckUseStagingEnvKey = "_AppCheckUseStaging"
+  private let kStagingBaseURL = "https://staging-firebaseappcheck.sandbox.googleapis.com/v1"
+  private let kAppCheckUseStagingEnvKey = "_AppCheckUseStaging"
 #endif
 
 @objc(AppCheckCoreAPIServiceProtocol)
 public protocol AppCheckCoreAPIServiceProtocol: NSObjectProtocol {
-    @objc var baseURL: String { get }
+  @objc var baseURL: String { get }
 
-    @objc(sendRequestWithURL:HTTPMethod:body:additionalHeaders:completion:)
-    func sendRequest(
-        withURL requestURL: URL,
-        httpMethod: String,
-        body: Data?,
-        additionalHeaders: [String: String]?
-    ) async throws -> AppCheckCoreURLSessionDataResponse
+  @objc(sendRequestWithURL:HTTPMethod:body:additionalHeaders:completion:)
+  func sendRequest(withURL requestURL: URL,
+                   httpMethod: String,
+                   body: Data?,
+                   additionalHeaders: [String: String]?) async throws
+    -> AppCheckCoreURLSessionDataResponse
 
-    @objc(appCheckTokenWithAPIResponse:completion:)
-    func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) async throws -> AppCheckCoreToken
+  @objc(appCheckTokenWithAPIResponse:completion:)
+  func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) async throws
+    -> AppCheckCoreToken
 }
 
 @objc(AppCheckCoreAPIService)
 public class AppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
+  public let baseURL: String
+  private let urlSession: URLSession
+  private let apiKey: String?
+  // Using Any for hook as it's typically `@convention(block) (NSMutableURLRequest) -> Void`
+  private let requestHooks: [AppCheckCoreAPIRequestHook]
 
-    public let baseURL: String
-    private let urlSession: URLSession
-    private let apiKey: String?
-    // Using Any for hook as it's typically `@convention(block) (NSMutableURLRequest) -> Void`
-    private let requestHooks: [AppCheckCoreAPIRequestHook]
+  @objc(initWithURLSession:baseURL:APIKey:requestHooks:)
+  public convenience init(urlSession: URLSession,
+                          baseURL: String?,
+                          apiKey: String?,
+                          requestHooks: [AppCheckCoreAPIRequestHook]?) {
+    self.init(
+      urlSession: urlSession,
+      baseURL: baseURL,
+      apiKey: apiKey,
+      requestHooks: requestHooks,
+      environment: ProcessInfo.processInfo.environment
+    )
+  }
 
-    @objc(initWithURLSession:baseURL:APIKey:requestHooks:)
-    public convenience init(
-        urlSession: URLSession,
-        baseURL: String?,
-        apiKey: String?,
-        requestHooks: [AppCheckCoreAPIRequestHook]?
-    ) {
-        self.init(urlSession: urlSession, baseURL: baseURL, apiKey: apiKey, requestHooks: requestHooks, environment: ProcessInfo.processInfo.environment)
-    }
-    
-    // Internal designated initializer
-    init(
-        urlSession: URLSession,
-        baseURL: String?,
-        apiKey: String?,
-        requestHooks: [AppCheckCoreAPIRequestHook]?,
-        environment: [String: String]
-    ) {
-        self.urlSession = urlSession
-        self.apiKey = apiKey
-        self.requestHooks = requestHooks ?? []
+  // Internal designated initializer
+  init(urlSession: URLSession,
+       baseURL: String?,
+       apiKey: String?,
+       requestHooks: [AppCheckCoreAPIRequestHook]?,
+       environment: [String: String]) {
+    self.urlSession = urlSession
+    self.apiKey = apiKey
+    self.requestHooks = requestHooks ?? []
 
-        var resolvedBaseURL = baseURL
+    var resolvedBaseURL = baseURL
 
-        #if !NDEBUG
-        if resolvedBaseURL == nil {
-            let useStaging = (environment[kAppCheckUseStagingEnvKey] as NSString?)?.boolValue ?? false
-            if useStaging {
-                resolvedBaseURL = kStagingBaseURL
-                let logMessage = "App Check staging environment enabled. API calls will be routed to \(kStagingBaseURL)."
-                // Assuming AppCheckCoreLogger is available
-                AppCheckCoreLogger.log(code: .stagingModeEnabled, logLevel: .info, message: logMessage)
-            }
+    #if !NDEBUG
+      if resolvedBaseURL == nil {
+        let useStaging = (environment[kAppCheckUseStagingEnvKey] as NSString?)?.boolValue ?? false
+        if useStaging {
+          resolvedBaseURL = kStagingBaseURL
+          let logMessage =
+            "App Check staging environment enabled. API calls will be routed to \(kStagingBaseURL)."
+          // Assuming AppCheckCoreLogger is available
+          AppCheckCoreLogger.log(code: .stagingModeEnabled, logLevel: .info, message: logMessage)
         }
-        #endif
+      }
+    #endif
 
-        self.baseURL = resolvedBaseURL ?? kProdBaseURL
-        super.init()
-    }
+    self.baseURL = resolvedBaseURL ?? kProdBaseURL
+    super.init()
+  }
 
-    @objc(sendRequestWithURL:HTTPMethod:body:additionalHeaders:completion:)
-    public func sendRequest(
-        withURL requestURL: URL,
-        httpMethod: String,
-        body: Data?,
-        additionalHeaders: [String: String]?
-    ) async throws -> AppCheckCoreURLSessionDataResponse {
-        let request = try await self.request(withURL: requestURL, httpMethod: httpMethod, body: body, additionalHeaders: additionalHeaders)
-        let response = try await self.sendURLRequest(request)
-        return try await self.validateHTTPResponseStatusCode(response)
-    }
+  @objc(sendRequestWithURL:HTTPMethod:body:additionalHeaders:completion:)
+  public func sendRequest(withURL requestURL: URL,
+                          httpMethod: String,
+                          body: Data?,
+                          additionalHeaders: [String: String]?) async throws
+    -> AppCheckCoreURLSessionDataResponse {
+    let request = try await self.request(
+      withURL: requestURL,
+      httpMethod: httpMethod,
+      body: body,
+      additionalHeaders: additionalHeaders
+    )
+    let response = try await sendURLRequest(request)
+    return try await validateHTTPResponseStatusCode(response)
+  }
 
-    private func request(
-        withURL requestURL: URL,
-        httpMethod: String,
-        body: Data?,
-        additionalHeaders: [String: String]?
-    ) async throws -> URLRequest {
-        guard let mutableRequest = NSMutableURLRequest(url: requestURL) as NSMutableURLRequest? else {
-            throw AppCheckCoreErrorUtil.error(withFailureReason: "Failed to create URLRequest.")
-        }
-        
-        mutableRequest.httpMethod = httpMethod
-        mutableRequest.httpBody = body
-        mutableRequest.cachePolicy = .reloadIgnoringLocalCacheData
-
-        if let apiKey = self.apiKey {
-            mutableRequest.setValue(apiKey, forHTTPHeaderField: kAPIKeyHeaderKey)
-        }
-
-        if let bundleID = Bundle.main.bundleIdentifier {
-            mutableRequest.setValue(bundleID, forHTTPHeaderField: kBundleIdKey)
-        }
-
-        additionalHeaders?.forEach { key, value in
-            mutableRequest.setValue(value, forHTTPHeaderField: key)
-        }
-
-        for hook in self.requestHooks {
-            hook(mutableRequest)
-        }
-
-        return mutableRequest as URLRequest
+  private func request(withURL requestURL: URL,
+                       httpMethod: String,
+                       body: Data?,
+                       additionalHeaders: [String: String]?) async throws -> URLRequest {
+    guard let mutableRequest = NSMutableURLRequest(url: requestURL) as NSMutableURLRequest? else {
+      throw AppCheckCoreErrorUtil.error(withFailureReason: "Failed to create URLRequest.")
     }
 
-    private func sendURLRequest(_ request: URLRequest) async throws -> AppCheckCoreURLSessionDataResponse {
-        do {
-            let (data, response) = try await urlSession.data(for: request)
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw AppCheckCoreErrorUtil.apiError(withNetworkError: URLError(.badServerResponse))
-            }
-            return AppCheckCoreURLSessionDataResponse(response: httpResponse, httpBody: data)
-        } catch {
-            throw AppCheckCoreErrorUtil.apiError(withNetworkError: error)
-        }
+    mutableRequest.httpMethod = httpMethod
+    mutableRequest.httpBody = body
+    mutableRequest.cachePolicy = .reloadIgnoringLocalCacheData
+
+    if let apiKey = apiKey {
+      mutableRequest.setValue(apiKey, forHTTPHeaderField: kAPIKeyHeaderKey)
     }
 
-    private func validateHTTPResponseStatusCode(_ response: AppCheckCoreURLSessionDataResponse) async throws -> AppCheckCoreURLSessionDataResponse {
-        let statusCode = response.httpResponse.statusCode
-        if statusCode < 200 || statusCode >= 300 {
-            let bodyString = String(data: response.httpBody ?? Data(), encoding: .utf8) ?? ""
-            let logMessage = "Unexpected API response: \(response.httpResponse), body: \(bodyString)."
-            AppCheckCoreLogger.log(code: .unexpectedHTTPCode, logLevel: .debug, message: logMessage)
-            throw AppCheckCoreErrorUtil.apiError(with: response.httpResponse, data: response.httpBody)
-        }
-        return response
+    if let bundleID = Bundle.main.bundleIdentifier {
+      mutableRequest.setValue(bundleID, forHTTPHeaderField: kBundleIdKey)
     }
 
-    @objc(appCheckTokenWithAPIResponse:completion:)
-    public func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) async throws -> AppCheckCoreToken {
-        return try AppCheckCoreToken(tokenExchangeResponse: response.httpBody ?? Data(), requestDate: Date())
+    additionalHeaders?.forEach { key, value in
+      mutableRequest.setValue(value, forHTTPHeaderField: key)
     }
+
+    for hook in requestHooks {
+      hook(mutableRequest)
+    }
+
+    return mutableRequest as URLRequest
+  }
+
+  private func sendURLRequest(_ request: URLRequest) async throws
+    -> AppCheckCoreURLSessionDataResponse {
+    do {
+      let (data, response) = try await urlSession.data(for: request)
+      guard let httpResponse = response as? HTTPURLResponse else {
+        throw AppCheckCoreErrorUtil.apiError(withNetworkError: URLError(.badServerResponse))
+      }
+      return AppCheckCoreURLSessionDataResponse(response: httpResponse, httpBody: data)
+    } catch {
+      throw AppCheckCoreErrorUtil.apiError(withNetworkError: error)
+    }
+  }
+
+  private func validateHTTPResponseStatusCode(_ response: AppCheckCoreURLSessionDataResponse) async throws
+    -> AppCheckCoreURLSessionDataResponse {
+    let statusCode = response.httpResponse.statusCode
+    if statusCode < 200 || statusCode >= 300 {
+      let bodyString = String(data: response.httpBody ?? Data(), encoding: .utf8) ?? ""
+      let logMessage = "Unexpected API response: \(response.httpResponse), body: \(bodyString)."
+      AppCheckCoreLogger.log(code: .unexpectedHTTPCode, logLevel: .debug, message: logMessage)
+      throw AppCheckCoreErrorUtil.apiError(with: response.httpResponse, data: response.httpBody)
+    }
+    return response
+  }
+
+  @objc(appCheckTokenWithAPIResponse:completion:)
+  public func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) async throws
+    -> AppCheckCoreToken {
+    return try AppCheckCoreToken(
+      tokenExchangeResponse: response.httpBody ?? Data(),
+      requestDate: Date()
+    )
+  }
 }

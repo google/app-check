@@ -26,7 +26,8 @@ public protocol AppCheckCoreAppAttestArtifactStorageProtocol: NSObjectProtocol {
 private let kKeychainService = "com.firebase.app_check.app_attest_artifact_storage"
 
 @objc(GACAppAttestArtifactStorage)
-public class AppCheckCoreAppAttestArtifactStorage: NSObject, AppCheckCoreAppAttestArtifactStorageProtocol {
+public class AppCheckCoreAppAttestArtifactStorage: NSObject,
+  AppCheckCoreAppAttestArtifactStorageProtocol {
   private let keySuffix: String
   private let keychainStorage: GULKeychainStorage
   private let accessGroup: String?
@@ -48,17 +49,26 @@ public class AppCheckCoreAppAttestArtifactStorage: NSObject, AppCheckCoreAppAtte
   @objc
   public func getArtifact(forKey keyID: String) async throws -> Data? {
     do {
-      let storedArtifact = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<NSSecureCoding?, Error>) in
-        keychainStorage.getObjectForKey(artifactKey, objectClass: AppCheckCoreAppAttestStoredArtifact.self, accessGroup: accessGroup) { result, error in
-          if let error = error {
-            continuation.resume(throwing: error)
-          } else {
-            continuation.resume(returning: result)
+      let storedArtifact =
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<
+          NSSecureCoding?,
+          Error
+        >) in
+          keychainStorage.getObjectForKey(
+            artifactKey,
+            objectClass: AppCheckCoreAppAttestStoredArtifact.self,
+            accessGroup: accessGroup
+          ) { result, error in
+            if let error = error {
+              continuation.resume(throwing: error)
+            } else {
+              continuation.resume(returning: result)
+            }
           }
         }
-      }
 
-      if let artifact = storedArtifact as? AppCheckCoreAppAttestStoredArtifact, artifact.keyID == keyID {
+      if let artifact = storedArtifact as? AppCheckCoreAppAttestStoredArtifact,
+         artifact.keyID == keyID {
         return artifact.artifact
       } else {
         return nil
@@ -74,7 +84,10 @@ public class AppCheckCoreAppAttestArtifactStorage: NSObject, AppCheckCoreAppAtte
       return try await storeArtifact(artifact, forKey: keyID)
     } else {
       do {
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<
+          Void,
+          Error
+        >) in
           keychainStorage.removeObject(forKey: artifactKey, accessGroup: accessGroup) { error in
             if let error = error {
               continuation.resume(throwing: error)
@@ -92,16 +105,21 @@ public class AppCheckCoreAppAttestArtifactStorage: NSObject, AppCheckCoreAppAtte
 
   private func storeArtifact(_ artifact: Data, forKey keyID: String) async throws -> Data {
     let storedArtifact = AppCheckCoreAppAttestStoredArtifact(keyID: keyID, artifact: artifact)
-    
+
     do {
-      try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-        keychainStorage.setObject(storedArtifact, forKey: artifactKey, accessGroup: accessGroup) { result, error in
-          if let error = error {
-            continuation.resume(throwing: error)
-          } else {
-            continuation.resume(returning: ())
+      try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<
+        Void,
+        Error
+      >) in
+        keychainStorage
+          .setObject(storedArtifact, forKey: artifactKey,
+                     accessGroup: accessGroup) { result, error in
+            if let error = error {
+              continuation.resume(throwing: error)
+            } else {
+              continuation.resume(returning: ())
+            }
           }
-        }
       }
       return artifact
     } catch {

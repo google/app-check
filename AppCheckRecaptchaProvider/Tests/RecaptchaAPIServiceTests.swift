@@ -59,21 +59,21 @@ final class RecaptchaAPIServiceTests: XCTestCase {
       XCTAssertEqual(token.expirationDate, expectedAppCheckToken.expirationDate)
 
       // Verify request
-      guard let request = self.mockCoreAPIService.lastRequest else {
+      guard let request = mockCoreAPIService.lastRequest else {
         XCTFail("No request was sent")
         return
       }
 
       XCTAssertEqual(
         request.url?.absoluteString,
-        "https://test.com/\(self.testResourceName):exchangeRecaptchaEnterpriseToken"
+        "https://test.com/\(testResourceName):exchangeRecaptchaEnterpriseToken"
       )
       XCTAssertEqual(request.httpMethod, "POST")
       XCTAssertEqual(request.additionalHeaders?["Content-Type"], "application/json")
 
       if let body = request.body {
         let json = try? JSONSerialization.jsonObject(with: body, options: []) as? [String: Any]
-        XCTAssertEqual(json?["recaptcha_enterprise_token"] as? String, self.testRecaptchaToken)
+        XCTAssertEqual(json?["recaptcha_enterprise_token"] as? String, testRecaptchaToken)
         XCTAssertEqual(json?["limited_use"] as? Bool, false)
       } else {
         XCTFail("Request body was empty")
@@ -95,7 +95,7 @@ final class RecaptchaAPIServiceTests: XCTestCase {
     do {
       let _ = try await apiService.appCheckToken(with: testRecaptchaToken, limitedUse: true)
       // Assert
-      guard let request = self.mockCoreAPIService.lastRequest, let body = request.body else {
+      guard let request = mockCoreAPIService.lastRequest, let body = request.body else {
         XCTFail("No request or body")
         return
       }

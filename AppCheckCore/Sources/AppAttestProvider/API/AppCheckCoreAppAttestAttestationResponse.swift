@@ -34,32 +34,46 @@ public class AppCheckCoreAppAttestAttestationResponse: NSObject {
   @objc(initWithResponseData:requestDate:error:)
   public init(responseData: Data, requestDate: Date) throws {
     if responseData.isEmpty {
-      throw AppCheckCoreErrorUtil.error(withFailureReason: "Failed to parse the initial handshake response. Empty server response body.")
+      throw AppCheckCoreErrorUtil
+        .error(
+          withFailureReason: "Failed to parse the initial handshake response. Empty server response body."
+        )
     }
 
-    let responseDict = try JSONSerialization.jsonObject(with: responseData, options: []) as? [String: Any]
-    
+    let responseDict = try JSONSerialization
+      .jsonObject(with: responseData, options: []) as? [String: Any]
+
     guard let responseDict = responseDict else {
-      throw AppCheckCoreErrorUtil.jsonSerializationError(NSError(domain: NSCocoaErrorDomain, code: 0, userInfo: nil))
+      throw AppCheckCoreErrorUtil.jsonSerializationError(NSError(
+        domain: NSCocoaErrorDomain,
+        code: 0,
+        userInfo: nil
+      ))
     }
 
     guard let artifactBase64String = responseDict[kResponseFieldArtifact] as? String,
           let artifactData = Data(base64Encoded: artifactBase64String) else {
-      throw AppCheckCoreErrorUtil.appAttestAttestationResponseError(withMissingField: kResponseFieldArtifact)
+      throw AppCheckCoreErrorUtil
+        .appAttestAttestationResponseError(withMissingField: kResponseFieldArtifact)
     }
 
-    guard let appCheckTokenDict = responseDict[kResponseFieldAppCheckTokenDict] as? [String: Any] else {
-      throw AppCheckCoreErrorUtil.appAttestAttestationResponseError(withMissingField: kResponseFieldAppCheckTokenDict)
+    guard let appCheckTokenDict = responseDict[kResponseFieldAppCheckTokenDict] as? [String: Any]
+    else {
+      throw AppCheckCoreErrorUtil
+        .appAttestAttestationResponseError(withMissingField: kResponseFieldAppCheckTokenDict)
     }
 
     // Assuming AppCheckCoreToken has this initializer available in Swift now.
     // If not, we use the method that handles API response.
     // We'll throw if it fails to initialize.
     // Assuming there is a throwing initializer or we just use `init(responseDict:requestDate:)`
-    let appCheckToken = try AppCheckCoreToken(responseDict: appCheckTokenDict, requestDate: requestDate)
+    let appCheckToken = try AppCheckCoreToken(
+      responseDict: appCheckTokenDict,
+      requestDate: requestDate
+    )
 
-    self.artifact = artifactData
-    self.token = appCheckToken
+    artifact = artifactData
+    token = appCheckToken
     super.init()
   }
 }

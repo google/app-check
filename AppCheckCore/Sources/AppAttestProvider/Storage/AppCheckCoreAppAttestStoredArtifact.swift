@@ -65,8 +65,8 @@ public class AppCheckCoreAppAttestStoredArtifact: NSObject, NSSecureCoding {
       return nil
     }
 
-    self.keyID = decodedKeyID
-    self.artifact = decodedArtifact
+    keyID = decodedKeyID
+    artifact = decodedArtifact
     super.init()
   }
 }

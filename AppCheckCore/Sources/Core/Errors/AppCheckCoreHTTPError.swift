@@ -18,37 +18,41 @@ import Foundation
 
 @objc(GACAppCheckHTTPError)
 public class AppCheckCoreHTTPError: NSError, @unchecked Sendable {
-    @objc public let httpResponse: HTTPURLResponse
-    @objc public let data: Data
+  @objc public let httpResponse: HTTPURLResponse
+  @objc public let data: Data
 
-    @objc(initWithHTTPResponse:data:)
-    public init(httpResponse: HTTPURLResponse, data: Data?) {
-        let actualData = data ?? Data()
-        self.httpResponse = httpResponse
-        self.data = actualData
-        
-        let responseString = String(data: actualData, encoding: .utf8) ?? ""
-        let failureReason = """
-        The server responded with an error: 
-         - URL: \(httpResponse.url?.absoluteString ?? "unknown") 
-         - HTTP status code: \(httpResponse.statusCode) 
-         - Response body: \(responseString)
-        """
-        
-        let userInfo: [String: Any] = [
-            NSLocalizedFailureReasonErrorKey: failureReason
-        ]
-        
-        super.init(domain: AppCheckCoreErrorDomain, code: AppCheckCoreErrorCode.unknown.rawValue, userInfo: userInfo)
-    }
-    
-    @available(*, unavailable)
-    public required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    // NSCopying
-    public override func copy(with zone: NSZone? = nil) -> Any {
-        return AppCheckCoreHTTPError(httpResponse: self.httpResponse, data: self.data)
-    }
+  @objc(initWithHTTPResponse:data:)
+  public init(httpResponse: HTTPURLResponse, data: Data?) {
+    let actualData = data ?? Data()
+    self.httpResponse = httpResponse
+    self.data = actualData
+
+    let responseString = String(data: actualData, encoding: .utf8) ?? ""
+    let failureReason = """
+    The server responded with an error: 
+     - URL: \(httpResponse.url?.absoluteString ?? "unknown") 
+     - HTTP status code: \(httpResponse.statusCode) 
+     - Response body: \(responseString)
+    """
+
+    let userInfo: [String: Any] = [
+      NSLocalizedFailureReasonErrorKey: failureReason,
+    ]
+
+    super.init(
+      domain: AppCheckCoreErrorDomain,
+      code: AppCheckCoreErrorCode.unknown.rawValue,
+      userInfo: userInfo
+    )
+  }
+
+  @available(*, unavailable)
+  public required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
+  // NSCopying
+  override public func copy(with zone: NSZone? = nil) -> Any {
+    return AppCheckCoreHTTPError(httpResponse: httpResponse, data: data)
+  }
 }

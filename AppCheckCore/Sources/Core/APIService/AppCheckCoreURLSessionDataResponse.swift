@@ -19,13 +19,13 @@ import Foundation
 /// The class represents HTTP response received from `URLSession`.
 @objc(AppCheckCoreURLSessionDataResponse)
 public class AppCheckCoreURLSessionDataResponse: NSObject {
-    @objc public let httpResponse: HTTPURLResponse
-    @objc public let httpBody: Data?
+  @objc public let httpResponse: HTTPURLResponse
+  @objc public let httpBody: Data?
 
-    @objc(initWithResponse:HTTPBody:)
-    public init(response: HTTPURLResponse, httpBody: Data?) {
-        self.httpResponse = response
-        self.httpBody = httpBody
-        super.init()
-    }
+  @objc(initWithResponse:HTTPBody:)
+  public init(response: HTTPURLResponse, httpBody: Data?) {
+    httpResponse = response
+    self.httpBody = httpBody
+    super.init()
+  }
 }
