@@ -344,8 +344,6 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
       backoffWrapper: MockBackoffWrapper()
     )
 
-    let expectation = self
-      .expectation(description: "Fails with fallback error when execute returns nil, nil")
 
     // Act
     do {
