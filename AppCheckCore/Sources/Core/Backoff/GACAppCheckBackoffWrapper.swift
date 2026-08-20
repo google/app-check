@@ -98,20 +98,20 @@ public class GACAppCheckBackoffWrapper: NSObject, AppCheckBackoffWrapperProtocol
 
         do {
             let result = try await operationProvider()
-            lock.lock()
-            lastFailure = nil
-            lock.unlock()
+            lock.withLock {
+                lastFailure = nil
+            }
             return result
         } catch {
             let backoffType = errorHandler(error)
-            lock.lock()
-            lastFailure = AppCheckBackoffOperationFailure.nextRetryFailure(
-                with: lastFailure,
-                finishDate: dateProvider(),
-                error: error,
-                backoffType: backoffType
-            )
-            lock.unlock()
+            lock.withLock {
+                lastFailure = AppCheckBackoffOperationFailure.nextRetryFailure(
+                    with: lastFailure,
+                    finishDate: dateProvider(),
+                    error: error,
+                    backoffType: backoffType
+                )
+            }
             throw error
         }
     }

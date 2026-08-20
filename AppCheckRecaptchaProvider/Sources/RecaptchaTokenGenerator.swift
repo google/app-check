@@ -58,11 +58,12 @@ final class RecaptchaTokenGenerator {
     
     let operationProvider: () async throws -> Any = {
       try await withCheckedThrowingContinuation { continuation in
-        client.execute(withAction: self.recaptchaAction) { token, error in
+        let recaptchaAction = self.recaptchaAction
+        client.execute(withAction: recaptchaAction) { token, error in
           if let token {
             continuation.resume(returning: token as Any)
           } else {
-            continuation.resume(throwing: self.mapRecaptchaError(error))
+            continuation.resume(throwing: Self.mapRecaptchaError(error))
           }
         }
       }
@@ -91,7 +92,7 @@ final class RecaptchaTokenGenerator {
     return token
   }
 
-  private func mapRecaptchaError(_ error: Error?) -> Error {
+  private static func mapRecaptchaError(_ error: Error?) -> Error {
     guard let error = error as NSError? else {
       return _GACAppCheckErrorUtil.error(withFailureReason: "Failed to execute Recaptcha action")
     }

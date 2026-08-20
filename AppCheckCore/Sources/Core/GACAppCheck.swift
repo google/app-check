@@ -55,7 +55,7 @@ public class AppCheckCore: NSObject {
     }
 
     @objc(tokenForcingRefresh:completion:)
-    public func tokenForcingRefresh(_ forcingRefresh: Bool, completion: @escaping AppCheckCoreTokenHandler) {
+    public func token(forcingRefresh: Bool, completion: @escaping AppCheckCoreTokenHandler) {
         Task {
             do {
                 let token = try await self.token(forcingRefresh: forcingRefresh)

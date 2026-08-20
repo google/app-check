@@ -37,7 +37,7 @@ final class AppCheckAPITests {
         baseURL: nil,
         apiKey: apiKey,
         keychainAccessGroup: nil,
-        requestHooks: nil
+        requestHooks: nil as [AppCheckCoreAPIRequestHook]?
       )
       provider.getToken { token, error in
         if let _ /* error */ = error {
@@ -61,7 +61,7 @@ final class AppCheckAPITests {
     )
 
     // Get token
-    appCheck.token(forcingRefresh: false) { result in
+    appCheck.token(forcingRefresh: false, completion: { result in
       if let _ /* error */ = result.error {
         _ /* placeholder token */ = result.token
         // ...
@@ -69,25 +69,23 @@ final class AppCheckAPITests {
         _ /* token */ = result.token
         // ...
       }
-    }
+    })
 
     // Get token (async/await)
     if #available(iOS 13.0, macOS 10.15, macCatalyst 13.0, tvOS 13.0, watchOS 7.0, *) {
       // async/await is only available on iOS 13+
       Task {
-        let result = await appCheck.token(forcingRefresh: false)
-        if let _ /* error */ = result.error {
-          _ /* placeholder token */ = result.token
-          // ...
-        } else {
-          _ /* token */ = result.token
-          // ...
+        do {
+          let token = try await appCheck.token(forcingRefresh: false)
+          _ /* token */ = token.token
+        } catch {
+          _ /* error */ = error
         }
       }
     }
 
     // Get limited-use token
-    appCheck.limitedUseToken { result in
+    appCheck.limitedUseToken(completion: { result in
       if let _ /* error */ = result.error {
         _ /* placeholder token */ = result.token
         // ...
@@ -95,19 +93,17 @@ final class AppCheckAPITests {
         _ /* token */ = result.token
         // ...
       }
-    }
+    })
 
     // Get limited-use token (async/await)
     if #available(iOS 13.0, macOS 10.15, macCatalyst 13.0, tvOS 13.0, watchOS 7.0, *) {
       // async/await is only available on iOS 13+
       Task {
-        let result = await appCheck.limitedUseToken()
-        if let _ /* error */ = result.error {
-          _ /* placeholder token */ = result.token
-          // ...
-        } else {
-          _ /* token */ = result.token
-          // ...
+        do {
+          let token = try await appCheck.limitedUseToken()
+          _ /* token */ = token.token
+        } catch {
+          _ /* error */ = error
         }
       }
     }
@@ -121,7 +117,7 @@ final class AppCheckAPITests {
       resourceName: resourceName,
       baseURL: nil,
       apiKey: apiKey,
-      requestHooks: nil
+      requestHooks: nil as [AppCheckCoreAPIRequestHook]?
     )
     // Get token
     debugProvider.getToken { token, error in
@@ -155,7 +151,7 @@ final class AppCheckAPITests {
 
     // MARK: - AppCheckErrors
 
-    appCheck.token(forcingRefresh: false) { result in
+    appCheck.token(forcingRefresh: false, completion: { result in
       if let error = result.error {
         switch error {
         case AppCheckCoreErrorCode.unknown:
@@ -173,7 +169,7 @@ final class AppCheckAPITests {
         }
       }
       // ...
-    }
+    })
 
     // MARK: - AppCheckProvider
 
@@ -192,7 +188,7 @@ final class AppCheckAPITests {
           serviceName: serviceName,
           resourceName: resourceName,
           apiKey: apiKey,
-          requestHooks: nil
+          requestHooks: nil as [AppCheckCoreAPIRequestHook]?
         )
         // Get token
         deviceCheckProvider.getToken { token, error in
@@ -227,17 +223,17 @@ final class AppCheckAPITests {
 
     let code: AppCheckCoreMessageCode! = nil
     switch code! {
-    case .Unknown: break
-    case .ProviderIsMissing: break
-    case .StagingModeEnabled: break
-    case .UnexpectedHTTPCode: break
-    case .LocalDebugToken: break
-    case .EnvironmentVariableDebugToken: break
-    case .DebugProviderFirebaseEnvironmentVariable: break
-    case .DebugProviderFailedExchange: break
-    case .AppAttestNotSupported: break
-    case .AttestationRejected: break
-    case .AssertionRejected: break
+    case .unknown: break
+    case .providerIsMissing: break
+    case .stagingModeEnabled: break
+    case .unexpectedHTTPCode: break
+    case .localDebugToken: break
+    case .environmentVariableDebugToken: break
+    case .debugProviderFirebaseEnvironmentVariable: break
+    case .debugProviderFailedExchange: break
+    case .appAttestNotSupported: break
+    case .attestationRejected: break
+    case .assertionRejected: break
     @unknown default: break
     }
   }

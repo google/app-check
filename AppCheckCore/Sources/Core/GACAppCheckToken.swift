@@ -2,7 +2,7 @@ import Foundation
 
 @objc(GACAppCheckToken)
 @objcMembers
-public class AppCheckCoreToken: NSObject {
+public class AppCheckCoreToken: NSObject, @unchecked Sendable {
     @objc public let token: String
     @objc public let expirationDate: Date
     @objc public let receivedAtDate: Date

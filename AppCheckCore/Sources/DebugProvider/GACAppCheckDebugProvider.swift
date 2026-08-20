@@ -126,7 +126,7 @@ public class AppCheckCoreDebugProvider: NSObject, GACAppCheckProvider {
         let envVariableValue = environment[kDebugTokenEnvKey]?.isEmpty == false ? environment[kDebugTokenEnvKey] : nil
         let firebaseEnvVariableValue = environment[kFirebaseDebugTokenEnvKey]?.isEmpty == false ? environment[kFirebaseDebugTokenEnvKey] : nil
         
-        if let env = envVariableValue, let firebaseEnv = firebaseEnvVariableValue {
+        if let env = envVariableValue, let _ = firebaseEnvVariableValue {
             let message = "The environment variables \(kDebugTokenEnvKey) and \(kFirebaseDebugTokenEnvKey) are both set; using the debug token specified in \(kDebugTokenEnvKey) and ignoring the value of \(kFirebaseDebugTokenEnvKey)."
             AppCheckCoreLogger.log(code: .debugProviderFirebaseEnvironmentVariable, logLevel: .warning, message: message)
             return env
