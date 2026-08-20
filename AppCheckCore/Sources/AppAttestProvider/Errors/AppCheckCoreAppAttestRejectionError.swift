@@ -17,7 +17,7 @@
 import Foundation
 
 @objc(GACAppAttestRejectionError)
-public class AppCheckCoreAppAttestRejectionError: NSError {
+public class AppCheckCoreAppAttestRejectionError: NSError, @unchecked Sendable {
   @objc
   public var underlyingError: Error? {
     return userInfo[NSUnderlyingErrorKey] as? Error

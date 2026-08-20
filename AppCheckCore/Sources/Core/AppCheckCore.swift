@@ -74,27 +74,37 @@ public class AppCheckCore: NSObject {
     private let lock = NSLock()
     private let kTokenExpirationThreshold: TimeInterval = 5 * 60 // 5 minutes
 
+    private enum GetTokenAction {
+        case wait(Task<AppCheckCoreToken, Error>)
+        case run(Task<AppCheckCoreToken, Error>)
+    }
+
     public func token(forcingRefresh: Bool) async throws -> AppCheckCoreToken {
-        lock.lock()
-        // If not forcing refresh and there is an ongoing task, return it
-        if let ongoing = ongoingTask {
-            lock.unlock()
-            return try await ongoing.value
-        }
-
-        // Create a new task and store it
-        let task = Task { () -> AppCheckCoreToken in
-            defer {
-                self.lock.lock()
-                self.ongoingTask = nil
-                self.lock.unlock()
+        let action: GetTokenAction = lock.execute {
+            // If not forcing refresh and there is an ongoing task, return it
+            if let ongoing = ongoingTask {
+                return .wait(ongoing)
             }
-            return try await self.createRetrieveOrRefreshToken(forcingRefresh: forcingRefresh)
-        }
-        self.ongoingTask = task
-        lock.unlock()
 
-        return try await task.value
+            // Create a new task and store it
+            let task = Task { () -> AppCheckCoreToken in
+                defer {
+                    self.lock.execute {
+                        self.ongoingTask = nil
+                    }
+                }
+                return try await self.createRetrieveOrRefreshToken(forcingRefresh: forcingRefresh)
+            }
+            self.ongoingTask = task
+            return .run(task)
+        }
+
+        switch action {
+        case .wait(let ongoingTask):
+            return try await ongoingTask.value
+        case .run(let newTask):
+            return try await newTask.value
+        }
     }
 
     private func createRetrieveOrRefreshToken(forcingRefresh: Bool) async throws -> AppCheckCoreToken {

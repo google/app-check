@@ -32,7 +32,7 @@ class AppCheckCoreAppAttestKeyIDStorageTests: XCTestCase {
 
   override func tearDown() async throws {
     // Remove the app attest key ID from storage.
-    try? await storage.setAppAttestKeyID(nil)
+    _ = try? await storage.setAppAttestKeyID(nil)
     storage = nil
     try await super.tearDown()
   }

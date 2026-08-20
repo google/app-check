@@ -76,7 +76,7 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
     
     // Act
     do {
-      let token = try await generator.getRecaptchaToken()
+      let _ = try await generator.getRecaptchaToken()
       XCTFail("Should not succeed when fetchClient fails")
     } catch {
       // Assert
@@ -105,7 +105,7 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
     
     // Act
     do {
-      let token = try await generator.getRecaptchaToken()
+      let _ = try await generator.getRecaptchaToken()
       XCTFail("Should not succeed when execute fails")
     } catch {
       // Assert
@@ -141,7 +141,7 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
     
     // Act
     do {
-      let token = try await generator.getRecaptchaToken()
+      let _ = try await generator.getRecaptchaToken()
       // Assert
       XCTAssertTrue(mockBackoffWrapper.applyBackoffCalled)
       
@@ -172,7 +172,7 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
     
     // Act
     do {
-      let token = try await generator.getRecaptchaToken()
+      let _ = try await generator.getRecaptchaToken()
       XCTFail("Should not succeed when backoff wrapper fails")
     } catch {
       // Assert
@@ -207,7 +207,7 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
     
     // Act
     do {
-      let token = try await generator.getRecaptchaToken()
+      let _ = try await generator.getRecaptchaToken()
       XCTFail("Should not succeed when execute fails")
     } catch {
       // Assert
@@ -243,7 +243,7 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
     
     // Act
     do {
-      let token = try await generator.getRecaptchaToken()
+      let _ = try await generator.getRecaptchaToken()
       XCTFail("Should not succeed when execute fails")
     } catch {
       // Assert
@@ -347,7 +347,7 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
 
     // Act
     do {
-      let token = try await generator.getRecaptchaToken()
+      let _ = try await generator.getRecaptchaToken()
       XCTFail("Should not succeed when execute returns nil, nil")
     } catch {
       // Assert

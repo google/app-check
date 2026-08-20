@@ -95,33 +95,43 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
         }
     }
 
+    private enum GetTokenAction {
+        case retry(Task<AppCheckCoreToken, Error>)
+        case wait(Task<AppCheckCoreToken, Error>)
+        case run(Task<AppCheckCoreToken, Error>)
+    }
+
     private func getToken(limitedUse: Bool) async throws -> AppCheckCoreToken {
-        lock.lock()
-        if let ongoingTask = ongoingGetTokenOperationTask {
-            if limitedUse || ongoingGetTokenOperationLimitedUse != limitedUse {
-                lock.unlock()
-                // Wait for the ongoing task, then retry
-                _ = try? await ongoingTask.value
-                return try await getToken(limitedUse: limitedUse)
+        let action: GetTokenAction = lock.execute {
+            if let ongoingTask = ongoingGetTokenOperationTask {
+                if limitedUse || ongoingGetTokenOperationLimitedUse != limitedUse {
+                    return .retry(ongoingTask)
+                }
+                return .wait(ongoingTask)
             }
-            lock.unlock()
+            
+            ongoingGetTokenOperationLimitedUse = limitedUse
+            let newTask = Task {
+                try await createGetTokenSequenceWithBackoff(limitedUse: limitedUse)
+            }
+            ongoingGetTokenOperationTask = newTask
+            return .run(newTask)
+        }
+        
+        switch action {
+        case .retry(let ongoingTask):
+            _ = try? await ongoingTask.value
+            return try await getToken(limitedUse: limitedUse)
+        case .wait(let ongoingTask):
             return try await ongoingTask.value
+        case .run(let newTask):
+            defer {
+                lock.execute {
+                    ongoingGetTokenOperationTask = nil
+                }
+            }
+            return try await newTask.value
         }
-        
-        ongoingGetTokenOperationLimitedUse = limitedUse
-        let newTask = Task {
-            try await createGetTokenSequenceWithBackoff(limitedUse: limitedUse)
-        }
-        ongoingGetTokenOperationTask = newTask
-        lock.unlock()
-        
-        defer {
-            lock.lock()
-            ongoingGetTokenOperationTask = nil
-            lock.unlock()
-        }
-        
-        return try await newTask.value
     }
     
     private func createGetTokenSequenceWithBackoff(limitedUse: Bool) async throws -> AppCheckCoreToken {
@@ -141,7 +151,7 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
                 case .unsupported:
                     AppCheckCoreLogger.log(code: .appAttestNotSupported, logLevel: .debug, message: "App Attest is not supported.")
                     if let error = attestState.appAttestUnsupportedError {
-                        throw error
+                        if let rejectionError = error as? AppCheckCoreAppAttestRejectionError { throw rejectionError.underlyingError ?? rejectionError }; throw error
                     }
                     throw AppCheckCoreErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
                 case .supportedInitial, .keyGenerated:
@@ -155,11 +165,11 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
                     throw AppCheckCoreErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
                 }
             } catch {
-                if let rejectionError = error as? AppCheckCoreAppAttestRejectionError, attempts == 0 {
+                if error is AppCheckCoreAppAttestRejectionError, attempts == 0 {
                     attempts += 1
                     continue
                 }
-                throw error
+                if let rejectionError = error as? AppCheckCoreAppAttestRejectionError { throw rejectionError.underlyingError ?? rejectionError }; throw error
             }
         }
         throw AppCheckCoreErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
@@ -168,13 +178,13 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
     // MARK: - Initial handshake sequence (attestation)
 
     private func initialHandshake(keyID: String?, limitedUse: Bool) async throws -> AppCheckCoreToken {
-        let (attestedKeyID, attestArtifact, firebaseResponse) = try await attestKeyGenerateIfNeeded(keyID: keyID, limitedUse: limitedUse)
+        let (attestedKeyID, _, firebaseResponse) = try await attestKeyGenerateIfNeeded(keyID: keyID, limitedUse: limitedUse)
         return try await saveArtifactAndGetAppCheckToken(response: firebaseResponse, keyID: attestedKeyID)
     }
 
     private func saveArtifactAndGetAppCheckToken(response: AppCheckCoreAppAttestAttestationResponse, keyID: String) async throws -> AppCheckCoreToken {
-        try await artifactStorage.setArtifact(response.artifact, forKey: keyID)
-        return response.token as! AppCheckCoreToken
+        _ = try await artifactStorage.setArtifact(response.artifact, forKey: keyID)
+        return response.token 
     }
 
     private func attestKey(keyID: String, challenge: Data) async throws -> AppCheckCoreAppAttestKeyAttestationResult {
@@ -208,7 +218,7 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
             challenge = try await fetchChallenge
             generatedKeyID = try await fetchKeyID
         } catch {
-            throw error
+            if let rejectionError = error as? AppCheckCoreAppAttestRejectionError { throw rejectionError.underlyingError ?? rejectionError }; throw error
         }
 
         let attestationResult: AppCheckCoreAppAttestKeyAttestationResult
@@ -224,7 +234,7 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
                 try await resetAttestation()
                 throw AppCheckCoreAppAttestRejectionError(underlyingError: error)
             }
-            throw error
+            if let rejectionError = error as? AppCheckCoreAppAttestRejectionError { throw rejectionError.underlyingError ?? rejectionError }; throw error
         }
 
         do {
@@ -240,13 +250,13 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
             try await resetAttestation()
             throw AppCheckCoreAppAttestRejectionError(underlyingError: httpError)
         } catch {
-            throw error
+            if let rejectionError = error as? AppCheckCoreAppAttestRejectionError { throw rejectionError.underlyingError ?? rejectionError }; throw error
         }
     }
 
     private func resetAttestation() async throws {
-        try await keyIDStorage.setAppAttestKeyID(nil)
-        try await artifactStorage.setArtifact(nil, forKey: "")
+        _ = try await keyIDStorage.setAppAttestKeyID(nil)
+        _ = try await artifactStorage.setArtifact(nil, forKey: "")
     }
 
     // MARK: - Token refresh sequence (assertion)
@@ -260,7 +270,7 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
             assertion: assertion.assertion,
             limitedUse: limitedUse
         )
-        return token as! AppCheckCoreToken
+        return token 
     }
 
     private func generateAssertion(keyID: String, artifact: Data, challenge: Data) async throws -> AppCheckCoreAppAttestAssertionData {
@@ -355,7 +365,7 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
                     }
                 }
             }
-            try await keyIDStorage.setAppAttestKeyID(keyID)
+            _ = try await keyIDStorage.setAppAttestKeyID(keyID)
             return keyID
         } catch {
             throw AppCheckCoreErrorUtil.appAttestGenerateKeyFailed(with: error)
@@ -390,5 +400,13 @@ private class AppCheckCoreAppAttestAssertionData {
         self.challenge = challenge
         self.artifact = artifact
         self.assertion = assertion
+    }
+}
+
+extension NSLock {
+    func execute<T>(_ block: () -> T) -> T {
+        self.lock()
+        defer { self.unlock() }
+        return block()
     }
 }
