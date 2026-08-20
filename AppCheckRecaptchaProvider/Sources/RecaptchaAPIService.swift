@@ -33,10 +33,10 @@ private enum Constants {
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
 final class RecaptchaAPIService: NSObject {
-  private let apiService: GACAppCheckAPIServiceProtocol
+  private let apiService: AppCheckCoreAPIServiceProtocol
   private let resourceName: String
 
-  init(apiService: GACAppCheckAPIServiceProtocol, resourceName: String) {
+  init(apiService: AppCheckCoreAPIServiceProtocol, resourceName: String) {
     self.apiService = apiService
     self.resourceName = resourceName
   }
@@ -45,7 +45,7 @@ final class RecaptchaAPIService: NSObject {
                      limitedUse: Bool) async throws -> AppCheckCoreToken {
     let urlString = "\\(apiService.baseURL)/\\(resourceName):\\(Constants.exchangeEndpoint)"
     guard let url = URL(string: urlString) else {
-      throw _GACAppCheckErrorUtil.error(withFailureReason: "Invalid URL string: \\(urlString)")
+      throw AppCheckCoreErrorUtil.error(withFailureReason: "Invalid URL string: \\(urlString)")
     }
 
     let httpBody = try self.httpBody(with: recaptchaToken, limitedUse: limitedUse)
@@ -61,7 +61,7 @@ final class RecaptchaAPIService: NSObject {
   private func httpBody(with recaptchaToken: String,
                         limitedUse: Bool) throws -> Data {
     guard !recaptchaToken.isEmpty else {
-      throw _GACAppCheckErrorUtil.error(withFailureReason: "Recaptcha token cannot be empty")
+      throw AppCheckCoreErrorUtil.error(withFailureReason: "Recaptcha token cannot be empty")
     }
 
     let payload: [String: Any] = [
@@ -72,7 +72,7 @@ final class RecaptchaAPIService: NSObject {
     do {
       return try JSONSerialization.data(withJSONObject: payload, options: [])
     } catch {
-      throw _GACAppCheckErrorUtil.jsonSerializationError(error)
+      throw AppCheckCoreErrorUtil.jsonSerializationError(error)
     }
   }
 }

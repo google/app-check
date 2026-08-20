@@ -5,14 +5,14 @@ import DeviceCheck
 @available(iOS 14.0, macOS 11.0, tvOS 15.0, watchOS 9.0, *)
 @objc(GACAppAttestProvider)
 @objcMembers
-public class AppCheckCoreAppAttestProvider: NSObject, GACAppCheckProvider {
+public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
 
     // MARK: - Internal Properties
     private let apiService: AppCheckCoreAppAttestAPIServiceProtocol
-    private let appAttestService: GACAppAttestService
+    private let appAttestService: AppCheckCoreAppAttestService
     private let keyIDStorage: AppCheckCoreAppAttestKeyIDStorageProtocol
     private let artifactStorage: AppCheckCoreAppAttestArtifactStorageProtocol
-    private let backoffWrapper: _GACAppCheckBackoffWrapperProtocol
+    private let backoffWrapper: AppCheckBackoffWrapperProtocol
 
     private var ongoingGetTokenOperationTask: Task<AppCheckCoreToken, Error>?
     private var ongoingGetTokenOperationLimitedUse: Bool = false
@@ -26,11 +26,11 @@ public class AppCheckCoreAppAttestProvider: NSObject, GACAppCheckProvider {
     }
 
     init(
-        appAttestService: GACAppAttestService,
+        appAttestService: AppCheckCoreAppAttestService,
         apiService: AppCheckCoreAppAttestAPIServiceProtocol,
         keyIDStorage: AppCheckCoreAppAttestKeyIDStorageProtocol,
         artifactStorage: AppCheckCoreAppAttestArtifactStorageProtocol,
-        backoffWrapper: _GACAppCheckBackoffWrapperProtocol
+        backoffWrapper: AppCheckBackoffWrapperProtocol
     ) {
         self.appAttestService = appAttestService
         self.apiService = apiService
@@ -47,13 +47,13 @@ public class AppCheckCoreAppAttestProvider: NSObject, GACAppCheckProvider {
         baseURL: String?,
         apiKey: String?,
         keychainAccessGroup accessGroup: String?,
-        requestHooks: [GACAppCheckAPIRequestHook]?
+        requestHooks: [AppCheckCoreAPIRequestHook]?
     ) {
         let urlSession = URLSession(configuration: .ephemeral)
         let storageKeySuffix = AppCheckCoreAppAttestProvider.storageKeySuffix(serviceName: serviceName, resourceName: resourceName)
         
         let keyIDStorage = AppCheckCoreAppAttestKeyIDStorage(keySuffix: storageKeySuffix)
-        let coreAPIService = _GACAppCheckAPIService(
+        let coreAPIService = AppCheckCoreAPIService(
             urlSession: urlSession,
             baseURL: baseURL,
             apiKey: apiKey,
@@ -61,7 +61,7 @@ public class AppCheckCoreAppAttestProvider: NSObject, GACAppCheckProvider {
         )
         let appAttestAPIService = AppCheckCoreAppAttestAPIService(apiService: coreAPIService, resourceName: resourceName)
         let artifactStorage = AppCheckCoreAppAttestArtifactStorage(keySuffix: storageKeySuffix, accessGroup: accessGroup)
-        let backoffWrapper = _GACAppCheckBackoffWrapper()
+        let backoffWrapper = AppCheckCoreBackoffWrapper()
         
         self.init(
             appAttestService: DCAppAttestService.shared,
@@ -72,7 +72,7 @@ public class AppCheckCoreAppAttestProvider: NSObject, GACAppCheckProvider {
         )
     }
 
-    // MARK: - GACAppCheckProvider
+    // MARK: - AppCheckCoreProvider
 
     public func getToken(completion handler: @escaping (AppCheckCoreToken?, Error?) -> Void) {
         getToken(limitedUse: false, completion: handler)
@@ -143,16 +143,16 @@ public class AppCheckCoreAppAttestProvider: NSObject, GACAppCheckProvider {
                     if let error = attestState.appAttestUnsupportedError {
                         throw error
                     }
-                    throw GACAppCheckErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
+                    throw AppCheckCoreErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
                 case .supportedInitial, .keyGenerated:
                     return try await initialHandshake(keyID: attestState.appAttestKeyID, limitedUse: limitedUse)
                 case .keyRegistered:
                     guard let keyID = attestState.appAttestKeyID, let artifact = attestState.attestationArtifact else {
-                        throw GACAppCheckErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
+                        throw AppCheckCoreErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
                     }
                     return try await refreshToken(keyID: keyID, artifact: artifact, limitedUse: limitedUse)
                 @unknown default:
-                    throw GACAppCheckErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
+                    throw AppCheckCoreErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
                 }
             } catch {
                 if let rejectionError = error as? AppCheckCoreAppAttestRejectionError, attempts == 0 {
@@ -162,7 +162,7 @@ public class AppCheckCoreAppAttestProvider: NSObject, GACAppCheckProvider {
                 throw error
             }
         }
-        throw GACAppCheckErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
+        throw AppCheckCoreErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
     }
 
     // MARK: - Initial handshake sequence (attestation)
@@ -177,8 +177,8 @@ public class AppCheckCoreAppAttestProvider: NSObject, GACAppCheckProvider {
         return response.token as! AppCheckCoreToken
     }
 
-    private func attestKey(keyID: String, challenge: Data) async throws -> GACAppAttestKeyAttestationResult {
-        let challengeHash = GACAppCheckCryptoUtils.sha256Hash(from: challenge)
+    private func attestKey(keyID: String, challenge: Data) async throws -> AppCheckCoreAppAttestKeyAttestationResult {
+        let challengeHash = AppCheckCoreCryptoUtils.sha256Hash(from: challenge)
         do {
             let attestation = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Data, Error>) in
                 appAttestService.attestKey(keyID, clientDataHash: challengeHash) { data, error in
@@ -192,9 +192,9 @@ public class AppCheckCoreAppAttestProvider: NSObject, GACAppCheckProvider {
                     }
                 }
             }
-            return GACAppAttestKeyAttestationResult(keyID: keyID, challenge: challenge, attestation: attestation)
+            return AppCheckCoreAppAttestKeyAttestationResult(keyID: keyID, challenge: challenge, attestation: attestation)
         } catch {
-            throw _GACAppCheckErrorUtil.appAttestAttestKeyFailed(with: error, keyId: keyID, clientDataHash: challengeHash)
+            throw AppCheckCoreErrorUtil.appAttestAttestKeyFailed(with: error, keyId: keyID, clientDataHash: challengeHash)
         }
     }
 
@@ -211,7 +211,7 @@ public class AppCheckCoreAppAttestProvider: NSObject, GACAppCheckProvider {
             throw error
         }
 
-        let attestationResult: GACAppAttestKeyAttestationResult
+        let attestationResult: AppCheckCoreAppAttestKeyAttestationResult
         do {
             attestationResult = try await attestKey(keyID: generatedKeyID, challenge: challenge)
         } catch {
@@ -235,7 +235,7 @@ public class AppCheckCoreAppAttestProvider: NSObject, GACAppCheckProvider {
                 limitedUse: limitedUse
             )
             return (attestationResult.keyID, attestationResult.attestation, response)
-        } catch let httpError as GACAppCheckHTTPError where httpError.httpResponse.statusCode == 403 {
+        } catch let httpError as AppCheckCoreHTTPError where httpError.httpResponse.statusCode == 403 {
             AppCheckCoreLogger.log(code: .attestationRejected, logLevel: .debug, message: "App Attest attestation was rejected by backend. The existing attestation will be reset.")
             try await resetAttestation()
             throw AppCheckCoreAppAttestRejectionError(underlyingError: httpError)
@@ -263,11 +263,11 @@ public class AppCheckCoreAppAttestProvider: NSObject, GACAppCheckProvider {
         return token as! AppCheckCoreToken
     }
 
-    private func generateAssertion(keyID: String, artifact: Data, challenge: Data) async throws -> GACAppAttestAssertionData {
+    private func generateAssertion(keyID: String, artifact: Data, challenge: Data) async throws -> AppCheckCoreAppAttestAssertionData {
         var statementForAssertion = artifact
         statementForAssertion.append(challenge)
         
-        let statementHash = GACAppCheckCryptoUtils.sha256Hash(from: statementForAssertion)
+        let statementHash = AppCheckCoreCryptoUtils.sha256Hash(from: statementForAssertion)
         
         do {
             let assertion = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Data, Error>) in
@@ -282,9 +282,9 @@ public class AppCheckCoreAppAttestProvider: NSObject, GACAppCheckProvider {
                     }
                 }
             }
-            return GACAppAttestAssertionData(challenge: challenge, artifact: artifact, assertion: assertion)
+            return AppCheckCoreAppAttestAssertionData(challenge: challenge, artifact: artifact, assertion: assertion)
         } catch {
-            let wrappedError = _GACAppCheckErrorUtil.appAttestGenerateAssertionFailed(with: error, keyId: keyID, clientDataHash: statementHash)
+            let wrappedError = AppCheckCoreErrorUtil.appAttestGenerateAssertionFailed(with: error, keyId: keyID, clientDataHash: statementHash)
             
             let nsError = wrappedError as NSError
             if let underlyingError = nsError.userInfo[NSUnderlyingErrorKey] as? NSError,
@@ -329,7 +329,7 @@ public class AppCheckCoreAppAttestProvider: NSObject, GACAppCheckProvider {
         if appAttestService.isSupported {
             return
         } else {
-            throw _GACAppCheckErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
+            throw AppCheckCoreErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
         }
     }
 
@@ -358,7 +358,7 @@ public class AppCheckCoreAppAttestProvider: NSObject, GACAppCheckProvider {
             try await keyIDStorage.setAppAttestKeyID(keyID)
             return keyID
         } catch {
-            throw _GACAppCheckErrorUtil.appAttestGenerateKeyFailed(with: error)
+            throw AppCheckCoreErrorUtil.appAttestGenerateKeyFailed(with: error)
         }
     }
 
@@ -369,7 +369,7 @@ public class AppCheckCoreAppAttestProvider: NSObject, GACAppCheckProvider {
 
 // MARK: - Data Objects
 
-private class GACAppAttestKeyAttestationResult {
+private class AppCheckCoreAppAttestKeyAttestationResult {
     let keyID: String
     let challenge: Data
     let attestation: Data
@@ -381,7 +381,7 @@ private class GACAppAttestKeyAttestationResult {
     }
 }
 
-private class GACAppAttestAssertionData {
+private class AppCheckCoreAppAttestAssertionData {
     let challenge: Data
     let artifact: Data
     let assertion: Data

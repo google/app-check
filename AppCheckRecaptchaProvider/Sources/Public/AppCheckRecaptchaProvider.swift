@@ -29,7 +29,7 @@ import RecaptchaInterop
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
 @objc(GACRecaptchaProvider)
-public final class AppCheckRecaptchaProvider: NSObject, GACAppCheckProvider {
+public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
   // This action name should never change without coordination with the backend.
   private static let appCheckActionName = "app_check_ios"
 
@@ -70,7 +70,7 @@ public final class AppCheckRecaptchaProvider: NSObject, GACAppCheckProvider {
       return nil
     }
 
-    let backoffWrapper = GACAppCheckBackoffWrapper()
+    let backoffWrapper = AppCheckCoreBackoffWrapper()
     let tokenGenerator = RecaptchaTokenGenerator(
       siteKey: siteKey,
       recaptchaAction: sdk.action,
@@ -79,7 +79,7 @@ public final class AppCheckRecaptchaProvider: NSObject, GACAppCheckProvider {
     )
 
     let urlSession = URLSession(configuration: .ephemeral)
-    let appCheckAPIService = GACAppCheckAPIService(urlSession: urlSession,
+    let appCheckAPIService = AppCheckCoreAPIService(urlSession: urlSession,
                                                     baseURL: nil as String?,
                                                     apiKey: APIKey,
                                                     requestHooks: requestHooks)
@@ -132,7 +132,7 @@ public final class AppCheckRecaptchaProvider: NSObject, GACAppCheckProvider {
 
   private func getToken(limitedUse: Bool) async throws -> AppCheckCoreToken {
     guard let tokenGenerator else {
-      throw _GACAppCheckErrorUtil.missingRecaptchaSDKError()
+      throw AppCheckCoreErrorUtil.missingRecaptchaSDKError()
     }
     let recaptchaToken = try await tokenGenerator.getRecaptchaToken()
     return try await self.apiService.appCheckToken(

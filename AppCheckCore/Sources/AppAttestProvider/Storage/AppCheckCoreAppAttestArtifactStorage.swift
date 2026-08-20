@@ -64,7 +64,7 @@ public class AppCheckCoreAppAttestArtifactStorage: NSObject, AppCheckCoreAppAtte
         return nil
       }
     } catch {
-      throw _GACAppCheckErrorUtil.keychainError(with: error)
+      throw AppCheckCoreErrorUtil.keychainError(with: error)
     }
   }
 
@@ -85,7 +85,7 @@ public class AppCheckCoreAppAttestArtifactStorage: NSObject, AppCheckCoreAppAtte
         }
         return nil
       } catch {
-        throw _GACAppCheckErrorUtil.keychainError(with: error)
+        throw AppCheckCoreErrorUtil.keychainError(with: error)
       }
     }
   }
@@ -105,7 +105,7 @@ public class AppCheckCoreAppAttestArtifactStorage: NSObject, AppCheckCoreAppAtte
       }
       return artifact
     } catch {
-      throw _GACAppCheckErrorUtil.keychainError(with: error)
+      throw AppCheckCoreErrorUtil.keychainError(with: error)
     }
   }
 

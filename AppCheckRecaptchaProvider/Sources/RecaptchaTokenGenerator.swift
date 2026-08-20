@@ -45,7 +45,7 @@ final class RecaptchaTokenGenerator {
           if let client {
             continuation.resume(returning: client)
           } else {
-            continuation.resume(throwing: error ?? _GACAppCheckErrorUtil
+            continuation.resume(throwing: error ?? AppCheckCoreErrorUtil
               .error(withFailureReason: "Failed to fetch Recaptcha client"))
           }
         }
@@ -84,7 +84,7 @@ final class RecaptchaTokenGenerator {
     )
 
     guard let token = result as? String else {
-      throw _GACAppCheckErrorUtil
+      throw AppCheckCoreErrorUtil
         .error(
           withFailureReason: "Unexpected result type from reCAPTCHA token exchange: \\(type(of: result)). Expected String."
         )
@@ -94,11 +94,11 @@ final class RecaptchaTokenGenerator {
 
   private static func mapRecaptchaError(_ error: Error?) -> Error {
     guard let error = error as NSError? else {
-      return _GACAppCheckErrorUtil.error(withFailureReason: "Failed to execute Recaptcha action")
+      return AppCheckCoreErrorUtil.error(withFailureReason: "Failed to execute Recaptcha action")
     }
 
     if error.code == Self.networkErrorCode || error.code == Self.internalErrorCode {
-      return _GACAppCheckErrorUtil.apiError(withNetworkError: error)
+      return AppCheckCoreErrorUtil.apiError(withNetworkError: error)
     }
 
     var userInfo: [String: Any] = [NSUnderlyingErrorKey: error]

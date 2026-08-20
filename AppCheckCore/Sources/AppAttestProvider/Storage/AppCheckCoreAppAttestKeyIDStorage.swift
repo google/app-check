@@ -23,7 +23,7 @@ public protocol AppCheckCoreAppAttestKeyIDStorageProtocol: NSObjectProtocol {
   @objc func getAppAttestKeyID() async throws -> String?
 }
 
-private let kKeyIDStorageDefaultsSuiteName = "com.firebase.GACAppAttestKeyIDStorage"
+private let kKeyIDStorageDefaultsSuiteName = "com.firebase.AppCheckCoreAppAttestKeyIDStorage"
 
 @objc(GACAppAttestKeyIDStorage)
 public class AppCheckCoreAppAttestKeyIDStorage: NSObject, AppCheckCoreAppAttestKeyIDStorageProtocol {
@@ -52,7 +52,7 @@ public class AppCheckCoreAppAttestKeyIDStorage: NSObject, AppCheckCoreAppAttestK
     if let appAttestKeyID = userDefaults.object(forKey: keyIDStorageKey) as? String {
       return appAttestKeyID
     } else {
-      throw _GACAppCheckErrorUtil.appAttestKeyIDNotFound()
+      throw AppCheckCoreErrorUtil.appAttestKeyIDNotFound()
     }
   }
 

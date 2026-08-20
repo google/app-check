@@ -34,22 +34,22 @@ public class AppCheckCoreAppAttestAttestationResponse: NSObject {
   @objc(initWithResponseData:requestDate:error:)
   public init(responseData: Data, requestDate: Date) throws {
     if responseData.isEmpty {
-      throw _GACAppCheckErrorUtil.error(withFailureReason: "Failed to parse the initial handshake response. Empty server response body.")
+      throw AppCheckCoreErrorUtil.error(withFailureReason: "Failed to parse the initial handshake response. Empty server response body.")
     }
 
     let responseDict = try JSONSerialization.jsonObject(with: responseData, options: []) as? [String: Any]
     
     guard let responseDict = responseDict else {
-      throw _GACAppCheckErrorUtil.jsonSerializationError(NSError(domain: NSCocoaErrorDomain, code: 0, userInfo: nil))
+      throw AppCheckCoreErrorUtil.jsonSerializationError(NSError(domain: NSCocoaErrorDomain, code: 0, userInfo: nil))
     }
 
     guard let artifactBase64String = responseDict[kResponseFieldArtifact] as? String,
           let artifactData = Data(base64Encoded: artifactBase64String) else {
-      throw _GACAppCheckErrorUtil.appAttestAttestationResponseError(withMissingField: kResponseFieldArtifact)
+      throw AppCheckCoreErrorUtil.appAttestAttestationResponseError(withMissingField: kResponseFieldArtifact)
     }
 
     guard let appCheckTokenDict = responseDict[kResponseFieldAppCheckTokenDict] as? [String: Any] else {
-      throw _GACAppCheckErrorUtil.appAttestAttestationResponseError(withMissingField: kResponseFieldAppCheckTokenDict)
+      throw AppCheckCoreErrorUtil.appAttestAttestationResponseError(withMissingField: kResponseFieldAppCheckTokenDict)
     }
 
     // Assuming AppCheckCoreToken has this initializer available in Swift now.

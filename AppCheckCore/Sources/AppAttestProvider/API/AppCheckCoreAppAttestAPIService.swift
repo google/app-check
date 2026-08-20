@@ -43,11 +43,11 @@ public protocol AppCheckCoreAppAttestAPIServiceProtocol: NSObjectProtocol {
 
 @objc(GACAppAttestAPIService)
 public class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPIServiceProtocol {
-  private let apiService: GACAppCheckAPIServiceProtocol
+  private let apiService: AppCheckCoreAPIServiceProtocol
   private let resourceName: String
 
   @objc(initWithAPIService:resourceName:)
-  public init(apiService: GACAppCheckAPIServiceProtocol, resourceName: String) {
+  public init(apiService: AppCheckCoreAPIServiceProtocol, resourceName: String) {
     self.apiService = apiService
     self.resourceName = resourceName
     super.init()
@@ -70,7 +70,7 @@ public class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPI
     let urlResponse = try await apiService.sendRequest(withURL: url, httpMethod: kHTTPMethodPost, body: body, additionalHeaders: [kContentTypeKey: kJSONContentType])
     
     guard let responseData = urlResponse.httpBody else {
-      throw _GACAppCheckErrorUtil.error(withFailureReason: "Invalid or missing response data.")
+      throw AppCheckCoreErrorUtil.error(withFailureReason: "Invalid or missing response data.")
     }
     let response = try AppCheckCoreAppAttestAttestationResponse(responseData: responseData, requestDate: Date())
     
@@ -85,31 +85,31 @@ public class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPI
     let urlResponse = try await apiService.sendRequest(withURL: url, httpMethod: kHTTPMethodPost, body: body, additionalHeaders: [kContentTypeKey: kJSONContentType])
     
     let token = try await apiService.appCheckToken(withAPIResponse: urlResponse)
-    // We assume AppCheckCoreToken is identical to GACAppCheckToken or bridges correctly
+    // We assume AppCheckCoreToken is identical to AppCheckCoreToken or bridges correctly
     return token as! AppCheckCoreToken
   }
 
   // MARK: - Challenge parsing
 
-  private func randomChallengeWithAPIResponse(_ response: GACURLSessionDataResponse) throws -> Data {
+  private func randomChallengeWithAPIResponse(_ response: AppCheckCoreURLSessionDataResponse) throws -> Data {
     guard let responseData = response.httpBody else {
-      throw _GACAppCheckErrorUtil.error(withFailureReason: "Empty server response body.")
+      throw AppCheckCoreErrorUtil.error(withFailureReason: "Empty server response body.")
     }
     
     if responseData.isEmpty {
-      throw _GACAppCheckErrorUtil.error(withFailureReason: "Empty server response body.")
+      throw AppCheckCoreErrorUtil.error(withFailureReason: "Empty server response body.")
     }
 
     guard let responseDict = try? JSONSerialization.jsonObject(with: responseData, options: []) as? [String: Any] else {
-      throw _GACAppCheckErrorUtil.jsonSerializationError(NSError(domain: NSCocoaErrorDomain, code: 0, userInfo: nil))
+      throw AppCheckCoreErrorUtil.jsonSerializationError(NSError(domain: NSCocoaErrorDomain, code: 0, userInfo: nil))
     }
 
     guard let challengeBase64 = responseDict["challenge"] as? String else {
-      throw _GACAppCheckErrorUtil.appCheckTokenResponseError(withMissingField: "challenge")
+      throw AppCheckCoreErrorUtil.appCheckTokenResponseError(withMissingField: "challenge")
     }
 
     guard let challenge = Data(base64Encoded: challengeBase64) else {
-      throw _GACAppCheckErrorUtil.error(withFailureReason: "Invalid base64 string for challenge.")
+      throw AppCheckCoreErrorUtil.error(withFailureReason: "Invalid base64 string for challenge.")
     }
 
     return challenge
@@ -119,7 +119,7 @@ public class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPI
 
   private func httpBody(withAttestation attestation: Data, keyID: String, challenge: Data, limitedUse: Bool) throws -> Data {
     if attestation.isEmpty || keyID.isEmpty || challenge.isEmpty {
-      throw _GACAppCheckErrorUtil.error(withFailureReason: "Missing or empty request parameter.")
+      throw AppCheckCoreErrorUtil.error(withFailureReason: "Missing or empty request parameter.")
     }
 
     let jsonObject: [String: Any] = [
@@ -134,7 +134,7 @@ public class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPI
 
   private func httpBody(withArtifact artifact: Data, challenge: Data, assertion: Data, limitedUse: Bool) throws -> Data {
     if artifact.isEmpty || challenge.isEmpty || assertion.isEmpty {
-      throw _GACAppCheckErrorUtil.error(withFailureReason: "Missing or empty request parameter.")
+      throw AppCheckCoreErrorUtil.error(withFailureReason: "Missing or empty request parameter.")
     }
 
     let jsonObject: [String: Any] = [
@@ -151,7 +151,7 @@ public class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPI
     do {
       return try JSONSerialization.data(withJSONObject: jsonObject, options: [])
     } catch {
-      throw _GACAppCheckErrorUtil.jsonSerializationError(error as NSError)
+      throw AppCheckCoreErrorUtil.jsonSerializationError(error as NSError)
     }
   }
 

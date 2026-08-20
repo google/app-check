@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,16 @@
 
 import Foundation
 
-@objc(GACAppAttestRejectionError)
-public class AppCheckCoreAppAttestRejectionError: NSError {
-  @objc
-  public var underlyingError: Error? {
-    return userInfo[NSUnderlyingErrorKey] as? Error
-  }
+/// The class represents HTTP response received from `URLSession`.
+@objc(AppCheckCoreURLSessionDataResponse)
+public class AppCheckCoreURLSessionDataResponse: NSObject {
+    @objc public let httpResponse: HTTPURLResponse
+    @objc public let httpBody: Data?
 
-  @objc(initWithUnderlyingError:)
-  public init(underlyingError: Error) {
-    super.init(
-      domain: "AppCheckCoreErrorDomain",
-      code: 0, // AppCheckCoreErrorCodeUnknown is typically 0
-      userInfo: [NSUnderlyingErrorKey: underlyingError]
-    )
-  }
-
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
+    @objc(initWithResponse:HTTPBody:)
+    public init(response: HTTPURLResponse, httpBody: Data?) {
+        self.httpResponse = response
+        self.httpBody = httpBody
+        super.init()
+    }
 }

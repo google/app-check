@@ -77,7 +77,7 @@ final class MockRecaptchaClient: NSObject, RCARecaptchaClientProtocol {
   }
 }
 
-class MockAppCheckCoreAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
+class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
   var baseURL: String = "https://test.com"
 
   struct RequestData {
@@ -88,12 +88,12 @@ class MockAppCheckCoreAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
   }
 
   var lastRequest: RequestData?
-  var expectedResponse: GACURLSessionDataResponse?
+  var expectedResponse: AppCheckCoreURLSessionDataResponse?
   var expectedToken: AppCheckCoreToken?
   var expectedError: Error?
 
   func sendRequest(with url: URL, httpMethod: String, body: Data?,
-                   additionalHeaders: [String: String]?) async throws -> GACURLSessionDataResponse {
+                   additionalHeaders: [String: String]?) async throws -> AppCheckCoreURLSessionDataResponse {
     lastRequest = RequestData(
       url: url,
       httpMethod: httpMethod,
@@ -104,7 +104,7 @@ class MockAppCheckCoreAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
     if let expectedError {
       throw expectedError
     } else {
-      let response = expectedResponse ?? GACURLSessionDataResponse(
+      let response = expectedResponse ?? AppCheckCoreURLSessionDataResponse(
         response: HTTPURLResponse(),
         httpBody: Data()
       )
@@ -112,7 +112,7 @@ class MockAppCheckCoreAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
     }
   }
 
-  func appCheckToken(withAPIResponse response: GACURLSessionDataResponse) async throws -> AppCheckCoreToken {
+  func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) async throws -> AppCheckCoreToken {
     if let expectedError {
       throw expectedError
     } else {
