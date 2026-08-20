@@ -17,7 +17,7 @@ Pod::Spec.new do |s|
   }
   s.social_media_url = 'https://twitter.com/Firebase'
 
-  ios_deployment_target = '12.0'
+  ios_deployment_target = '13.0'
   osx_deployment_target = '10.15'
   tvos_deployment_target = '13.0'
   watchos_deployment_target = '7.0'
@@ -45,9 +45,6 @@ Pod::Spec.new do |s|
   s.ios.weak_framework = 'DeviceCheck'
   s.osx.weak_framework = 'DeviceCheck'
   s.tvos.weak_framework = 'DeviceCheck'
-
-  s.dependency 'PromisesObjC', '~> 2.4'
-  s.dependency 'PromisesSwift', '~> 2.4'
   s.dependency 'GoogleUtilities/Environment', '~> 8.0'
   s.dependency 'GoogleUtilities/UserDefaults', '~> 8.0'
   s.ios.dependency 'RecaptchaInterop', '~> 101.0'

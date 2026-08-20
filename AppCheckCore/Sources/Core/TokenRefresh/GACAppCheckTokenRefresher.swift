@@ -1,0 +1,170 @@
+import Foundation
+
+public typealias GACAppCheckTokenRefreshCompletion = (GACAppCheckTokenRefreshResult) -> Void
+public typealias GACAppCheckTokenRefreshBlock = (@escaping GACAppCheckTokenRefreshCompletion) -> Void
+
+@objc(GACAppCheckTokenRefresherProtocol)
+public protocol GACAppCheckTokenRefresherProtocol: NSObjectProtocol {
+    @objc var tokenRefreshHandler: GACAppCheckTokenRefreshBlock? { get set }
+    @objc func updateWithRefreshResult(_ refreshResult: GACAppCheckTokenRefreshResult)
+}
+
+@objc(GACAppCheckTokenRefresher)
+@objcMembers
+public class GACAppCheckTokenRefresher: NSObject, GACAppCheckTokenRefresherProtocol {
+    private let kInitialBackoffTimeInterval: TimeInterval = 30
+    private let kMaximumBackoffTimeInterval: TimeInterval = 16 * 60
+    private let kMinimumAutoRefreshTimeInterval: TimeInterval = 60 // 1 min.
+    private let kAutoRefreshFraction: Double = 0.5
+
+    private let refreshQueue = DispatchQueue(label: "com.firebase.GACAppCheckTokenRefresher")
+    private let timerProvider: GACTimerProvider
+    private let settings: AppCheckCoreSettingsProtocol
+
+    private var timer: GACAppCheckTimerProtocol?
+    private var retryCount: Int = 0
+    private var initialRefreshResult: GACAppCheckTokenRefreshResult?
+    private var _tokenRefreshHandler: GACAppCheckTokenRefreshBlock?
+
+    private let lock = NSLock()
+
+    @objc public init(refreshResult: GACAppCheckTokenRefreshResult,
+                      timerProvider: @escaping GACTimerProvider,
+                      settings: AppCheckCoreSettingsProtocol) {
+        self.initialRefreshResult = refreshResult
+        self.timerProvider = timerProvider
+        self.settings = settings
+        super.init()
+    }
+
+    @objc public convenience init(refreshResult: GACAppCheckTokenRefreshResult,
+                                  settings: AppCheckCoreSettingsProtocol) {
+        self.init(refreshResult: refreshResult,
+                  timerProvider: GACAppCheckTimer.timerProvider(),
+                  settings: settings)
+    }
+
+    deinit {
+        cancelTimer()
+    }
+
+    @objc public var tokenRefreshHandler: GACAppCheckTokenRefreshBlock? {
+        get {
+            lock.lock()
+            defer { lock.unlock() }
+            return _tokenRefreshHandler
+        }
+        set {
+            lock.lock()
+            _tokenRefreshHandler = newValue
+            
+            if newValue != nil, let initialResult = initialRefreshResult {
+                initialRefreshResult = nil
+                lock.unlock()
+                schedule(with: initialResult)
+            } else {
+                lock.unlock()
+            }
+        }
+    }
+
+    @objc(updateWithRefreshResult:)
+    public func updateWithRefreshResult(_ refreshResult: GACAppCheckTokenRefreshResult) {
+        switch refreshResult.status {
+        case .never, .success:
+            retryCount = 0
+        case .failure:
+            retryCount += 1
+        @unknown default:
+            break
+        }
+
+        schedule(with: refreshResult)
+    }
+
+    private func refresh() {
+        guard let handler = tokenRefreshHandler, settings.isTokenAutoRefreshEnabled else {
+            return
+        }
+
+        handler { [weak self] refreshResult in
+            self?.updateWithRefreshResult(refreshResult)
+        }
+    }
+
+    private func schedule(with refreshResult: GACAppCheckTokenRefreshResult) {
+        if settings.isTokenAutoRefreshEnabled {
+            let refreshDate = nextRefreshDate(with: refreshResult)
+            scheduleRefresh(at: refreshDate)
+        }
+    }
+
+    private func scheduleRefresh(at refreshDate: Date) {
+        cancelTimer()
+
+        let scheduleInSec = refreshDate.timeIntervalSinceNow
+
+        if scheduleInSec <= 0 {
+            refreshQueue.async { [weak self] in
+                self?.refresh()
+            }
+            return
+        }
+
+        timer = timerProvider(refreshDate, refreshQueue) { [weak self] in
+            self?.refresh()
+        }
+    }
+
+    private func cancelTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+
+    private func nextRefreshDate(with refreshResult: GACAppCheckTokenRefreshResult) -> Date {
+        switch refreshResult.status {
+        case .success:
+            guard let expirationDate = refreshResult.tokenExpirationDate,
+                  let receivedAtDate = refreshResult.tokenReceivedAtDate else {
+                return Date()
+            }
+
+            var timeToLive = expirationDate.timeIntervalSince(receivedAtDate)
+            timeToLive = max(timeToLive, 0)
+
+            let targetRefreshSinceReceivedDate = timeToLive * kAutoRefreshFraction + 5 * 60
+            let targetRefreshDate = receivedAtDate.addingTimeInterval(targetRefreshSinceReceivedDate)
+
+            var refreshDate = targetRefreshDate.compare(expirationDate) == .orderedAscending ? targetRefreshDate : expirationDate
+
+            if refreshDate.timeIntervalSinceNow < kMinimumAutoRefreshTimeInterval {
+                refreshDate = Date(timeIntervalSinceNow: kMinimumAutoRefreshTimeInterval)
+            }
+            return refreshDate
+
+        case .failure:
+            let backoffTime = GACAppCheckTokenRefresher.backoffTime(forRetryCount: retryCount)
+            return Date(timeIntervalSinceNow: backoffTime)
+
+        case .never:
+            return Date()
+            
+        @unknown default:
+            return Date()
+        }
+    }
+
+    private static func backoffTime(forRetryCount retryCount: Int) -> TimeInterval {
+        if retryCount == 0 {
+            return 0
+        }
+
+        let exponentialInterval = 30.0 * pow(2.0, Double(retryCount - 1)) + randomMilliseconds()
+        return min(exponentialInterval, 16.0 * 60.0)
+    }
+
+    private static func randomMilliseconds() -> TimeInterval {
+        let random_millis = abs(Int32.random(in: 0...999))
+        return Double(random_millis) * 0.001
+    }
+}

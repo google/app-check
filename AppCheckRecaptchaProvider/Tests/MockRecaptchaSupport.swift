@@ -14,9 +14,7 @@
 
 @testable import AppCheckCore
 @testable import AppCheckRecaptchaProvider
-import FBLPromises
 import Foundation
-import Promises
 import RecaptchaInterop
 
 class MockRCAAction: NSObject, RCAActionProtocol {
@@ -95,7 +93,7 @@ class MockAppCheckCoreAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
   var expectedError: Error?
 
   func sendRequest(with url: URL, httpMethod: String, body: Data?,
-                   additionalHeaders: [String: String]?) -> FBLPromise<_GACURLSessionDataResponse> {
+                   additionalHeaders: [String: String]?) async throws -> _GACURLSessionDataResponse {
     lastRequest = RequestData(
       url: url,
       httpMethod: httpMethod,
@@ -103,36 +101,27 @@ class MockAppCheckCoreAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
       additionalHeaders: additionalHeaders
     )
 
-    let promise = Promise<_GACURLSessionDataResponse>.pending()
-
     if let expectedError {
-      promise.reject(expectedError)
+      throw expectedError
     } else {
       let response = expectedResponse ?? _GACURLSessionDataResponse(
         response: HTTPURLResponse(),
         httpBody: Data()
       )
-      promise.fulfill(response)
+      return response
     }
-
-    return promise.asObjCPromise()
   }
 
-  func appCheckToken(withAPIResponse response: _GACURLSessionDataResponse)
-    -> FBLPromise<AppCheckCoreToken> {
-    let promise = Promise<AppCheckCoreToken>.pending()
-
+  func appCheckToken(withAPIResponse response: _GACURLSessionDataResponse) async throws -> AppCheckCoreToken {
     if let expectedError {
-      promise.reject(expectedError)
+      throw expectedError
     } else {
       let token = expectedToken ?? AppCheckCoreToken(
         token: "placeholder_app_check_token",
         expirationDate: Date()
       )
-      promise.fulfill(token)
+      return token
     }
-
-    return promise.asObjCPromise()
   }
 }
 
@@ -143,21 +132,18 @@ class MockBackoffWrapper: NSObject, _GACAppCheckBackoffWrapperProtocol {
   var mockResult: Any?
   var capturedErrorHandler: GACAppCheckBackoffErrorHandler?
 
-  func applyBackoff(toOperation operationProvider: @escaping GACAppCheckBackoffOperationProvider,
-                    errorHandler: @escaping GACAppCheckBackoffErrorHandler)
-    -> FBLPromise<AnyObject> {
+  func applyBackoff(toOperation operationProvider: @escaping GACAppCheckAsyncBackoffOperationProvider,
+                    errorHandler: @escaping GACAppCheckBackoffErrorHandler) async throws -> AnyObject {
     applyBackoffCalled = true
     capturedErrorHandler = errorHandler
     if shouldReturnError {
       let error = mockError ?? NSError(domain: "MockBackoffWrapper", code: -1, userInfo: nil)
-      let swiftPromise = Promise<AnyObject>(error as Error)
-      return swiftPromise.asObjCPromise()
+      throw error
     }
     if let mockResult {
-      let swiftPromise = Promise<AnyObject>(mockResult as AnyObject)
-      return swiftPromise.asObjCPromise()
+      return mockResult as AnyObject
     }
-    return operationProvider()
+    return try await operationProvider()
   }
 
   func defaultAppCheckProviderErrorHandler() -> GACAppCheckBackoffErrorHandler {

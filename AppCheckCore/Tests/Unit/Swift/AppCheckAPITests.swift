@@ -227,17 +227,17 @@ final class AppCheckAPITests {
 
     let code: AppCheckCoreMessageCode! = nil
     switch code! {
-    case .loggerAppCheckMessageCodeUnknown: break
-    case .loggerAppCheckMessageCodeProviderIsMissing: break
-    case .loggerAppCheckMessageCodeStagingModeEnabled: break
-    case .loggerAppCheckMessageCodeUnexpectedHTTPCode: break
-    case .loggerAppCheckMessageLocalDebugToken: break
-    case .loggerAppCheckMessageEnvironmentVariableDebugToken: break
-    case .loggerAppCheckMessageDebugProviderFirebaseEnvironmentVariable: break
-    case .loggerAppCheckMessageDebugProviderFailedExchange: break
-    case .loggerAppCheckMessageCodeAppAttestNotSupported: break
-    case .loggerAppCheckMessageCodeAttestationRejected: break
-    case .loggerAppCheckMessageCodeAssertionRejected: break
+    case .Unknown: break
+    case .ProviderIsMissing: break
+    case .StagingModeEnabled: break
+    case .UnexpectedHTTPCode: break
+    case .LocalDebugToken: break
+    case .EnvironmentVariableDebugToken: break
+    case .DebugProviderFirebaseEnvironmentVariable: break
+    case .DebugProviderFailedExchange: break
+    case .AppAttestNotSupported: break
+    case .AttestationRejected: break
+    case .AssertionRejected: break
     @unknown default: break
     }
   }

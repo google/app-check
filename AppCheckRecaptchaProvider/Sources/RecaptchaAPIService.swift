@@ -16,7 +16,6 @@
   import AppCheckCore
 #endif
 import Foundation
-import Promises
 
 private enum Constants {
   static let contentTypeKey = "Content-Type"
@@ -34,39 +33,29 @@ private enum Constants {
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
 final class RecaptchaAPIService: NSObject {
-  private let apiService: _GACAppCheckAPIServiceProtocol
+  private let apiService: GACAppCheckAPIServiceProtocol
   private let resourceName: String
 
-  init(apiService: _GACAppCheckAPIServiceProtocol, resourceName: String) {
+  init(apiService: GACAppCheckAPIServiceProtocol, resourceName: String) {
     self.apiService = apiService
     self.resourceName = resourceName
   }
 
   func appCheckToken(with recaptchaToken: String,
-                     limitedUse: Bool) -> Promise<AppCheckCoreToken> {
-    let urlString = "\(apiService.baseURL)/\(resourceName):\(Constants.exchangeEndpoint)"
+                     limitedUse: Bool) async throws -> AppCheckCoreToken {
+    let urlString = "\\(apiService.baseURL)/\\(resourceName):\\(Constants.exchangeEndpoint)"
     guard let url = URL(string: urlString) else {
-      return Promise(_GACAppCheckErrorUtil
-        .error(withFailureReason: "Invalid URL string: \(urlString)"))
+      throw _GACAppCheckErrorUtil.error(withFailureReason: "Invalid URL string: \\(urlString)")
     }
 
-    let httpBody: Data
-    do {
-      httpBody = try self.httpBody(with: recaptchaToken, limitedUse: limitedUse)
-    } catch {
-      return Promise(error)
-    }
+    let httpBody = try self.httpBody(with: recaptchaToken, limitedUse: limitedUse)
 
-    return Promise<_GACURLSessionDataResponse>(apiService.sendRequest(with: url,
-                                                                      httpMethod: Constants
-                                                                        .httpMethodPost,
-                                                                      body: httpBody,
-                                                                      additionalHeaders: [Constants
-                                                                        .contentTypeKey: Constants
-                                                                        .jsonContentType]))
-      .then { response in
-        Promise<AppCheckCoreToken>(self.apiService.appCheckToken(withAPIResponse: response))
-      }
+    let response = try await apiService.sendRequest(withURL: url,
+                                                    httpMethod: Constants.httpMethodPost,
+                                                    body: httpBody,
+                                                    additionalHeaders: [Constants.contentTypeKey: Constants.jsonContentType])
+    
+    return try await self.apiService.appCheckToken(withAPIResponse: response)
   }
 
   private func httpBody(with recaptchaToken: String,

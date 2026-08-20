@@ -16,7 +16,6 @@ import XCTest
 
 @testable import AppCheckCore
 @testable import AppCheckRecaptchaProvider
-import FBLPromises
 
 @available(iOS 15.0, visionOS 1.0, *)
 @available(macOS, unavailable)
@@ -44,7 +43,7 @@ final class RecaptchaAPIServiceTests: XCTestCase {
     super.tearDown()
   }
 
-  func testAppCheckTokenSuccess() throws {
+  func testAppCheckTokenSuccess() async throws {
     // Arrange
     let expectedAppCheckToken = AppCheckCoreToken(
       token: "app-check-token-456",
@@ -52,108 +51,87 @@ final class RecaptchaAPIServiceTests: XCTestCase {
     )
     mockCoreAPIService.expectedToken = expectedAppCheckToken
 
-    let expectation = self.expectation(description: "Token exchange completes successfully")
-
     // Act
-    apiService.appCheckToken(with: testRecaptchaToken, limitedUse: false)
-      .then { token in
-        // Assert
-        XCTAssertEqual(token.token, expectedAppCheckToken.token)
-        XCTAssertEqual(token.expirationDate, expectedAppCheckToken.expirationDate)
+    do {
+      let token = try await apiService.appCheckToken(with: testRecaptchaToken, limitedUse: false)
+      // Assert
+      XCTAssertEqual(token.token, expectedAppCheckToken.token)
+      XCTAssertEqual(token.expirationDate, expectedAppCheckToken.expirationDate)
 
-        // Verify request
-        guard let request = self.mockCoreAPIService.lastRequest else {
-          XCTFail("No request was sent")
-          return
-        }
-
-        XCTAssertEqual(
-          request.url?.absoluteString,
-          "https://test.com/\(self.testResourceName):exchangeRecaptchaEnterpriseToken"
-        )
-        XCTAssertEqual(request.httpMethod, "POST")
-        XCTAssertEqual(request.additionalHeaders?["Content-Type"], "application/json")
-
-        if let body = request.body {
-          let json = try? JSONSerialization.jsonObject(with: body, options: []) as? [String: Any]
-          XCTAssertEqual(json?["recaptcha_enterprise_token"] as? String, self.testRecaptchaToken)
-          XCTAssertEqual(json?["limited_use"] as? Bool, false)
-        } else {
-          XCTFail("Request body was empty")
-        }
-
-        expectation.fulfill()
-      }.catch { error in
-        XCTFail("Unexpected error: \(error)")
+      // Verify request
+      guard let request = self.mockCoreAPIService.lastRequest else {
+        XCTFail("No request was sent")
+        return
       }
 
-    waitForExpectations(timeout: 1.0)
-  }
+      XCTAssertEqual(
+        request.url?.absoluteString,
+        "https://test.com/\(self.testResourceName):exchangeRecaptchaEnterpriseToken"
+      )
+      XCTAssertEqual(request.httpMethod, "POST")
+      XCTAssertEqual(request.additionalHeaders?["Content-Type"], "application/json")
 
-  func testAppCheckTokenLimitedUseSuccess() throws {
-    // Arrange
-    let expectedAppCheckToken = AppCheckCoreToken(
-      token: "app-check-token-456",
-      expirationDate: Date(timeIntervalSinceNow: 3600)
-    )
-    mockCoreAPIService.expectedToken = expectedAppCheckToken
-
-    let expectation = self
-      .expectation(description: "Limited use token exchange completes successfully")
-
-    // Act
-    apiService.appCheckToken(with: testRecaptchaToken, limitedUse: true)
-      .then { token in
-        // Assert
-        guard let request = self.mockCoreAPIService.lastRequest, let body = request.body else {
-          XCTFail("No request or body")
-          return
-        }
-
+      if let body = request.body {
         let json = try? JSONSerialization.jsonObject(with: body, options: []) as? [String: Any]
-        XCTAssertEqual(json?["limited_use"] as? Bool, true)
-
-        expectation.fulfill()
-      }.catch { error in
-        XCTFail("Unexpected error: \(error)")
+        XCTAssertEqual(json?["recaptcha_enterprise_token"] as? String, self.testRecaptchaToken)
+        XCTAssertEqual(json?["limited_use"] as? Bool, false)
+      } else {
+        XCTFail("Request body was empty")
       }
-
-    waitForExpectations(timeout: 1.0)
+    } catch {
+      XCTFail("Unexpected error: \(error)")
+    }
   }
 
-  func testAppCheckTokenEmptyRecaptchaToken() {
-    let expectation = self.expectation(description: "Token exchange fails with empty token")
+  func testAppCheckTokenLimitedUseSuccess() async throws {
+    // Arrange
+    let expectedAppCheckToken = AppCheckCoreToken(
+      token: "app-check-token-456",
+      expirationDate: Date(timeIntervalSinceNow: 3600)
+    )
+    mockCoreAPIService.expectedToken = expectedAppCheckToken
 
-    apiService.appCheckToken(with: "", limitedUse: false).then { token in
+    // Act
+    do {
+      let _ = try await apiService.appCheckToken(with: testRecaptchaToken, limitedUse: true)
+      // Assert
+      guard let request = self.mockCoreAPIService.lastRequest, let body = request.body else {
+        XCTFail("No request or body")
+        return
+      }
+
+      let json = try? JSONSerialization.jsonObject(with: body, options: []) as? [String: Any]
+      XCTAssertEqual(json?["limited_use"] as? Bool, true)
+    } catch {
+      XCTFail("Unexpected error: \(error)")
+    }
+  }
+
+  func testAppCheckTokenEmptyRecaptchaToken() async {
+    do {
+      let _ = try await apiService.appCheckToken(with: "", limitedUse: false)
       XCTFail("Should not succeed with empty token")
-    }.catch { error in
+    } catch {
       XCTAssertNotNil(error)
       XCTAssertEqual((error as NSError).domain, AppCheckCoreErrorDomain)
-      expectation.fulfill()
     }
-
-    waitForExpectations(timeout: 1.0)
   }
 
-  func testAppCheckTokenInvalidURL() {
+  func testAppCheckTokenInvalidURL() async {
     mockCoreAPIService.baseURL = "not a scheme://test.com"
     let apiService = RecaptchaAPIService(
       apiService: mockCoreAPIService,
       resourceName: "invalid_resource_name"
     )
 
-    let expectation = self.expectation(description: "Token exchange fails with invalid URL")
-
-    apiService.appCheckToken(with: testRecaptchaToken, limitedUse: false).then { token in
+    do {
+      let _ = try await apiService.appCheckToken(with: testRecaptchaToken, limitedUse: false)
       XCTFail("Should not succeed with invalid URL")
-    }.catch { error in
+    } catch {
       XCTAssertEqual((error as NSError).domain, AppCheckCoreErrorDomain)
       let expectedFailureReason =
         "Invalid URL string: not a scheme://test.com/invalid_resource_name:exchangeRecaptchaEnterpriseToken"
       XCTAssertEqual((error as NSError).localizedFailureReason, expectedFailureReason)
-      expectation.fulfill()
     }
-
-    waitForExpectations(timeout: 1.0)
   }
 }
