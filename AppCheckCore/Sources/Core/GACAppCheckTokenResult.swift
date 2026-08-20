@@ -19,7 +19,11 @@ public class AppCheckCoreTokenResult: NSObject {
     }
     
     @objc public convenience init(error: Error) {
-        let placeholder = AppCheckCoreToken(token: kPlaceholderTokenValue, expirationDate: Date.distantPast)
+        let placeholder = AppCheckCoreTokenResult.placeholderToken()
         self.init(token: placeholder, error: error)
+    }
+
+    @objc public static func placeholderToken() -> AppCheckCoreToken {
+        return AppCheckCoreToken(token: kPlaceholderTokenValue, expirationDate: Date.distantPast)
     }
 }

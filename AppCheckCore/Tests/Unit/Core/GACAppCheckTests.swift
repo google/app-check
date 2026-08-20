@@ -3,28 +3,28 @@ import XCTest
 
 private let kPlaceholderTokenValue = "eyJlcnJvciI6IlVOS05PV05fRVJST1IifQ=="
 private let kResourceName = "projects/test_project_id/apps/test_app_id"
-private let kAppName = "GACAppCheckTests"
+private let kAppName = "AppCheckCoreTests"
 private let kAppGroupID = "app_group_id"
 
-class GACAppCheckTests: XCTestCase {
+class AppCheckCoreTests: XCTestCase {
   
-  var fakeStorage: GACAppCheckStorageFake!
-  var fakeAppCheckProvider: GACAppCheckProviderFake!
-  var fakeTokenRefresher: GACAppCheckTokenRefresherFake!
-  var fakeSettings: GACAppCheckSettingsFake!
-  var fakeTokenDelegate: GACAppCheckTokenDelegateFake!
-  var appCheck: GACAppCheck!
+  var fakeStorage: AppCheckCoreStorageFake!
+  var fakeAppCheckProvider: AppCheckCoreProviderFake!
+  var fakeTokenRefresher: AppCheckCoreTokenRefresherFake!
+  var fakeSettings: AppCheckCoreSettingsFake!
+  var fakeTokenDelegate: AppCheckCoreTokenDelegateFake!
+  var appCheck: AppCheckCore!
   
   override func setUp() {
     super.setUp()
     
-    fakeStorage = GACAppCheckStorageFake()
-    fakeAppCheckProvider = GACAppCheckProviderFake()
-    fakeTokenRefresher = GACAppCheckTokenRefresherFake()
-    fakeSettings = GACAppCheckSettingsFake()
-    fakeTokenDelegate = GACAppCheckTokenDelegateFake()
+    fakeStorage = AppCheckCoreStorageFake()
+    fakeAppCheckProvider = AppCheckCoreProviderFake()
+    fakeTokenRefresher = AppCheckCoreTokenRefresherFake()
+    fakeSettings = AppCheckCoreSettingsFake()
+    fakeTokenDelegate = AppCheckCoreTokenDelegateFake()
     
-    appCheck = GACAppCheck(serviceName: kAppName,
+    appCheck = AppCheckCore(serviceName: kAppName,
                            appCheckProvider: fakeAppCheckProvider,
                            storage: fakeStorage,
                            tokenRefresher: fakeTokenRefresher,
@@ -95,7 +95,7 @@ class GACAppCheckTests: XCTestCase {
   
   func testGetToken_AppCheckProviderError() async {
     let cachedToken = soonExpiringToken()
-    let providerError = NSError(domain: "GACAppCheckTests", code: -1, userInfo: nil)
+    let providerError = NSError(domain: "AppCheckCoreTests", code: -1, userInfo: nil)
     
     configuredExpectations_GetTokenWhenError(error: providerError, token: cachedToken)
     
@@ -104,7 +104,7 @@ class GACAppCheckTests: XCTestCase {
     XCTAssertEqual(result.token.token, kPlaceholderTokenValue)
     XCTAssertNotNil(result.error)
     XCTAssertEqual(result.error as NSError?, providerError)
-    XCTAssertNotEqual((result.error as NSError?)?.domain, GACAppCheckErrorDomain)
+    XCTAssertNotEqual((result.error as NSError?)?.domain, AppCheckCoreErrorDomain)
     
     XCTAssertEqual(fakeAppCheckProvider.getTokenCallCount, 1)
     XCTAssertEqual(fakeTokenDelegate.tokenDidUpdateCallCount, 0)
@@ -118,7 +118,7 @@ class GACAppCheckTests: XCTestCase {
     fakeStorage.getTokenHandler = { return nil }
     
     let expirationDate = Date(timeIntervalSinceNow: 10000)
-    let tokenToReturn = GACAppCheckToken(token: "valid", expirationDate: expirationDate)
+    let tokenToReturn = AppCheckCoreToken(token: "valid", expirationDate: expirationDate)
     fakeAppCheckProvider.tokenToReturn = tokenToReturn
     
     fakeStorage.setTokenHandler = { token in return tokenToReturn }
@@ -186,7 +186,7 @@ class GACAppCheckTests: XCTestCase {
   }
   
   func testLimitedUseToken_WhenTokenGenerationErrors() async {
-    let providerError = _GACAppCheckErrorUtil.keychainError(withError: internalError()) as NSError
+    let providerError = _AppCheckCoreErrorUtil.keychainError(withError: internalError()) as NSError
     fakeAppCheckProvider.limitedUseErrorToReturn = providerError
     
     let result = await appCheck.limitedUseToken()
@@ -194,7 +194,7 @@ class GACAppCheckTests: XCTestCase {
     XCTAssertEqual(result.token.token, kPlaceholderTokenValue)
     XCTAssertNotNil(result.error)
     XCTAssertEqual(result.error as NSError?, providerError)
-    XCTAssertEqual((result.error as NSError?)?.domain, GACAppCheckErrorDomain)
+    XCTAssertEqual((result.error as NSError?)?.domain, AppCheckCoreErrorDomain)
     
     XCTAssertEqual(fakeAppCheckProvider.getLimitedUseTokenCallCount, 1)
     XCTAssertEqual(fakeAppCheckProvider.getTokenCallCount, 0)
@@ -212,7 +212,7 @@ class GACAppCheckTests: XCTestCase {
     fakeAppCheckProvider.tokenToReturn = expectedToken
     
     // Create a continuation we can resume later
-    var storeTokenContinuation: CheckedContinuation<GACAppCheckToken?, Error>?
+    var storeTokenContinuation: CheckedContinuation<AppCheckCoreToken?, Error>?
     fakeStorage.setTokenHandler = { token in
       return try await withCheckedThrowingContinuation { continuation in
         storeTokenContinuation = continuation
@@ -251,7 +251,7 @@ class GACAppCheckTests: XCTestCase {
     let expectedToken = validToken()
     fakeAppCheckProvider.tokenToReturn = expectedToken
     
-    var storeTokenContinuation: CheckedContinuation<GACAppCheckToken?, Error>?
+    var storeTokenContinuation: CheckedContinuation<AppCheckCoreToken?, Error>?
     fakeStorage.setTokenHandler = { token in
       return try await withCheckedThrowingContinuation { continuation in
         storeTokenContinuation = continuation
@@ -291,13 +291,13 @@ class GACAppCheckTests: XCTestCase {
     return NSError(domain: "com.internal.error", code: -1, userInfo: nil)
   }
   
-  private func validToken() -> GACAppCheckToken {
-    return GACAppCheckToken(token: UUID().uuidString, expirationDate: Date.distantFuture)
+  private func validToken() -> AppCheckCoreToken {
+    return AppCheckCoreToken(token: UUID().uuidString, expirationDate: Date.distantFuture)
   }
   
-  private func soonExpiringToken() -> GACAppCheckToken {
+  private func soonExpiringToken() -> AppCheckCoreToken {
     let date = Date(timeIntervalSinceNow: 4.5 * 60)
-    return GACAppCheckToken(token: "valid", expirationDate: date)
+    return AppCheckCoreToken(token: "valid", expirationDate: date)
   }
   
   private func assertGetToken_WhenCachedTokenIsValid_Success() async {
@@ -314,30 +314,30 @@ class GACAppCheckTests: XCTestCase {
     XCTAssertEqual(fakeAppCheckProvider.getTokenCallCount, initialCallCount)
   }
   
-  private func configuredExpectations_GetTokenWhenNoCache(expectedToken: GACAppCheckToken) {
+  private func configuredExpectations_GetTokenWhenNoCache(expectedToken: AppCheckCoreToken) {
     fakeStorage.getTokenHandler = { return nil }
     fakeAppCheckProvider.tokenToReturn = expectedToken
     fakeStorage.setTokenHandler = { token in return expectedToken }
   }
   
-  private func configuredExpectation_GetTokenWhenCacheTokenIsValid(expectedToken: GACAppCheckToken) {
+  private func configuredExpectation_GetTokenWhenCacheTokenIsValid(expectedToken: AppCheckCoreToken) {
     fakeStorage.getTokenHandler = { return expectedToken }
   }
   
-  private func configuredExpectations_GetTokenForcingRefreshWhenCacheIsValid(expectedToken: GACAppCheckToken) {
+  private func configuredExpectations_GetTokenForcingRefreshWhenCacheIsValid(expectedToken: AppCheckCoreToken) {
     fakeAppCheckProvider.tokenToReturn = expectedToken
     fakeStorage.setTokenHandler = { token in return expectedToken }
   }
   
-  private func configuredExpectations_GetTokenWhenCachedTokenExpired(expectedToken: GACAppCheckToken) {
-    let cachedToken = GACAppCheckToken(token: "expired", expirationDate: Date())
+  private func configuredExpectations_GetTokenWhenCachedTokenExpired(expectedToken: AppCheckCoreToken) {
+    let cachedToken = AppCheckCoreToken(token: "expired", expirationDate: Date())
     fakeStorage.getTokenHandler = { return cachedToken }
     
     fakeAppCheckProvider.tokenToReturn = expectedToken
     fakeStorage.setTokenHandler = { token in return expectedToken }
   }
   
-  private func configuredExpectations_GetTokenWhenError(error: Error, token: GACAppCheckToken?) {
+  private func configuredExpectations_GetTokenWhenError(error: Error, token: AppCheckCoreToken?) {
     fakeStorage.getTokenHandler = { return token }
     fakeAppCheckProvider.errorToReturn = error
   }

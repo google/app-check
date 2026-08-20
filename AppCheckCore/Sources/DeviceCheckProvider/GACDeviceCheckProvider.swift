@@ -3,11 +3,11 @@ import Foundation
 import DeviceCheck
 #endif
 
-@objc(GACDeviceCheckProvider)
+@objc(AppCheckCoreDeviceCheckProvider)
 public class AppCheckCoreDeviceCheckProvider: NSObject, GACAppCheckProvider {
     
-    private let apiService: GACDeviceCheckAPIServiceProtocol
-    private let deviceTokenGenerator: GACDeviceCheckTokenGenerator
+    private let apiService: AppCheckCoreDeviceCheckAPIServiceProtocol
+    private let deviceTokenGenerator: AppCheckCoreDeviceCheckTokenGenerator
     private let backoffWrapper: _GACAppCheckBackoffWrapperProtocol
     
     @objc
@@ -19,7 +19,7 @@ public class AppCheckCoreDeviceCheckProvider: NSObject, GACAppCheckProvider {
             apiKey: apiKey,
             requestHooks: requestHooks
         )
-        let deviceCheckAPIService = GACDeviceCheckAPIService(
+        let deviceCheckAPIService = AppCheckCoreDeviceCheckAPIService(
             apiService: coreAPIService,
             resourceName: resourceName
         )
@@ -29,8 +29,8 @@ public class AppCheckCoreDeviceCheckProvider: NSObject, GACAppCheckProvider {
         super.init()
     }
     
-    init(apiService: GACDeviceCheckAPIServiceProtocol,
-         deviceTokenGenerator: GACDeviceCheckTokenGenerator,
+    init(apiService: AppCheckCoreDeviceCheckAPIServiceProtocol,
+         deviceTokenGenerator: AppCheckCoreDeviceCheckTokenGenerator,
          backoffWrapper: _GACAppCheckBackoffWrapperProtocol) {
         self.apiService = apiService
         self.deviceTokenGenerator = deviceTokenGenerator
@@ -41,6 +41,36 @@ public class AppCheckCoreDeviceCheckProvider: NSObject, GACAppCheckProvider {
     // MARK: - GACAppCheckProvider
 
     @objc
+    public func getToken() async throws -> AppCheckCoreToken {
+        return try await withCheckedThrowingContinuation { continuation in
+            self.getToken { token, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                } else if let token = token {
+                    continuation.resume(returning: token)
+                } else {
+                    let wrappedError = NSError(domain: AppCheckCoreErrorDomain, code: AppCheckCoreErrorCode.unknown.rawValue, userInfo: nil)
+                    continuation.resume(throwing: wrappedError)
+                }
+            }
+        }
+    }
+
+    public func getLimitedUseToken() async throws -> AppCheckCoreToken {
+        return try await withCheckedThrowingContinuation { continuation in
+            self.getLimitedUseToken { token, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                } else if let token = token {
+                    continuation.resume(returning: token)
+                } else {
+                    let wrappedError = NSError(domain: AppCheckCoreErrorDomain, code: AppCheckCoreErrorCode.unknown.rawValue, userInfo: nil)
+                    continuation.resume(throwing: wrappedError)
+                }
+            }
+        }
+    }
+
     public func getToken(completion handler: @escaping (GACAppCheckToken?, Error?) -> Void) {
         Task {
             do {

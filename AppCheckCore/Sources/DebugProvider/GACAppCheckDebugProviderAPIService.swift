@@ -1,12 +1,12 @@
 import Foundation
 
-@objc(GACAppCheckDebugProviderAPIServiceProtocol)
-protocol GACAppCheckDebugProviderAPIServiceProtocol: NSObjectProtocol {
+@objc(AppCheckCoreDebugProviderAPIServiceProtocol)
+protocol AppCheckCoreDebugProviderAPIServiceProtocol: NSObjectProtocol {
     @objc func appCheckToken(debugToken: String, limitedUse: Bool) async throws -> GACAppCheckToken
 }
 
-@objc(GACAppCheckDebugProviderAPIService)
-class GACAppCheckDebugProviderAPIService: NSObject, GACAppCheckDebugProviderAPIServiceProtocol {
+@objc(AppCheckCoreDebugProviderAPIService)
+class AppCheckCoreDebugProviderAPIService: NSObject, AppCheckCoreDebugProviderAPIServiceProtocol {
     private let apiService: _GACAppCheckAPIServiceProtocol
     private let resourceName: String
     

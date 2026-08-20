@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-import XCTest
-@testable import AppCheckCore
+import Foundation
 
-class AppCheckCoreAppAttestProviderTests: XCTestCase {
-    
-    var provider: AppCheckCoreAppAttestProvider!
-    
-    override func setUp() {
-        super.setUp()
-        // Setup mocks here
-    }
-    
-    override func tearDown() {
-        provider = nil
-        super.tearDown()
-    }
-    
-    func testGetTokenWhenAppAttestIsNotSupported() async {
-        // Basic skeleton for conversion
-    }
+@objc(GACAppAttestRejectionError)
+public class AppCheckCoreAppAttestRejectionError: NSError {
+  @objc
+  public var underlyingError: Error? {
+    return userInfo[NSUnderlyingErrorKey] as? Error
+  }
+
+  @objc(initWithUnderlyingError:)
+  public init(underlyingError: Error) {
+    super.init(
+      domain: "GACAppCheckErrorDomain",
+      code: 0, // GACAppCheckErrorCodeUnknown is typically 0
+      userInfo: [NSUnderlyingErrorKey: underlyingError]
+    )
+  }
+
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
 }

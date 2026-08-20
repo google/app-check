@@ -1,7 +1,7 @@
 import XCTest
 @testable import AppCheckCore
 
-private let kAppName = "GACAppCheckStorageTestsApp"
+private let kAppName = "AppCheckCoreStorageTestsApp"
 private let kGoogleAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
 
 // Tests that use the Keychain require a host app and Swift Package Manager
@@ -13,15 +13,15 @@ private let kGoogleAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
 // See go/firebase-macos-keychain-popups for more details.
 #if !targetEnvironment(macCatalyst) && !os(macOS)
 
-class GACAppCheckStorageTests: XCTestCase {
+class AppCheckCoreStorageTests: XCTestCase {
   var tokenKey: String!
-  var storage: GACAppCheckStorage!
+  var storage: AppCheckCoreStorage!
   
   override func setUp() {
     super.setUp()
     
     tokenKey = tokenKey(withGoogleAppID: kGoogleAppID)
-    storage = GACAppCheckStorage(tokenKey: tokenKey, accessGroup: nil)
+    storage = AppCheckCoreStorage(tokenKey: tokenKey, accessGroup: nil)
   }
   
   override func tearDown() {
@@ -30,7 +30,7 @@ class GACAppCheckStorageTests: XCTestCase {
   }
   
   func testSetAndGetToken() async throws {
-    let tokenToStore = GACAppCheckToken(token: "token",
+    let tokenToStore = AppCheckCoreToken(token: "token",
                                         expirationDate: Date.distantPast,
                                         receivedAtDate: Date())
     
@@ -54,7 +54,7 @@ class GACAppCheckStorageTests: XCTestCase {
   func testGetToken_KeychainError() async {
     // 1. Set up storage mock.
     let fakeKeychainStorage = GACKeychainStorageFake()
-    let storage = GACAppCheckStorage(tokenKey: tokenKey,
+    let storage = AppCheckCoreStorage(tokenKey: tokenKey,
                                      keychainStorage: fakeKeychainStorage,
                                      accessGroup: nil)
     
@@ -68,7 +68,7 @@ class GACAppCheckStorageTests: XCTestCase {
       XCTFail("Expected error to be thrown")
     } catch {
       let nsError = error as NSError
-      let expectedError = _GACAppCheckErrorUtil.keychainError(withError: gulsKeychainError) as NSError
+      let expectedError = _AppCheckCoreErrorUtil.keychainError(withError: gulsKeychainError) as NSError
       XCTAssertEqual(nsError, expectedError)
     }
   }
@@ -76,7 +76,7 @@ class GACAppCheckStorageTests: XCTestCase {
   func testSetToken_KeychainError() async {
     // 1. Set up storage mock.
     let fakeKeychainStorage = GACKeychainStorageFake()
-    let storage = GACAppCheckStorage(tokenKey: tokenKey,
+    let storage = AppCheckCoreStorage(tokenKey: tokenKey,
                                      keychainStorage: fakeKeychainStorage,
                                      accessGroup: nil)
     
@@ -85,7 +85,7 @@ class GACAppCheckStorageTests: XCTestCase {
     fakeKeychainStorage.keychainError = gulsKeychainError
     
     // 3. Set token and verify results.
-    let tokenToStore = GACAppCheckToken(token: "token",
+    let tokenToStore = AppCheckCoreToken(token: "token",
                                         expirationDate: Date.distantPast,
                                         receivedAtDate: Date())
     do {
@@ -93,7 +93,7 @@ class GACAppCheckStorageTests: XCTestCase {
       XCTFail("Expected error to be thrown")
     } catch {
       let nsError = error as NSError
-      let expectedError = _GACAppCheckErrorUtil.keychainError(withError: gulsKeychainError) as NSError
+      let expectedError = _AppCheckCoreErrorUtil.keychainError(withError: gulsKeychainError) as NSError
       XCTAssertEqual(nsError, expectedError)
     }
   }
@@ -101,7 +101,7 @@ class GACAppCheckStorageTests: XCTestCase {
   func testRemoveToken_KeychainError() async {
     // 1. Set up storage mock.
     let fakeKeychainStorage = GACKeychainStorageFake()
-    let storage = GACAppCheckStorage(tokenKey: tokenKey,
+    let storage = AppCheckCoreStorage(tokenKey: tokenKey,
                                      keychainStorage: fakeKeychainStorage,
                                      accessGroup: nil)
     
@@ -115,14 +115,14 @@ class GACAppCheckStorageTests: XCTestCase {
       XCTFail("Expected error to be thrown")
     } catch {
       let nsError = error as NSError
-      let expectedError = _GACAppCheckErrorUtil.keychainError(withError: gulsKeychainError) as NSError
+      let expectedError = _AppCheckCoreErrorUtil.keychainError(withError: gulsKeychainError) as NSError
       XCTAssertEqual(nsError, expectedError)
     }
   }
   
   func testSetTokenPerApp() async throws {
     // 1. Set token with a storage.
-    let tokenToStore = GACAppCheckToken(token: "token",
+    let tokenToStore = AppCheckCoreToken(token: "token",
                                         expirationDate: Date.distantPast,
                                         receivedAtDate: Date())
     
@@ -131,7 +131,7 @@ class GACAppCheckStorageTests: XCTestCase {
     
     // 2. Try to read the token with another storage.
     let tokenKey2 = tokenKey(withGoogleAppID: "1:200000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa")
-    let storage2 = GACAppCheckStorage(tokenKey: tokenKey2, accessGroup: nil)
+    let storage2 = AppCheckCoreStorage(tokenKey: tokenKey2, accessGroup: nil)
     
     let retrievedToken = try await storage2.getToken()
     XCTAssertNil(retrievedToken)

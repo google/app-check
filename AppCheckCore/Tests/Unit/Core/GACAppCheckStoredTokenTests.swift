@@ -22,9 +22,9 @@ class GACAppCheckStoredTokenTests: XCTestCase {
     XCTAssertEqual(unarchivedToken?.storageVersion, tokenToArchive.storageVersion)
   }
 
-  func testConvertingToAndFromGACAppCheckToken() {
+  func testConvertingToAndFromAppCheckCoreToken() {
     let date = Date()
-    let originalToken = GACAppCheckToken(token: "___",
+    let originalToken = AppCheckCoreToken(token: "___",
                                          expirationDate: date,
                                          receivedAtDate: date)
 
@@ -34,9 +34,10 @@ class GACAppCheckStoredTokenTests: XCTestCase {
     XCTAssertEqual(originalToken.expirationDate, storedToken.expirationDate)
     XCTAssertEqual(originalToken.receivedAtDate, storedToken.receivedAtDate)
 
-    let recoveredToken = storedToken.appCheckToken
-    XCTAssertEqual(recoveredToken.token, storedToken.token)
-    XCTAssertEqual(recoveredToken.expirationDate, storedToken.expirationDate)
-    XCTAssertEqual(recoveredToken.receivedAtDate, storedToken.receivedAtDate)
+    let recoveredToken = storedToken.appCheckToken()
+    XCTAssertNotNil(recoveredToken)
+    XCTAssertEqual(recoveredToken?.token, storedToken.token)
+    XCTAssertEqual(recoveredToken?.expirationDate, storedToken.expirationDate)
+    XCTAssertEqual(recoveredToken?.receivedAtDate, storedToken.receivedAtDate)
   }
 }

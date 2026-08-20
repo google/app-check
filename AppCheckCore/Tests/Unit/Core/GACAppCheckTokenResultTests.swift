@@ -7,16 +7,16 @@ private let kPlaceholderTokenValue = "eyJlcnJvciI6IlVOS05PV05fRVJST1IifQ=="
 private let kTestErrorDomain = "TestErrorDomain"
 private let kTestErrorCode = 42
 
-class GACAppCheckTokenResultTests: XCTestCase {
+class AppCheckCoreTokenResultTests: XCTestCase {
   
   func testInitWithToken() {
     let expectedExpirationDate = Date(timeIntervalSince1970: 1693314000.0)
     let expectedReceivedAtDate = Date(timeIntervalSince1970: 1693317600.0)
-    let expectedToken = GACAppCheckToken(token: kTestTokenValue,
+    let expectedToken = AppCheckCoreToken(token: kTestTokenValue,
                                          expirationDate: expectedExpirationDate,
                                          receivedAtDate: expectedReceivedAtDate)
     
-    let tokenResult = GACAppCheckTokenResult(token: expectedToken)
+    let tokenResult = AppCheckCoreTokenResult(token: expectedToken)
     
     XCTAssertEqual(tokenResult.token, expectedToken)
     XCTAssertNil(tokenResult.error)
@@ -27,7 +27,7 @@ class GACAppCheckTokenResultTests: XCTestCase {
                                 code: kTestErrorCode,
                                 userInfo: nil)
     
-    let tokenResult = GACAppCheckTokenResult(error: expectedError)
+    let tokenResult = AppCheckCoreTokenResult(error: expectedError)
     
     XCTAssertEqual(tokenResult.token.token, kPlaceholderTokenValue)
     XCTAssertNotNil(tokenResult.error)
@@ -35,12 +35,12 @@ class GACAppCheckTokenResultTests: XCTestCase {
   }
   
   func testInitWithTokenAndError() {
-    let placeholderToken = GACAppCheckTokenResult.placeholderToken()
+    let placeholderToken = AppCheckCoreTokenResult.placeholderToken()
     let expectedError = NSError(domain: kTestErrorDomain,
                                 code: kTestErrorCode,
                                 userInfo: nil)
     
-    let tokenResult = GACAppCheckTokenResult(token: placeholderToken, error: expectedError)
+    let tokenResult = AppCheckCoreTokenResult(token: placeholderToken, error: expectedError)
     
     XCTAssertEqual(tokenResult.token, placeholderToken)
     XCTAssertNotNil(tokenResult.error)
@@ -51,7 +51,7 @@ class GACAppCheckTokenResultTests: XCTestCase {
     let expectedExpirationDate = Date.distantPast
     let expectedReceivedAtDate = Date() // Current time
     
-    let placeholderToken = GACAppCheckTokenResult.placeholderToken()
+    let placeholderToken = AppCheckCoreTokenResult.placeholderToken()
     
     XCTAssertEqual(placeholderToken.token, kPlaceholderTokenValue)
     // Verify that the placeholder token's received at time is approximately equal to current time.

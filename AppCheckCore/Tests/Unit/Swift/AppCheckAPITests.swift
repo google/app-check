@@ -219,7 +219,7 @@ final class AppCheckAPITests {
     // Set the log level for App Check Core
     AppCheckCoreLogger.logLevel = .debug
 
-    // MARK: - GACAppCheckErrors
+    // MARK: - AppCheckCoreErrors
 
     let code: AppCheckCoreMessageCode! = nil
     switch code! {

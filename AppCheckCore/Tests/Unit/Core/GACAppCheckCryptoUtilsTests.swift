@@ -1,11 +1,11 @@
 import XCTest
 @testable import AppCheckCore
 
-class GACAppCheckCryptoUtilsTests: XCTestCase {
+class AppCheckCoreCryptoUtilsTests: XCTestCase {
   func testSHA256HashFromData() {
     let dataToHash = "some data to hash".data(using: .utf8)!
     
-    let hashData = GACAppCheckCryptoUtils.sha256Hash(from: dataToHash)
+    let hashData = AppCheckCoreCryptoUtils.sha256Hash(from: dataToHash)
     
     // Convert to a base64 encoded string to compare.
     let base64EncodedHashString = hashData.base64EncodedString()

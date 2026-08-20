@@ -1,19 +1,19 @@
 import XCTest
 @testable import AppCheckCore
 
-class GACAppCheckTokenRefresherTests: XCTestCase {
+class AppCheckCoreTokenRefresherTests: XCTestCase {
   var fakeTimer: GACFakeTimer!
-  var settings: GACAppCheckSettings!
-  var initialTokenRefreshResult: GACAppCheckTokenRefreshResult!
+  var settings: AppCheckCoreSettings!
+  var initialTokenRefreshResult: AppCheckCoreTokenRefreshResult!
   
   override func setUp() {
     super.setUp()
     
-    settings = GACAppCheckSettings()
+    settings = AppCheckCoreSettings()
     fakeTimer = GACFakeTimer()
     
     let receivedAtDate = Date()
-    initialTokenRefreshResult = GACAppCheckTokenRefreshResult(status: .success,
+    initialTokenRefreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                               tokenExpirationDate: receivedAtDate.addingTimeInterval(1000),
                                                               tokenReceivedAtDate: receivedAtDate)
   }
@@ -27,7 +27,7 @@ class GACAppCheckTokenRefresherTests: XCTestCase {
   // MARK: - Auto refresh is allowed
   
   func testInitialRefreshWhenAutoRefreshAllowed() {
-    initialTokenRefreshResult = GACAppCheckTokenRefreshResult(status: .never,
+    initialTokenRefreshResult = AppCheckCoreTokenRefreshResult(status: .never,
                                                               tokenExpirationDate: nil,
                                                               tokenReceivedAtDate: nil)
     let refresher = createRefresher()
@@ -43,7 +43,7 @@ class GACAppCheckTokenRefresherTests: XCTestCase {
     
     settings.isTokenAutoRefreshEnabled = true
     
-    var initialRefreshCompletion: GACAppCheckTokenRefreshCompletion?
+    var initialRefreshCompletion: AppCheckCoreTokenRefreshCompletion?
     let initialRefreshExpectation = expectation(description: "initial refresh")
     refresher.tokenRefreshHandler = { completion in
       initialRefreshCompletion = completion
@@ -52,7 +52,7 @@ class GACAppCheckTokenRefresherTests: XCTestCase {
     
     let initialTokenExpirationDate = Date(timeIntervalSinceNow: 60 * 60)
     let initialTokenReceivedDate = Date()
-    let initialRefreshResult = GACAppCheckTokenRefreshResult(status: .success,
+    let initialRefreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                              tokenExpirationDate: initialTokenExpirationDate,
                                                              tokenReceivedAtDate: initialTokenReceivedDate)
     
@@ -73,7 +73,7 @@ class GACAppCheckTokenRefresherTests: XCTestCase {
     
     settings.isTokenAutoRefreshEnabled = true
     
-    let nextRefreshResult = GACAppCheckTokenRefreshResult(status: .success,
+    let nextRefreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                           tokenExpirationDate: expectedRefreshDate.addingTimeInterval(60 * 60),
                                                           tokenReceivedAtDate: expectedRefreshDate)
     let nextRefreshExpectation = expectation(description: "next refresh")
@@ -115,7 +115,7 @@ class GACAppCheckTokenRefresherTests: XCTestCase {
     let refresher = createRefresher()
     
     let refreshedTokenExpirationDate = initialTokenRefreshResult.tokenExpirationDate!.addingTimeInterval(60 * 60)
-    let refreshResult = GACAppCheckTokenRefreshResult(status: .success,
+    let refreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                       tokenExpirationDate: refreshedTokenExpirationDate,
                                                       tokenReceivedAtDate: initialTokenRefreshResult.tokenExpirationDate!)
     
@@ -159,7 +159,7 @@ class GACAppCheckTokenRefresherTests: XCTestCase {
       refresher.tokenRefreshHandler = { completion in
         initialRefreshExpectation.fulfill()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-          let refreshFailure = GACAppCheckTokenRefreshResult(status: .failure, tokenExpirationDate: nil, tokenReceivedAtDate: nil)
+          let refreshFailure = AppCheckCoreTokenRefreshResult(status: .failure, tokenExpirationDate: nil, tokenReceivedAtDate: nil)
           completion(refreshFailure)
         }
       }
@@ -197,7 +197,7 @@ class GACAppCheckTokenRefresherTests: XCTestCase {
       timerCreateExpectation.fulfill()
     }
     
-    let refreshResult = GACAppCheckTokenRefreshResult(status: .success,
+    let refreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                       tokenExpirationDate: Date(timeIntervalSinceNow: 60 * 60),
                                                       tokenReceivedAtDate: Date())
     let refreshExpectation = expectation(description: "refresh")
@@ -225,7 +225,7 @@ class GACAppCheckTokenRefresherTests: XCTestCase {
       timerCreateExpectation.fulfill()
     }
     
-    let refreshResult = GACAppCheckTokenRefreshResult(status: .success,
+    let refreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                       tokenExpirationDate: expectedTimerFireDate.addingTimeInterval(60 * 60),
                                                       tokenReceivedAtDate: expectedTimerFireDate)
     let noRefreshExpectation = expectation(description: "initial refresh")
@@ -250,7 +250,7 @@ class GACAppCheckTokenRefresherTests: XCTestCase {
     let refresher = createRefresher()
     
     let newExpirationDate = initialTokenRefreshResult.tokenExpirationDate!.addingTimeInterval(10 * 60)
-    let newRefreshResult = GACAppCheckTokenRefreshResult(status: .success,
+    let newRefreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                          tokenExpirationDate: newExpirationDate,
                                                          tokenReceivedAtDate: initialTokenRefreshResult.tokenExpirationDate!)
     
@@ -273,7 +273,7 @@ class GACAppCheckTokenRefresherTests: XCTestCase {
   func testUpdateWithRefreshResultWhenAutoRefreshIsNotAllowed() {
     let refresher = createRefresher()
     
-    let newRefreshResult = GACAppCheckTokenRefreshResult(status: .success,
+    let newRefreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                          tokenExpirationDate: Date(timeIntervalSinceNow: 60 * 60),
                                                          tokenReceivedAtDate: initialTokenRefreshResult.tokenExpirationDate!)
     
@@ -296,7 +296,7 @@ class GACAppCheckTokenRefresherTests: XCTestCase {
     let refresher = createRefresher()
     
     let newExpirationDate = Date(timeIntervalSinceNow: 0.5 * 60)
-    let newRefreshResult = GACAppCheckTokenRefreshResult(status: .success,
+    let newRefreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                          tokenExpirationDate: newExpirationDate,
                                                          tokenReceivedAtDate: Date())
     
@@ -325,8 +325,8 @@ class GACAppCheckTokenRefresherTests: XCTestCase {
     }
   }
   
-  private func createRefresher() -> GACAppCheckTokenRefresher {
-    return GACAppCheckTokenRefresher(refreshResult: initialTokenRefreshResult,
+  private func createRefresher() -> AppCheckCoreTokenRefresher {
+    return AppCheckCoreTokenRefresher(refreshResult: initialTokenRefreshResult,
                                      timerProvider: fakeTimer.fakeTimerProvider(),
                                      settings: settings)
   }

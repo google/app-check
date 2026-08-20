@@ -17,7 +17,7 @@
 import XCTest
 @testable import AppCheckCore
 
-private class MockAppCheckAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
+private class MockAppCheckAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
     var baseURL: String = "https://test.appcheck.url.com/beta"
     
     var passedRequestURL: URL?
@@ -25,12 +25,12 @@ private class MockAppCheckAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
     var passedBody: Data?
     var passedAdditionalHeaders: [String: String]?
     
-    var sendRequestResult: Result<_GACURLSessionDataResponse, Error>?
-    var appCheckTokenResult: Result<GACAppCheckToken, Error>?
+    var sendRequestResult: Result<GACURLSessionDataResponse, Error>?
+    var appCheckTokenResult: Result<AppCheckCoreToken, Error>?
     
-    var passedAPIResponse: _GACURLSessionDataResponse?
+    var passedAPIResponse: GACURLSessionDataResponse?
     
-    func sendRequest(with requestURL: URL, httpMethod: String, body: Data?, additionalHeaders: [String : String]?) async throws -> _GACURLSessionDataResponse {
+    func sendRequest(withURL requestURL: URL, httpMethod: String, body: Data?, additionalHeaders: [String : String]?) async throws -> GACURLSessionDataResponse {
         passedRequestURL = requestURL
         passedHTTPMethod = httpMethod
         passedBody = body
@@ -45,7 +45,7 @@ private class MockAppCheckAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
         throw NSError(domain: "MockAppCheckAPIService", code: -1, userInfo: nil)
     }
     
-    func appCheckToken(withAPIResponse response: _GACURLSessionDataResponse) async throws -> GACAppCheckToken {
+    func appCheckToken(withAPIResponse response: GACURLSessionDataResponse) async throws -> AppCheckCoreToken {
         passedAPIResponse = response
         if let result = appCheckTokenResult {
             switch result {
@@ -57,9 +57,9 @@ private class MockAppCheckAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
     }
 }
 
-class GACAppAttestAPIServiceTests: XCTestCase {
+class AppCheckCoreAppAttestAPIServiceTests: XCTestCase {
     
-    var appAttestAPIService: GACAppAttestAPIService!
+    var appAttestAPIService: AppCheckCoreAppAttestAPIService!
     private var fakeAPIService: MockAppCheckAPIService!
     
     let kResourceName = "projects/project_id/apps/app_id"
@@ -68,7 +68,7 @@ class GACAppAttestAPIServiceTests: XCTestCase {
         super.setUp()
         
         fakeAPIService = MockAppCheckAPIService()
-        appAttestAPIService = GACAppAttestAPIService(apiService: fakeAPIService, resourceName: kResourceName)
+        appAttestAPIService = AppCheckCoreAppAttestAPIService(apiService: fakeAPIService, resourceName: kResourceName)
     }
     
     override func tearDown() {
@@ -107,7 +107,7 @@ class GACAppAttestAPIServiceTests: XCTestCase {
         let responseBodyString = "Generate challenge failed with invalid format."
         let responseBody = responseBodyString.data(using: .utf8)!
         let invalidAPIResponse = APIResponse(code: 300, responseBody: responseBody)
-        let apiError = _GACAppCheckErrorUtil.apiError(with: invalidAPIResponse.httpResponse, data: invalidAPIResponse.httpBody)
+        let apiError = _AppCheckCoreErrorUtil.apiError(with: invalidAPIResponse.httpResponse, data: invalidAPIResponse.httpBody)
         
         // 2. Stub API Service Request
         fakeAPIService.sendRequestResult = .failure(apiError)
@@ -117,8 +117,8 @@ class GACAppAttestAPIServiceTests: XCTestCase {
             _ = try await appAttestAPIService.getRandomChallenge()
             XCTFail("Expected error to be thrown")
         } catch let error as NSError {
-            XCTAssertEqual(error.domain, GACAppCheckErrorDomain)
-            XCTAssertEqual(error.code, GACAppCheckErrorCode.unknown.rawValue)
+            XCTAssertEqual(error.domain, AppCheckCoreErrorDomain)
+            XCTAssertEqual(error.code, AppCheckCoreErrorCode.unknown.rawValue)
             let failureReason = error.userInfo[NSLocalizedFailureReasonErrorKey] as? String
             XCTAssertTrue(failureReason?.contains("300") ?? false)
             XCTAssertTrue(failureReason?.contains(responseBodyString) ?? false)
@@ -151,7 +151,7 @@ class GACAppAttestAPIServiceTests: XCTestCase {
         // 2. Stub API Service
         fakeAPIService.sendRequestResult = .success(validAPIResponse)
         
-        let expectedToken = GACAppCheckToken(token: "app_check_token", expirationDate: Date())
+        let expectedToken = AppCheckCoreToken(token: "app_check_token", expirationDate: Date())
         fakeAPIService.appCheckTokenResult = .success(expectedToken)
         
         // 3. Send request.
@@ -223,9 +223,9 @@ class GACAppAttestAPIServiceTests: XCTestCase {
     
     // MARK: - Helpers
     
-    private func APIResponse(code: Int, responseBody: Data) -> _GACURLSessionDataResponse {
+    private func APIResponse(code: Int, responseBody: Data) -> GACURLSessionDataResponse {
         let httpResponse = HTTPURLResponse(url: URL(string: "https://test.com")!, statusCode: code, httpVersion: nil, headerFields: nil)!
-        return _GACURLSessionDataResponse(response: httpResponse, httpBody: responseBody)
+        return GACURLSessionDataResponse(response: httpResponse, httpBody: responseBody)
     }
     
     private func generateRandomData() -> Data {

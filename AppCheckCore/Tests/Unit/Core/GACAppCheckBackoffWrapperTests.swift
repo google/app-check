@@ -1,23 +1,23 @@
 import XCTest
 @testable import AppCheckCore
 
-class _GACAppCheckBackoffWrapperTests: XCTestCase {
+class _AppCheckCoreBackoffWrapperTests: XCTestCase {
   
-  var backoffWrapper: _GACAppCheckBackoffWrapper!
+  var backoffWrapper: _AppCheckCoreBackoffWrapper!
   var currentDate: Date!
   
   var operationResult: Any?
   var operationProvider: (() async throws -> Any)!
   var operationFinishExpectation: XCTestExpectation!
   
-  var errorHandler: GACAppCheckBackoffErrorHandler!
+  var errorHandler: AppCheckCoreBackoffErrorHandler!
   var errorHandlerExpectation: XCTestExpectation!
   
   override func setUp() {
     super.setUp()
     
     currentDate = Date()
-    backoffWrapper = _GACAppCheckBackoffWrapper(dateProvider: { [weak self] in
+    backoffWrapper = _AppCheckCoreBackoffWrapper(dateProvider: { [weak self] in
       return self?.currentDate ?? Date()
     })
   }
@@ -177,7 +177,7 @@ class _GACAppCheckBackoffWrapperTests: XCTestCase {
   
   // MARK: - Helpers
   
-  private func setUpErrorHandler(with backoffType: GACAppCheckBackoffType) {
+  private func setUpErrorHandler(with backoffType: AppCheckCoreBackoffType) {
     errorHandlerExpectation = expectation(description: "Error handler")
     errorHandler = { [weak self] error in
       self?.errorHandlerExpectation.fulfill()
@@ -207,12 +207,12 @@ class _GACAppCheckBackoffWrapperTests: XCTestCase {
     return error.localizedDescription.contains("Too many attempts. Underlying error:")
   }
   
-  private func httpError(withStatusCode statusCode: Int) -> GACAppCheckHTTPError {
+  private func httpError(withStatusCode statusCode: Int) -> AppCheckCoreHTTPError {
     let httpResponse = HTTPURLResponse(url: URL(string: "https://localhost")!,
                                        statusCode: statusCode,
                                        httpVersion: nil,
                                        headerFields: nil)!
-    return GACAppCheckHTTPError(httpResponse: httpResponse, data: nil)
+    return AppCheckCoreHTTPError(httpResponse: httpResponse, data: nil)
   }
   
   private func assertBackoffInterval(isAtLeast minBackoff: TimeInterval, andAtMost maxBackoff: TimeInterval) async {

@@ -7,8 +7,8 @@ private let kBundleIDHeaderKey = "X-Ios-Bundle-Identifier"
 private let kTestHeaderKey = "X-test-header"
 private let kTestHeaderValue = "TEST_HEADER_VALUE"
 
-class _GACAppCheckAPIServiceTests: XCTestCase {
-  var apiService: _GACAppCheckAPIService!
+class _AppCheckCoreAPIServiceTests: XCTestCase {
+  var apiService: _AppCheckCoreAPIService!
   var fakeURLSession: GACURLSessionFake!
   var expectedHTTPHeaderFields: [String: String]!
   
@@ -23,8 +23,8 @@ class _GACAppCheckAPIServiceTests: XCTestCase {
       expectedHTTPHeaderFields = [:]
     }
     
-    apiService = _GACAppCheckAPIService(
-      urlSession: fakeURLSession,
+    apiService = _AppCheckCoreAPIService(
+      urlSession: fakeURLSession.session,
       baseURL: nil,
       apiKey: nil,
       requestHooks: nil,
@@ -42,8 +42,8 @@ class _GACAppCheckAPIServiceTests: XCTestCase {
   // MARK: - Init
   
   func testInitDefaultBaseURL() {
-    let service = _GACAppCheckAPIService(
-      urlSession: fakeURLSession,
+    let service = _AppCheckCoreAPIService(
+      urlSession: fakeURLSession.session,
       baseURL: nil,
       apiKey: nil,
       requestHooks: nil,
@@ -55,8 +55,8 @@ class _GACAppCheckAPIServiceTests: XCTestCase {
   
   func testInitCustomBaseURL() {
     let customBaseURL = "https://custom.example.com/v1beta"
-    let service = _GACAppCheckAPIService(
-      urlSession: fakeURLSession,
+    let service = _AppCheckCoreAPIService(
+      urlSession: fakeURLSession.session,
       baseURL: customBaseURL,
       apiKey: nil,
       requestHooks: nil,
@@ -68,8 +68,8 @@ class _GACAppCheckAPIServiceTests: XCTestCase {
   
   func testInitBaseURLStagingTriggeredByEnvVar() {
     let stagingBaseURL = "https://staging-firebaseappcheck.sandbox.googleapis.com/v1"
-    let service = _GACAppCheckAPIService(
-      urlSession: fakeURLSession,
+    let service = _AppCheckCoreAPIService(
+      urlSession: fakeURLSession.session,
       baseURL: nil,
       apiKey: nil,
       requestHooks: nil,
@@ -81,8 +81,8 @@ class _GACAppCheckAPIServiceTests: XCTestCase {
   
   func testInitBaseURLStagingNotTriggeredWhenEnvVarIsNo() {
     let prodBaseURL = "https://firebaseappcheck.googleapis.com/v1"
-    let service = _GACAppCheckAPIService(
-      urlSession: fakeURLSession,
+    let service = _AppCheckCoreAPIService(
+      urlSession: fakeURLSession.session,
       baseURL: nil,
       apiKey: nil,
       requestHooks: nil,
@@ -112,8 +112,8 @@ class _GACAppCheckAPIServiceTests: XCTestCase {
       XCTFail("Expected error to be thrown")
     } catch {
       let nsError = error as NSError
-      XCTAssertEqual(nsError.domain, GACAppCheckErrorDomain)
-      XCTAssertEqual(nsError.code, GACAppCheckErrorCode.serverUnreachable.rawValue)
+      XCTAssertEqual(nsError.domain, AppCheckCoreErrorDomain)
+      XCTAssertEqual(nsError.code, AppCheckCoreErrorCode.serverUnreachable.rawValue)
       XCTAssertEqual(nsError.userInfo[NSUnderlyingErrorKey] as? NSError, networkError)
     }
     
@@ -137,8 +137,8 @@ class _GACAppCheckAPIServiceTests: XCTestCase {
       XCTFail("Expected error to be thrown")
     } catch {
       let nsError = error as NSError
-      XCTAssertEqual(nsError.domain, GACAppCheckErrorDomain)
-      XCTAssertEqual(nsError.code, GACAppCheckErrorCode.unknown.rawValue)
+      XCTAssertEqual(nsError.domain, AppCheckCoreErrorDomain)
+      XCTAssertEqual(nsError.code, AppCheckCoreErrorCode.unknown.rawValue)
       
       let failureReason = nsError.userInfo[NSLocalizedFailureReasonErrorKey] as? String
       XCTAssertNotNil(failureReason)
@@ -156,18 +156,18 @@ class _GACAppCheckAPIServiceTests: XCTestCase {
     let requestTimeout: TimeInterval = 5.0
     expectedHTTPHeaderFields[kTestHeaderKey] = kTestHeaderValue
     
-    let headerRequestHook: GACAppCheckAPIRequestHook = { request in
+    let headerRequestHook: AppCheckCoreAPIRequestHook = { request in
       request.addValue(kTestHeaderValue, forHTTPHeaderField: kTestHeaderKey)
     }
-    let timeoutRequestHook: GACAppCheckAPIRequestHook = { request in
+    let timeoutRequestHook: AppCheckCoreAPIRequestHook = { request in
       request.timeoutInterval = requestTimeout
     }
-    let cellularAccessRequestHook: GACAppCheckAPIRequestHook = { request in
+    let cellularAccessRequestHook: AppCheckCoreAPIRequestHook = { request in
       request.allowsCellularAccess = false
     }
     
-    apiService = _GACAppCheckAPIService(
-      urlSession: fakeURLSession,
+    apiService = _AppCheckCoreAPIService(
+      urlSession: fakeURLSession.session,
       baseURL: nil,
       apiKey: nil,
       requestHooks: [headerRequestHook, timeoutRequestHook, cellularAccessRequestHook],
@@ -236,8 +236,8 @@ class _GACAppCheckAPIServiceTests: XCTestCase {
     let requestBody = "Request body".data(using: .utf8)!
     expectedHTTPHeaderFields[kAPIKeyHeaderKey] = kAPIKeyHeaderValue
     
-    apiService = _GACAppCheckAPIService(
-      urlSession: fakeURLSession,
+    apiService = _AppCheckCoreAPIService(
+      urlSession: fakeURLSession.session,
       baseURL: nil,
       apiKey: kAPIKeyHeaderValue,
       requestHooks: nil,
@@ -273,7 +273,7 @@ class _GACAppCheckAPIServiceTests: XCTestCase {
     XCTAssertNotNil(responseBody)
     
     let httpResponse = GACURLSessionFake.httpResponse(withCode: 200)
-    let apiResponse = _GACURLSessionDataResponse(response: httpResponse, httpBody: responseBody)
+    let apiResponse = GACURLSessionDataResponse(response: httpResponse, httpBody: responseBody)
     
     let expectedFACToken = "valid_app_check_token"
     
@@ -287,15 +287,15 @@ class _GACAppCheckAPIServiceTests: XCTestCase {
     let responseBodyString = "Token verification failed."
     let responseBody = responseBodyString.data(using: .utf8)!
     let httpResponse = GACURLSessionFake.httpResponse(withCode: 200)
-    let apiResponse = _GACURLSessionDataResponse(response: httpResponse, httpBody: responseBody)
+    let apiResponse = GACURLSessionDataResponse(response: httpResponse, httpBody: responseBody)
     
     do {
       _ = try await apiService.appCheckToken(withAPIResponse: apiResponse)
       XCTFail("Expected error to be thrown")
     } catch {
       let nsError = error as NSError
-      XCTAssertEqual(nsError.domain, GACAppCheckErrorDomain)
-      XCTAssertEqual(nsError.code, GACAppCheckErrorCode.unknown.rawValue)
+      XCTAssertEqual(nsError.domain, AppCheckCoreErrorDomain)
+      XCTAssertEqual(nsError.code, AppCheckCoreErrorCode.unknown.rawValue)
       let failureReason = nsError.userInfo[NSLocalizedFailureReasonErrorKey] as? String
       XCTAssertEqual(failureReason, "JSON serialization error.")
     }
@@ -311,15 +311,15 @@ class _GACAppCheckAPIServiceTests: XCTestCase {
     XCTAssertNotNil(missingFieldBody)
     
     let httpResponse = GACURLSessionFake.httpResponse(withCode: 200)
-    let apiResponse = _GACURLSessionDataResponse(response: httpResponse, httpBody: missingFieldBody)
+    let apiResponse = GACURLSessionDataResponse(response: httpResponse, httpBody: missingFieldBody)
     
     do {
       _ = try await apiService.appCheckToken(withAPIResponse: apiResponse)
       XCTFail("Expected error to be thrown")
     } catch {
       let nsError = error as NSError
-      XCTAssertEqual(nsError.domain, GACAppCheckErrorDomain)
-      XCTAssertEqual(nsError.code, GACAppCheckErrorCode.unknown.rawValue)
+      XCTAssertEqual(nsError.domain, AppCheckCoreErrorDomain)
+      XCTAssertEqual(nsError.code, AppCheckCoreErrorCode.unknown.rawValue)
       let failureReason = nsError.userInfo[NSLocalizedFailureReasonErrorKey] as? String
       XCTAssertTrue(failureReason?.contains("`\(missingField)`") ?? false, "Fixture `\(fixtureName)`: expected missing field \(missingField) error not found")
     }
@@ -334,7 +334,7 @@ class _GACAppCheckAPIServiceTests: XCTestCase {
     fakeURLSession.requestValidationBlock = requestValidationBlock
     fakeURLSession.resultError = error
     if error == nil {
-      fakeURLSession.resultResponse = _GACURLSessionDataResponse(response: response, httpBody: body)
+      fakeURLSession.resultResponse = GACURLSessionDataResponse(response: response, httpBody: body)
     } else {
       fakeURLSession.resultResponse = nil
     }

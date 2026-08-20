@@ -1,18 +1,18 @@
 import XCTest
 @testable import AppCheckCore
 
-class GACAppCheckLoggerTests: XCTestCase {
+class AppCheckCoreLoggerTests: XCTestCase {
   func testDefaultLogLevel() {
-    let defaultLogLevel = GACAppCheckLogger.logLevel
+    let defaultLogLevel = AppCheckCoreLogger.logLevel
     
     XCTAssertEqual(defaultLogLevel, .warning)
   }
   
   func testSetLogLevel() {
-    let expectedLogLevel: GACAppCheckLogLevel = .debug
+    let expectedLogLevel: AppCheckCoreLogLevel = .debug
     
-    GACAppCheckLogger.logLevel = expectedLogLevel
+    AppCheckCoreLogger.logLevel = expectedLogLevel
     
-    XCTAssertEqual(GACAppCheckLogger.logLevel, expectedLogLevel)
+    XCTAssertEqual(AppCheckCoreLogger.logLevel, expectedLogLevel)
   }
 }

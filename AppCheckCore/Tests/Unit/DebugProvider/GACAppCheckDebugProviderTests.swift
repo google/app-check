@@ -4,14 +4,14 @@ import GoogleUtilities
 #endif
 @testable import AppCheckCore
 
-class MockAppCheckDebugProviderAPIService: NSObject, GACAppCheckDebugProviderAPIServiceProtocol {
+class MockAppCheckDebugProviderAPIService: NSObject, AppCheckCoreDebugProviderAPIServiceProtocol {
     var passedDebugToken: String?
     var passedLimitedUse: Bool?
     
-    var tokenResult: Result<GACAppCheckToken, Error>?
-    var limitedUseTokenResult: Result<GACAppCheckToken, Error>?
+    var tokenResult: Result<AppCheckCoreToken, Error>?
+    var limitedUseTokenResult: Result<AppCheckCoreToken, Error>?
     
-    func appCheckToken(debugToken: String, limitedUse: Bool) async throws -> GACAppCheckToken {
+    func appCheckToken(debugToken: String, limitedUse: Bool) async throws -> AppCheckCoreToken {
         passedDebugToken = debugToken
         passedLimitedUse = limitedUse
         
@@ -30,19 +30,19 @@ class MockAppCheckDebugProviderAPIService: NSObject, GACAppCheckDebugProviderAPI
     }
 }
 
-class GACAppCheckDebugProviderTests: XCTestCase {
+class AppCheckCoreDebugProviderTests: XCTestCase {
     let kDebugTokenEnvKey = "AppCheckDebugToken"
     let kFirebaseDebugTokenEnvKey = "FIRAAppCheckDebugToken"
-    let kDebugTokenUserDefaultsKey = "GACAppCheckDebugToken"
-    let kDebugTokenRegisteredUserDefaultsKey = "GACAppCheckDebugTokenRegistered"
+    let kDebugTokenUserDefaultsKey = "AppCheckCoreDebugToken"
+    let kDebugTokenRegisteredUserDefaultsKey = "AppCheckCoreDebugTokenRegistered"
     
-    var provider: GACAppCheckDebugProvider!
+    var provider: AppCheckCoreDebugProvider!
     var fakeAPIService: MockAppCheckDebugProviderAPIService!
     
     override func setUp() {
         super.setUp()
         fakeAPIService = MockAppCheckDebugProviderAPIService()
-        provider = GACAppCheckDebugProvider(apiService: fakeAPIService,
+        provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
                                             serviceName: "test-service",
                                             resourceName: "projects/test-project/apps/test-app",
                                             environment: [:])
@@ -60,7 +60,7 @@ class GACAppCheckDebugProviderTests: XCTestCase {
     func testCurrentTokenWhenEnvironmentVariableSetAndTokenStored() {
         UserDefaults.standard.set("stored token", forKey: kDebugTokenUserDefaultsKey)
         let envToken = "env token"
-        provider = GACAppCheckDebugProvider(apiService: fakeAPIService,
+        provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
                                             serviceName: "test-service",
                                             resourceName: "projects/test-project/apps/test-app",
                                             environment: [kDebugTokenEnvKey: envToken])
@@ -71,7 +71,7 @@ class GACAppCheckDebugProviderTests: XCTestCase {
     func testCurrentTokenWhenFirebaseAndCoreEnvironmentVariablesSetAndTokenStored() {
         UserDefaults.standard.set("stored token", forKey: kDebugTokenUserDefaultsKey)
         let envToken = "env token"
-        provider = GACAppCheckDebugProvider(apiService: fakeAPIService,
+        provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
                                             serviceName: "test-service",
                                             resourceName: "projects/test-project/apps/test-app",
                                             environment: [
@@ -85,7 +85,7 @@ class GACAppCheckDebugProviderTests: XCTestCase {
     func testCurrentTokenWhenFirebaseEnvironmentVariableSetAndTokenStored() {
         UserDefaults.standard.set("stored token", forKey: kDebugTokenUserDefaultsKey)
         let envToken = "env token"
-        provider = GACAppCheckDebugProvider(apiService: fakeAPIService,
+        provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
                                             serviceName: "test-service",
                                             resourceName: "projects/test-project/apps/test-app",
                                             environment: [kFirebaseDebugTokenEnvKey: envToken])
@@ -95,7 +95,7 @@ class GACAppCheckDebugProviderTests: XCTestCase {
     
     func testCurrentTokenWhenFirebaseAndCoreEnvironmentVariablesSet() {
         let envToken = "env token"
-        provider = GACAppCheckDebugProvider(apiService: fakeAPIService,
+        provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
                                             serviceName: "test-service",
                                             resourceName: "projects/test-project/apps/test-app",
                                             environment: [
@@ -133,7 +133,7 @@ class GACAppCheckDebugProviderTests: XCTestCase {
     func testGetTokenSuccess() async throws {
         // 1. Stub API service.
         let expectedDebugToken = provider.currentDebugToken()
-        let validToken = GACAppCheckToken(token: "valid_token", expirationDate: Date(), receivedAt: Date())
+        let validToken = AppCheckCoreToken(token: "valid_token", expirationDate: Date(), receivedAtDate: Date())
         fakeAPIService.tokenResult = .success(validToken)
         
         // 2. Validate get token.
@@ -166,7 +166,7 @@ class GACAppCheckDebugProviderTests: XCTestCase {
         
         // 2. Validate get token.
         do {
-            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<GACAppCheckToken, Error>) in
+            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AppCheckCoreToken, Error>) in
                 provider.getToken { token, error in
                     if let error = error {
                         continuation.resume(throwing: error)
@@ -190,7 +190,7 @@ class GACAppCheckDebugProviderTests: XCTestCase {
     func testGetLimitedUseTokenSuccess() async throws {
         // 1. Stub API service.
         let expectedDebugToken = provider.currentDebugToken()
-        let validToken = GACAppCheckToken(token: "valid_token", expirationDate: Date(), receivedAt: Date())
+        let validToken = AppCheckCoreToken(token: "valid_token", expirationDate: Date(), receivedAtDate: Date())
         fakeAPIService.limitedUseTokenResult = .success(validToken)
         
         // 2. Validate get limited-use token.
@@ -223,7 +223,7 @@ class GACAppCheckDebugProviderTests: XCTestCase {
         
         // 2. Validate get limited-use token.
         do {
-            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<GACAppCheckToken, Error>) in
+            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AppCheckCoreToken, Error>) in
                 provider.getLimitedUseToken { token, error in
                     if let error = error {
                         continuation.resume(throwing: error)
@@ -247,7 +247,7 @@ class GACAppCheckDebugProviderTests: XCTestCase {
     func testGetTokenSuccessSetsRegisteredFlag() async throws {
         // 1. Stub API service.
         let expectedDebugToken = provider.currentDebugToken()
-        let validToken = GACAppCheckToken(token: "valid_token", expirationDate: Date(), receivedAt: Date())
+        let validToken = AppCheckCoreToken(token: "valid_token", expirationDate: Date(), receivedAtDate: Date())
         fakeAPIService.tokenResult = .success(validToken)
         
         // The mirror way to get registeredUserDefaultsKey, or since we know it, we can just hardcode or access it
@@ -255,7 +255,7 @@ class GACAppCheckDebugProviderTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: registeredKey)
         
         // 2. Validate get token.
-        _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<GACAppCheckToken, Error>) in
+        _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AppCheckCoreToken, Error>) in
             provider.getToken { token, error in
                 if let error = error {
                     continuation.resume(throwing: error)
@@ -286,7 +286,7 @@ class GACAppCheckDebugProviderTests: XCTestCase {
         
         // 2. Validate get token.
         do {
-            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<GACAppCheckToken, Error>) in
+            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AppCheckCoreToken, Error>) in
                 provider.getToken { token, error in
                     if let error = error {
                         continuation.resume(throwing: error)
@@ -321,7 +321,7 @@ class GACAppCheckDebugProviderTests: XCTestCase {
         
         // 2. Validate get token.
         do {
-            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<GACAppCheckToken, Error>) in
+            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AppCheckCoreToken, Error>) in
                 provider.getToken { token, error in
                     if let error = error {
                         continuation.resume(throwing: error)

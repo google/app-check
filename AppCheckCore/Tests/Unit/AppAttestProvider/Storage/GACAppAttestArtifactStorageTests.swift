@@ -17,7 +17,7 @@
 import XCTest
 @testable import AppCheckCore
 
-private let kAppName = "GACAppAttestArtifactStorageTests"
+private let kAppName = "AppCheckCoreAppAttestArtifactStorageTests"
 private let kAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
 
 // Tests that use the Keychain require a host app and Swift Package Manager
@@ -29,15 +29,15 @@ private let kAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
 // See go/firebase-macos-keychain-popups for more details.
 #if !targetEnvironment(macCatalyst) && !os(macOS)
 
-class GACAppAttestArtifactStorageTests: XCTestCase {
+class AppCheckCoreAppAttestArtifactStorageTests: XCTestCase {
   var keySuffix: String!
-  var storage: GACAppAttestArtifactStorage!
+  var storage: AppCheckCoreAppAttestArtifactStorage!
 
   override func setUp() {
     super.setUp()
 
-    keySuffix = GACAppAttestArtifactStorageTests.artifactKeySuffix(appName: kAppName, appID: kAppID)
-    storage = GACAppAttestArtifactStorage(keySuffix: keySuffix, accessGroup: nil)
+    keySuffix = AppCheckCoreAppAttestArtifactStorageTests.artifactKeySuffix(appName: kAppName, appID: kAppID)
+    storage = AppCheckCoreAppAttestArtifactStorage(keySuffix: keySuffix, accessGroup: nil)
   }
 
   override func tearDown() {
@@ -114,7 +114,7 @@ class GACAppAttestArtifactStorageTests: XCTestCase {
   func testGetArtifact_KeychainError() async {
     // 1. Set up storage mock.
     let fakeKeychainStorage = GACKeychainStorageFake()
-    let artifactStorage = GACAppAttestArtifactStorage(
+    let artifactStorage = AppCheckCoreAppAttestArtifactStorage(
       keySuffix: keySuffix,
       keychainStorage: fakeKeychainStorage,
       accessGroup: nil
@@ -130,7 +130,7 @@ class GACAppAttestArtifactStorageTests: XCTestCase {
       XCTFail("Expected error to be thrown")
     } catch {
       let nsError = error as NSError
-      let expectedError = GACAppCheckErrorUtil.keychainError(withError: gulsKeychainError) as NSError
+      let expectedError = AppCheckCoreErrorUtil.keychainError(withError: gulsKeychainError) as NSError
       XCTAssertEqual(nsError, expectedError)
     }
   }
@@ -138,7 +138,7 @@ class GACAppAttestArtifactStorageTests: XCTestCase {
   func testSetArtifact_KeychainError() async {
     // 1. Set up storage mock.
     let fakeKeychainStorage = GACKeychainStorageFake()
-    let artifactStorage = GACAppAttestArtifactStorage(
+    let artifactStorage = AppCheckCoreAppAttestArtifactStorage(
       keySuffix: keySuffix,
       keychainStorage: fakeKeychainStorage,
       accessGroup: nil
@@ -155,7 +155,7 @@ class GACAppAttestArtifactStorageTests: XCTestCase {
       XCTFail("Expected error to be thrown")
     } catch {
       let nsError = error as NSError
-      let expectedError = GACAppCheckErrorUtil.keychainError(withError: gulsKeychainError) as NSError
+      let expectedError = AppCheckCoreErrorUtil.keychainError(withError: gulsKeychainError) as NSError
       XCTAssertEqual(nsError, expectedError)
     }
   }
@@ -163,7 +163,7 @@ class GACAppAttestArtifactStorageTests: XCTestCase {
   func testRemoveArtifact_KeychainError() async {
     // 1. Set up storage mock.
     let fakeKeychainStorage = GACKeychainStorageFake()
-    let artifactStorage = GACAppAttestArtifactStorage(
+    let artifactStorage = AppCheckCoreAppAttestArtifactStorage(
       keySuffix: keySuffix,
       keychainStorage: fakeKeychainStorage,
       accessGroup: nil
@@ -179,7 +179,7 @@ class GACAppAttestArtifactStorageTests: XCTestCase {
       XCTFail("Expected error to be thrown")
     } catch {
       let nsError = error as NSError
-      let expectedError = GACAppCheckErrorUtil.keychainError(withError: gulsKeychainError) as NSError
+      let expectedError = AppCheckCoreErrorUtil.keychainError(withError: gulsKeychainError) as NSError
       XCTAssertEqual(nsError, expectedError)
     }
   }
@@ -213,12 +213,12 @@ class GACAppAttestArtifactStorageTests: XCTestCase {
     appID2: String
   ) async throws {
     let keyID = UUID().uuidString
-    let keySuffix1 = GACAppAttestArtifactStorageTests.artifactKeySuffix(appName: appName1, appID: appID1)
-    let keySuffix2 = GACAppAttestArtifactStorageTests.artifactKeySuffix(appName: appName2, appID: appID2)
+    let keySuffix1 = AppCheckCoreAppAttestArtifactStorageTests.artifactKeySuffix(appName: appName1, appID: appID1)
+    let keySuffix2 = AppCheckCoreAppAttestArtifactStorageTests.artifactKeySuffix(appName: appName2, appID: appID2)
 
     // Create two storages.
-    let storage1 = GACAppAttestArtifactStorage(keySuffix: keySuffix1, accessGroup: nil)
-    let storage2 = GACAppAttestArtifactStorage(keySuffix: keySuffix2, accessGroup: nil)
+    let storage1 = AppCheckCoreAppAttestArtifactStorage(keySuffix: keySuffix1, accessGroup: nil)
+    let storage2 = AppCheckCoreAppAttestArtifactStorage(keySuffix: keySuffix2, accessGroup: nil)
 
     // 1. Independently set artifacts for the two storages.
     let artifact1 = "app_attest_artifact1".data(using: .utf8)

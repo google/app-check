@@ -88,12 +88,12 @@ class MockAppCheckCoreAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
   }
 
   var lastRequest: RequestData?
-  var expectedResponse: _GACURLSessionDataResponse?
+  var expectedResponse: GACURLSessionDataResponse?
   var expectedToken: AppCheckCoreToken?
   var expectedError: Error?
 
   func sendRequest(with url: URL, httpMethod: String, body: Data?,
-                   additionalHeaders: [String: String]?) async throws -> _GACURLSessionDataResponse {
+                   additionalHeaders: [String: String]?) async throws -> GACURLSessionDataResponse {
     lastRequest = RequestData(
       url: url,
       httpMethod: httpMethod,
@@ -104,7 +104,7 @@ class MockAppCheckCoreAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
     if let expectedError {
       throw expectedError
     } else {
-      let response = expectedResponse ?? _GACURLSessionDataResponse(
+      let response = expectedResponse ?? GACURLSessionDataResponse(
         response: HTTPURLResponse(),
         httpBody: Data()
       )
@@ -112,7 +112,7 @@ class MockAppCheckCoreAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
     }
   }
 
-  func appCheckToken(withAPIResponse response: _GACURLSessionDataResponse) async throws -> AppCheckCoreToken {
+  func appCheckToken(withAPIResponse response: GACURLSessionDataResponse) async throws -> AppCheckCoreToken {
     if let expectedError {
       throw expectedError
     } else {
@@ -125,15 +125,15 @@ class MockAppCheckCoreAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
   }
 }
 
-class MockBackoffWrapper: NSObject, _GACAppCheckBackoffWrapperProtocol {
+class MockBackoffWrapper: NSObject, AppCheckBackoffWrapperProtocol {
   var applyBackoffCalled = false
   var shouldReturnError = false
   var mockError: NSError?
   var mockResult: Any?
-  var capturedErrorHandler: GACAppCheckBackoffErrorHandler?
+  var capturedErrorHandler: ((Error) -> AppCheckBackoffType)?
 
-  func applyBackoff(toOperation operationProvider: @escaping GACAppCheckAsyncBackoffOperationProvider,
-                    errorHandler: @escaping GACAppCheckBackoffErrorHandler) async throws -> AnyObject {
+  func applyBackoffToOperation(_ operationProvider: @escaping () async throws -> Any,
+                    errorHandler: @escaping (Error) -> AppCheckBackoffType) async throws -> Any {
     applyBackoffCalled = true
     capturedErrorHandler = errorHandler
     if shouldReturnError {
@@ -141,12 +141,12 @@ class MockBackoffWrapper: NSObject, _GACAppCheckBackoffWrapperProtocol {
       throw error
     }
     if let mockResult {
-      return mockResult as AnyObject
+      return mockResult
     }
     return try await operationProvider()
   }
 
-  func defaultAppCheckProviderErrorHandler() -> GACAppCheckBackoffErrorHandler {
-    return { error in .typeExponential }
+  func defaultAppCheckProviderErrorHandler() -> (Error) -> AppCheckBackoffType {
+    return { error in .exponential }
   }
 }

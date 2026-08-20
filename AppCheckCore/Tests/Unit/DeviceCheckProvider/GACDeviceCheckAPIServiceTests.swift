@@ -4,7 +4,7 @@ import Promises
 #endif
 @testable import AppCheckCore
 
-private class MockAppCheckAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
+private class MockAppCheckAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
     var baseURL: String = "https://test.appcheck.url.com/alpha"
     
     var passedRequestURL: URL?
@@ -12,42 +12,37 @@ private class MockAppCheckAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
     var passedBody: Data?
     var passedAdditionalHeaders: [String: String]?
     
-    var sendRequestResult: Result<_GACURLSessionDataResponse, Error>?
-    var appCheckTokenResult: Result<GACAppCheckToken, Error>?
+    var sendRequestResult: Result<GACURLSessionDataResponse, Error>?
+    var appCheckTokenResult: Result<AppCheckCoreToken, Error>?
     
-    var passedAPIResponse: _GACURLSessionDataResponse?
+    var passedAPIResponse: GACURLSessionDataResponse?
     
-    func sendRequest(with requestURL: URL, httpMethod: String, body: Data?, additionalHeaders: [String : String]?) -> FBLPromise<_GACURLSessionDataResponse> {
+    func sendRequest(withURL requestURL: URL, httpMethod: String, body: Data?, additionalHeaders: [String : String]?) async throws -> GACURLSessionDataResponse {
         passedRequestURL = requestURL
         passedHTTPMethod = httpMethod
         passedBody = body
         passedAdditionalHeaders = additionalHeaders
-        
-        let promise = FBLPromise<_GACURLSessionDataResponse>.pending()
         if let result = sendRequestResult {
             switch result {
-            case .success(let response): promise.fulfill(response)
-            case .failure(let error): promise.reject(error)
+            case .success(let response): return response
+            case .failure(let error): throw error
             }
         }
-        return promise
     }
     
-    func appCheckToken(withAPIResponse response: _GACURLSessionDataResponse) -> FBLPromise<GACAppCheckToken> {
+    func appCheckToken(withAPIResponse response: GACURLSessionDataResponse) async throws -> AppCheckCoreToken {
         passedAPIResponse = response
-        let promise = FBLPromise<GACAppCheckToken>.pending()
         if let result = appCheckTokenResult {
             switch result {
-            case .success(let token): promise.fulfill(token)
-            case .failure(let error): promise.reject(error)
+            case .success(let token): return token
+            case .failure(let error): throw error
             }
         }
-        return promise
     }
 }
 
-class GACDeviceCheckAPIServiceTests: XCTestCase {
-    var apiService: GACDeviceCheckAPIService!
+class AppCheckCoreDeviceCheckAPIServiceTests: XCTestCase {
+    var apiService: AppCheckCoreDeviceCheckAPIService!
     private var mockAPIService: MockAppCheckAPIService!
     
     let kResourceName = "projects/project_id/apps/app_id"
@@ -55,7 +50,7 @@ class GACDeviceCheckAPIServiceTests: XCTestCase {
     override func setUp() {
         super.setUp()
         mockAPIService = MockAppCheckAPIService()
-        apiService = GACDeviceCheckAPIService(apiService: mockAPIService, resourceName: kResourceName)
+        apiService = AppCheckCoreDeviceCheckAPIService(apiService: mockAPIService, resourceName: kResourceName)
     }
     
     override func tearDown() {
@@ -74,14 +69,14 @@ class GACDeviceCheckAPIServiceTests: XCTestCase {
     
     func testAppCheckTokenSuccess(withLimitedUse limitedUse: Bool) async throws {
         let deviceTokenData = "device_token".data(using: .utf8)!
-        let expectedResult = GACAppCheckToken(token: "app_check_token", expirationDate: Date())
+        let expectedResult = AppCheckCoreToken(token: "app_check_token", expirationDate: Date())
         
         let expectedRequestURL = "\(mockAPIService.baseURL)/projects/project_id/apps/app_id:exchangeDeviceCheckToken"
         
         // Since we aren't using the fixture loader for the fake response, we'll just mock any response data.
         let responseBody = "{}".data(using: .utf8)!
         let httpResponse = HTTPURLResponse(url: URL(string: expectedRequestURL)!, statusCode: 200, httpVersion: nil, headerFields: nil)!
-        let apiResponse = _GACURLSessionDataResponse(response: httpResponse, httpBody: responseBody)
+        let apiResponse = GACURLSessionDataResponse(response: httpResponse, httpBody: responseBody)
         
         mockAPIService.sendRequestResult = .success(apiResponse)
         mockAPIService.appCheckTokenResult = .success(expectedResult)
@@ -105,7 +100,7 @@ class GACDeviceCheckAPIServiceTests: XCTestCase {
         let expectedRequestURL = "\(mockAPIService.baseURL)/projects/project_id/apps/app_id:exchangeDeviceCheckToken"
         let responseBody = "{}".data(using: .utf8)!
         let httpResponse = HTTPURLResponse(url: URL(string: expectedRequestURL)!, statusCode: 200, httpVersion: nil, headerFields: nil)!
-        let apiResponse = _GACURLSessionDataResponse(response: httpResponse, httpBody: responseBody)
+        let apiResponse = GACURLSessionDataResponse(response: httpResponse, httpBody: responseBody)
         
         mockAPIService.sendRequestResult = .success(apiResponse)
         mockAPIService.appCheckTokenResult = .failure(parsingError)

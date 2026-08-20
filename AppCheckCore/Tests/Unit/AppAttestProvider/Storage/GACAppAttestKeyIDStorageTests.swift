@@ -17,17 +17,17 @@
 import XCTest
 @testable import AppCheckCore
 
-private let kAppName = "GACAppAttestKeyIDStorageTestsApp"
+private let kAppName = "AppCheckCoreAppAttestKeyIDStorageTestsApp"
 private let kAppID = "app_id"
 
-class GACAppAttestKeyIDStorageTests: XCTestCase {
+class AppCheckCoreAppAttestKeyIDStorageTests: XCTestCase {
   var keySuffix: String!
-  var storage: GACAppAttestKeyIDStorage!
+  var storage: AppCheckCoreAppAttestKeyIDStorage!
 
   override func setUp() {
     super.setUp()
     keySuffix = "\(kAppName).\(kAppID)"
-    storage = GACAppAttestKeyIDStorage(keySuffix: keySuffix)
+    storage = AppCheckCoreAppAttestKeyIDStorage(keySuffix: keySuffix)
   }
 
   override func tearDown() async throws {
@@ -38,7 +38,7 @@ class GACAppAttestKeyIDStorageTests: XCTestCase {
   }
 
   func testInitWithApp() {
-    XCTAssertNotNil(GACAppAttestKeyIDStorage(keySuffix: keySuffix))
+    XCTAssertNotNil(AppCheckCoreAppAttestKeyIDStorage(keySuffix: keySuffix))
   }
 
   func testSetAndGetAppAttestKeyID() async throws {
@@ -62,7 +62,7 @@ class GACAppAttestKeyIDStorageTests: XCTestCase {
       XCTFail("Expected getAppAttestKeyID to throw.")
     } catch {
       let nsError = error as NSError
-      let expectedError = GACAppCheckErrorUtil.appAttestKeyIDNotFound() as NSError
+      let expectedError = AppCheckCoreErrorUtil.appAttestKeyIDNotFound() as NSError
       XCTAssertEqual(nsError.domain, expectedError.domain)
       XCTAssertEqual(nsError.code, expectedError.code)
     }
@@ -100,12 +100,12 @@ class GACAppAttestKeyIDStorageTests: XCTestCase {
     appName2: String,
     appID2: String
   ) async throws {
-    let keySuffix1 = GACAppAttestKeyIDStorageTests.storageKeySuffix(appName: appName1, appID: appID1)
-    let keySuffix2 = GACAppAttestKeyIDStorageTests.storageKeySuffix(appName: appName2, appID: appID2)
+    let keySuffix1 = AppCheckCoreAppAttestKeyIDStorageTests.storageKeySuffix(appName: appName1, appID: appID1)
+    let keySuffix2 = AppCheckCoreAppAttestKeyIDStorageTests.storageKeySuffix(appName: appName2, appID: appID2)
 
     // Create two storages.
-    let storage1 = GACAppAttestKeyIDStorage(keySuffix: keySuffix1)
-    let storage2 = GACAppAttestKeyIDStorage(keySuffix: keySuffix2)
+    let storage1 = AppCheckCoreAppAttestKeyIDStorage(keySuffix: keySuffix1)
+    let storage2 = AppCheckCoreAppAttestKeyIDStorage(keySuffix: keySuffix2)
 
     // 1. Independently set app attest key IDs for the two storages.
     let appAttestKeyID1 = "app_attest_key_ID1"

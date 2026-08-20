@@ -4,12 +4,12 @@ import FBLPromises
 #endif
 @testable import AppCheckCore
 
-class GACDeviceCheckAPIServiceFake: NSObject, GACDeviceCheckAPIServiceProtocol {
+class AppCheckCoreDeviceCheckAPIServiceFake: NSObject, AppCheckCoreDeviceCheckAPIServiceProtocol {
     var passedDeviceToken: Data?
     var passedLimitedUse: Bool?
-    var appCheckTokenResult: Result<GACAppCheckToken, Error>?
+    var appCheckTokenResult: Result<AppCheckCoreToken, Error>?
     
-    func appCheckToken(deviceToken: Data, limitedUse: Bool) async throws -> GACAppCheckToken {
+    func appCheckToken(deviceToken: Data, limitedUse: Bool) async throws -> AppCheckCoreToken {
         passedDeviceToken = deviceToken
         passedLimitedUse = limitedUse
         guard let result = appCheckTokenResult else {
@@ -22,7 +22,7 @@ class GACDeviceCheckAPIServiceFake: NSObject, GACDeviceCheckAPIServiceProtocol {
     }
 }
 
-class GACDeviceCheckTokenGeneratorFake: NSObject, GACDeviceCheckTokenGenerator {
+class AppCheckCoreDeviceCheckTokenGeneratorFake: NSObject, AppCheckCoreDeviceCheckTokenGenerator {
     var supported: Bool = true
     var generateTokenCalled = false
     var tokenToReturn: Data?
@@ -42,58 +42,59 @@ class GACDeviceCheckTokenGeneratorFake: NSObject, GACDeviceCheckTokenGenerator {
     }
 }
 
-class GACAppCheckBackoffWrapperFake: NSObject, _GACAppCheckBackoffWrapperProtocol {
+class AppCheckCoreBackoffWrapperFake: NSObject, _AppCheckCoreBackoffWrapperProtocol {
     var isNextOperationAllowed: Bool = true
     var backoffError: Error = NSError(domain: "BackoffError", code: -1, userInfo: nil)
     
     var backoffExpectation: XCTestExpectation?
     var defaultErrorHandlerCalled = false
-    var defaultErrorHandler: ((Error) -> GACAppCheckBackoffType)?
+    var defaultErrorHandler: ((Error) -> AppCheckBackoffType)?
     
     var operationResult: Any?
     var operationError: Error?
     
-    func applyBackoff(toOperation operationProvider: @escaping () -> FBLPromise<AnyObject>, errorHandler: @escaping (Error) -> GACAppCheckBackoffType) -> FBLPromise<AnyObject> {
+    func applyBackoffToOperation(_ operationProvider: @escaping () async throws -> Any, errorHandler: @escaping (Error) -> AppCheckBackoffType) async throws -> Any {
         backoffExpectation?.fulfill()
         if isNextOperationAllowed {
-            let promise = operationProvider()
-            return promise.then { value in
+            do {
+                let value = try await operationProvider()
                 self.operationResult = value
                 return value
-            }.catch { error in
+            } catch {
                 self.operationError = error
                 _ = errorHandler(error)
+                throw error
             }
         } else {
-            return FBLPromise<AnyObject>(backoffError)
+            throw backoffError
         }
     }
     
-    func defaultAppCheckProviderErrorHandler() -> (Error) -> GACAppCheckBackoffType {
+    func defaultAppCheckProviderErrorHandler() -> (Error) -> AppCheckBackoffType {
         return { error in
             self.defaultErrorHandlerCalled = true
             if let handler = self.defaultErrorHandler {
                 return handler(error)
             }
-            return .type1Day
+            return .oneDay
         }
     }
 }
 
-class GACDeviceCheckProviderTests: XCTestCase {
-    var provider: GACDeviceCheckProvider!
-    var fakeAPIService: GACDeviceCheckAPIServiceFake!
-    var fakeTokenGenerator: GACDeviceCheckTokenGeneratorFake!
-    var fakeBackoffWrapper: GACAppCheckBackoffWrapperFake!
+class AppCheckCoreDeviceCheckProviderTests: XCTestCase {
+    var provider: AppCheckCoreDeviceCheckProvider!
+    var fakeAPIService: AppCheckCoreDeviceCheckAPIServiceFake!
+    var fakeTokenGenerator: AppCheckCoreDeviceCheckTokenGeneratorFake!
+    var fakeBackoffWrapper: AppCheckCoreBackoffWrapperFake!
     
     override func setUp() {
         super.setUp()
-        fakeAPIService = GACDeviceCheckAPIServiceFake()
-        fakeTokenGenerator = GACDeviceCheckTokenGeneratorFake()
-        fakeBackoffWrapper = GACAppCheckBackoffWrapperFake()
+        fakeAPIService = AppCheckCoreDeviceCheckAPIServiceFake()
+        fakeTokenGenerator = AppCheckCoreDeviceCheckTokenGeneratorFake()
+        fakeBackoffWrapper = AppCheckCoreBackoffWrapperFake()
         fakeBackoffWrapper.isNextOperationAllowed = true
         
-        provider = GACDeviceCheckProvider(apiService: fakeAPIService,
+        provider = AppCheckCoreDeviceCheckProvider(apiService: fakeAPIService,
                                           deviceTokenGenerator: fakeTokenGenerator,
                                           backoffWrapper: fakeBackoffWrapper)
     }
@@ -111,12 +112,12 @@ class GACDeviceCheckProviderTests: XCTestCase {
         let deviceToken = Data()
         fakeTokenGenerator.tokenToReturn = deviceToken
         
-        let validToken = GACAppCheckToken(token: "valid_token", expirationDate: Date.distantFuture, receivedAt: Date())
+        let validToken = AppCheckCoreToken(token: "valid_token", expirationDate: Date.distantFuture, receivedAtDate: Date())
         fakeAPIService.appCheckTokenResult = .success(validToken)
         
         fakeBackoffWrapper.backoffExpectation = expectation(description: "Backoff")
         
-        let token = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<GACAppCheckToken, Error>) in
+        let token = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AppCheckCoreToken, Error>) in
             provider.getToken { token, error in
                 if let error = error {
                     continuation.resume(throwing: error)
@@ -135,7 +136,7 @@ class GACDeviceCheckProviderTests: XCTestCase {
         XCTAssertEqual(token.receivedAtDate, validToken.receivedAtDate)
         
         XCTAssertNil(fakeBackoffWrapper.operationError)
-        let wrapperResult = fakeBackoffWrapper.operationResult as? GACAppCheckToken
+        let wrapperResult = fakeBackoffWrapper.operationResult as? AppCheckCoreToken
         XCTAssertEqual(wrapperResult?.token, validToken.token)
         
         XCTAssertEqual(fakeAPIService.passedDeviceToken, deviceToken)
@@ -144,7 +145,7 @@ class GACDeviceCheckProviderTests: XCTestCase {
     }
     
     func testGetTokenWhenDeviceCheckIsNotSupported() async throws {
-        let expectedError = _GACAppCheckErrorUtil.unsupportedAttestationProvider("DeviceCheckProvider")
+        let expectedError = _AppCheckCoreErrorUtil.unsupportedAttestationProvider("DeviceCheckProvider")
         
         fakeBackoffWrapper.backoffExpectation = expectation(description: "Backoff")
         let errorHandlerExpectation = expectation(description: "Error handler")
@@ -155,13 +156,13 @@ class GACDeviceCheckProviderTests: XCTestCase {
             XCTAssertEqual(nsError.domain, expNSError.domain)
             XCTAssertEqual(nsError.code, expNSError.code)
             errorHandlerExpectation.fulfill()
-            return .type1Day
+            return .oneDay
         }
         
         fakeTokenGenerator.supported = false
         
         do {
-            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<GACAppCheckToken, Error>) in
+            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AppCheckCoreToken, Error>) in
                 provider.getToken { token, error in
                     if let error = error {
                         continuation.resume(throwing: error)
@@ -191,7 +192,7 @@ class GACDeviceCheckProviderTests: XCTestCase {
     }
     
     func testGetTokenWhenDeviceTokenFails() async throws {
-        let deviceTokenError = NSError(domain: "GACDeviceCheckProviderTests", code: -1, userInfo: nil)
+        let deviceTokenError = NSError(domain: "AppCheckCoreDeviceCheckProviderTests", code: -1, userInfo: nil)
         
         fakeBackoffWrapper.backoffExpectation = expectation(description: "Backoff")
         let errorHandlerExpectation = expectation(description: "Error handler")
@@ -201,14 +202,14 @@ class GACDeviceCheckProviderTests: XCTestCase {
             XCTAssertEqual(nsError.domain, deviceTokenError.domain)
             XCTAssertEqual(nsError.code, deviceTokenError.code)
             errorHandlerExpectation.fulfill()
-            return .type1Day
+            return .oneDay
         }
         
         fakeTokenGenerator.supported = true
         fakeTokenGenerator.errorToReturn = deviceTokenError
         
         do {
-            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<GACAppCheckToken, Error>) in
+            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AppCheckCoreToken, Error>) in
                 provider.getToken { token, error in
                     if let error = error {
                         continuation.resume(throwing: error)
@@ -237,7 +238,7 @@ class GACDeviceCheckProviderTests: XCTestCase {
     }
     
     func testGetTokenWhenAPIServiceFails() async throws {
-        let apiError = NSError(domain: "GACDeviceCheckProviderTests", code: -1, userInfo: nil)
+        let apiError = NSError(domain: "AppCheckCoreDeviceCheckProviderTests", code: -1, userInfo: nil)
         
         fakeBackoffWrapper.backoffExpectation = expectation(description: "Backoff")
         let errorHandlerExpectation = expectation(description: "Error handler")
@@ -247,7 +248,7 @@ class GACDeviceCheckProviderTests: XCTestCase {
             XCTAssertEqual(nsError.domain, apiError.domain)
             XCTAssertEqual(nsError.code, apiError.code)
             errorHandlerExpectation.fulfill()
-            return .type1Day
+            return .oneDay
         }
         
         fakeTokenGenerator.supported = true
@@ -257,7 +258,7 @@ class GACDeviceCheckProviderTests: XCTestCase {
         fakeAPIService.appCheckTokenResult = .failure(apiError)
         
         do {
-            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<GACAppCheckToken, Error>) in
+            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AppCheckCoreToken, Error>) in
                 provider.getToken { token, error in
                     if let error = error {
                         continuation.resume(throwing: error)
@@ -291,12 +292,12 @@ class GACDeviceCheckProviderTests: XCTestCase {
         let deviceToken = Data()
         fakeTokenGenerator.tokenToReturn = deviceToken
         
-        let validToken = GACAppCheckToken(token: "valid_token", expirationDate: Date.distantFuture, receivedAt: Date())
+        let validToken = AppCheckCoreToken(token: "valid_token", expirationDate: Date.distantFuture, receivedAtDate: Date())
         fakeAPIService.appCheckTokenResult = .success(validToken)
         
         fakeBackoffWrapper.backoffExpectation = expectation(description: "Backoff")
         
-        let token = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<GACAppCheckToken, Error>) in
+        let token = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AppCheckCoreToken, Error>) in
             provider.getLimitedUseToken { token, error in
                 if let error = error {
                     continuation.resume(throwing: error)
@@ -315,7 +316,7 @@ class GACDeviceCheckProviderTests: XCTestCase {
         XCTAssertEqual(token.receivedAtDate, validToken.receivedAtDate)
         
         XCTAssertNil(fakeBackoffWrapper.operationError)
-        let wrapperResult = fakeBackoffWrapper.operationResult as? GACAppCheckToken
+        let wrapperResult = fakeBackoffWrapper.operationResult as? AppCheckCoreToken
         XCTAssertEqual(wrapperResult?.token, validToken.token)
         
         XCTAssertEqual(fakeAPIService.passedDeviceToken, deviceToken)
@@ -330,7 +331,7 @@ class GACDeviceCheckProviderTests: XCTestCase {
         fakeBackoffWrapper.backoffExpectation = expectation(description: "Backoff")
         
         do {
-            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<GACAppCheckToken, Error>) in
+            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AppCheckCoreToken, Error>) in
                 provider.getToken { token, error in
                     if let error = error {
                         continuation.resume(throwing: error)
