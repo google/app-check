@@ -10,3 +10,36 @@ public protocol AppCheckCoreProvider: NSObjectProtocol {
     @objc(getLimitedUseTokenWithCompletion:)
     func getLimitedUseToken(completion: @escaping (AppCheckCoreToken?, Error?) -> Void)
 }
+
+
+public extension AppCheckCoreProvider {
+    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 7.0, *)
+    func getToken() async throws -> AppCheckCoreToken {
+        return try await withCheckedThrowingContinuation { continuation in
+            self.getToken { token, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                } else if let token = token {
+                    continuation.resume(returning: token)
+                } else {
+                    continuation.resume(throwing: NSError(domain: "AppCheckCoreProvider", code: -1, userInfo: [NSLocalizedDescriptionKey: "No token and no error returned."]))
+                }
+            }
+        }
+    }
+
+    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 7.0, *)
+    func getLimitedUseToken() async throws -> AppCheckCoreToken {
+        return try await withCheckedThrowingContinuation { continuation in
+            self.getLimitedUseToken { token, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                } else if let token = token {
+                    continuation.resume(returning: token)
+                } else {
+                    continuation.resume(throwing: NSError(domain: "AppCheckCoreProvider", code: -1, userInfo: [NSLocalizedDescriptionKey: "No token and no error returned."]))
+                }
+            }
+        }
+    }
+}
