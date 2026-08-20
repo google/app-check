@@ -76,7 +76,7 @@ public extension AppCheckCoreStoredToken {
     return AppCheckCoreToken(
       token: token,
       expirationDate: expirationDate,
-      receivedAtDate: receivedAtDate
+      receivedAt: receivedAtDate
     )
   }
 }

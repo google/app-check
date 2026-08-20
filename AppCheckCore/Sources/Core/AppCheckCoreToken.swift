@@ -21,7 +21,8 @@ public class AppCheckCoreToken: NSObject, @unchecked Sendable {
   public let expirationDate: Date
   public let receivedAtDate: Date
 
-  public init(token: String, expirationDate: Date, receivedAtDate: Date) {
+  @objc(initWithToken:expirationDate:receivedAtDate:)
+  public init(token: String, expirationDate: Date, receivedAt receivedAtDate: Date) {
     self.token = token
     self.expirationDate = expirationDate
     self.receivedAtDate = receivedAtDate
@@ -29,6 +30,6 @@ public class AppCheckCoreToken: NSObject, @unchecked Sendable {
   }
 
   public convenience init(token: String, expirationDate: Date) {
-    self.init(token: token, expirationDate: expirationDate, receivedAtDate: Date())
+    self.init(token: token, expirationDate: expirationDate, receivedAt: Date())
   }
 }

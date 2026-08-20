@@ -56,6 +56,6 @@ public extension AppCheckCoreToken {
 
     let expirationDate = requestDate.addingTimeInterval(secondsToLive)
 
-    self.init(token: token, expirationDate: expirationDate, receivedAtDate: requestDate)
+    self.init(token: token, expirationDate: expirationDate, receivedAt: requestDate)
   }
 }
