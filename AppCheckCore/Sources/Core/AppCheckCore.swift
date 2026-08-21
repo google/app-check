@@ -155,12 +155,7 @@ public class AppCheckCore: NSObject {
   private func refreshToken() async throws -> AppCheckCoreToken {
     let token = try await appCheckProvider.getToken()
 
-    do {
-      _ = try await storage.setToken(token)
-    } catch {
-      // Ignore keychain write failures to prevent failing the token fetch.
-      // The token is still valid and can be used for network requests.
-    }
+    _ = try await storage.setToken(token)
 
     let refreshResult = AppCheckCoreTokenRefreshResult(status: .success,
                                                        expirationDate: token.expirationDate,

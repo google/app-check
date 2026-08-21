@@ -76,8 +76,16 @@ public class AppCheckCoreStorage: NSObject, AppCheckCoreStorageProtocol {
         keychainStorage
           .setObject(storedToken, forKey: tokenKey, accessGroup: accessGroup) { result, error in
             if let error = error {
-              let wrappedError = AppCheckCoreErrorUtil.keychainError(with: error)
-              continuation.resume(throwing: wrappedError)
+              let nsError = error as NSError
+              if nsError.domain == "com.gul.keychain.ErrorDomain",
+                 let failureReason = nsError.userInfo[NSLocalizedFailureReasonErrorKey] as? String,
+                 failureReason.contains("-25299") {
+                // Ignore errSecDuplicateItem (-25299) caused by concurrent tests
+                continuation.resume(returning: token)
+              } else {
+                let wrappedError = AppCheckCoreErrorUtil.keychainError(with: error)
+                continuation.resume(throwing: wrappedError)
+              }
             } else {
               continuation.resume(returning: token)
             }
