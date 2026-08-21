@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'AppCheckCore'
-  s.version          = '11.3.1'
+  s.version          = '12.0.0'
   s.summary          = 'App Check Core SDK.'
 
   s.description      = <<-DESC
