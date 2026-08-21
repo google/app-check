@@ -115,9 +115,7 @@ public class AppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
                        httpMethod: String,
                        body: Data?,
                        additionalHeaders: [String: String]?) throws -> URLRequest {
-    guard let mutableRequest = NSMutableURLRequest(url: requestURL) as NSMutableURLRequest? else {
-      throw AppCheckCoreErrorUtil.error(withFailureReason: "Failed to create URLRequest.")
-    }
+    let mutableRequest = NSMutableURLRequest(url: requestURL)
 
     mutableRequest.httpMethod = httpMethod
     mutableRequest.httpBody = body

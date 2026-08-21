@@ -27,8 +27,8 @@ public protocol AppCheckCoreTokenRefresherProtocol: NSObjectProtocol {
 @objc(GACAppCheckTokenRefresher)
 @objcMembers
 public class AppCheckCoreTokenRefresher: NSObject, AppCheckCoreTokenRefresherProtocol {
-  private let kInitialBackoffTimeInterval: TimeInterval = 30
-  private let kMaximumBackoffTimeInterval: TimeInterval = 16 * 60
+  private static let kInitialBackoffTimeInterval: TimeInterval = 30
+  private static let kMaximumBackoffTimeInterval: TimeInterval = 16 * 60
   private let kMinimumAutoRefreshTimeInterval: TimeInterval = 60 // 1 min.
   private let kAutoRefreshFraction: Double = 0.5
 
@@ -181,8 +181,11 @@ public class AppCheckCoreTokenRefresher: NSObject, AppCheckCoreTokenRefresherPro
       return 0
     }
 
-    let exponentialInterval = 30.0 * pow(2.0, Double(retryCount - 1)) + randomMilliseconds()
-    return min(exponentialInterval, 16.0 * 60.0)
+    let exponentialInterval = AppCheckCoreTokenRefresher.kInitialBackoffTimeInterval * pow(
+      2.0,
+      Double(retryCount - 1)
+    ) + randomMilliseconds()
+    return min(exponentialInterval, AppCheckCoreTokenRefresher.kMaximumBackoffTimeInterval)
   }
 
   private static func randomMilliseconds() -> TimeInterval {

@@ -99,20 +99,26 @@ public class AppCheckCore: NSObject {
   public func token(forcingRefresh: Bool) async throws -> AppCheckCoreToken {
     let action: GetTokenAction = lock.execute {
       // If not forcing refresh and there is an ongoing task, return it
-      if let ongoing = ongoingTask {
+      if !forcingRefresh, let ongoing = ongoingTask {
         return .wait(ongoing)
       }
 
-      // Create a new task and store it
+      // Create a new task and store it only if not forcing refresh
       let task = Task { () -> AppCheckCoreToken in
         defer {
-          self.lock.execute {
-            self.ongoingTask = nil
+          if !forcingRefresh {
+            self.lock.execute {
+              self.ongoingTask = nil
+            }
           }
         }
         return try await self.createRetrieveOrRefreshToken(forcingRefresh: forcingRefresh)
       }
-      self.ongoingTask = task
+
+      if !forcingRefresh {
+        self.ongoingTask = task
+      }
+
       return .run(task)
     }
 
