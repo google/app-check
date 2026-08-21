@@ -17,8 +17,8 @@ import Foundation
 #if COCOAPODS
   import GoogleUtilities
 #else
-  import GoogleUtilities_UserDefaults
   import GoogleUtilities_Environment
+  import GoogleUtilities_UserDefaults
 #endif
 
 class AppCheckCoreStorageFake: NSObject, AppCheckCoreStorageProtocol {

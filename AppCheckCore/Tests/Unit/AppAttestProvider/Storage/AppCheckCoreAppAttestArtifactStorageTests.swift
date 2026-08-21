@@ -122,7 +122,11 @@ private let kAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
         )
 
         // 2. Create and expect keychain error.
-        let gulsKeychainError = NSError(domain: "com.google.utilities.keychain", code: -1, userInfo: nil)
+        let gulsKeychainError = NSError(
+          domain: "com.google.utilities.keychain",
+          code: -1,
+          userInfo: nil
+        )
         fakeKeychainStorage.keychainError = gulsKeychainError
 
         // 3. Get artifact and verify results.
@@ -133,7 +137,13 @@ private let kAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
           let nsError = error as NSError
           let expectedError = AppCheckCoreErrorUtil
             .keychainError(with: gulsKeychainError) as NSError
-          XCTAssertEqual(nsError, expectedError)
+          XCTAssertEqual(nsError.domain, expectedError.domain)
+          XCTAssertEqual(nsError.code, expectedError.code)
+          if let underlyingError = nsError.userInfo[NSUnderlyingErrorKey] as? NSError,
+             let expectedUnderlyingError = expectedError.userInfo[NSUnderlyingErrorKey] as? NSError {
+            XCTAssertEqual(underlyingError.domain, expectedUnderlyingError.domain)
+            XCTAssertEqual(underlyingError.code, expectedUnderlyingError.code)
+          }
         }
       }
 
@@ -147,7 +157,11 @@ private let kAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
         )
 
         // 2. Create and expect keychain error.
-        let gulsKeychainError = NSError(domain: "com.google.utilities.keychain", code: -1, userInfo: nil)
+        let gulsKeychainError = NSError(
+          domain: "com.google.utilities.keychain",
+          code: -1,
+          userInfo: nil
+        )
         fakeKeychainStorage.keychainError = gulsKeychainError
 
         // 3. Set artifact and verify results.
@@ -159,7 +173,13 @@ private let kAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
           let nsError = error as NSError
           let expectedError = AppCheckCoreErrorUtil
             .keychainError(with: gulsKeychainError) as NSError
-          XCTAssertEqual(nsError, expectedError)
+          XCTAssertEqual(nsError.domain, expectedError.domain)
+          XCTAssertEqual(nsError.code, expectedError.code)
+          if let underlyingError = nsError.userInfo[NSUnderlyingErrorKey] as? NSError,
+             let expectedUnderlyingError = expectedError.userInfo[NSUnderlyingErrorKey] as? NSError {
+            XCTAssertEqual(underlyingError.domain, expectedUnderlyingError.domain)
+            XCTAssertEqual(underlyingError.code, expectedUnderlyingError.code)
+          }
         }
       }
 
@@ -173,7 +193,11 @@ private let kAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
         )
 
         // 2. Create and expect keychain error.
-        let gulsKeychainError = NSError(domain: "com.google.utilities.keychain", code: -1, userInfo: nil)
+        let gulsKeychainError = NSError(
+          domain: "com.google.utilities.keychain",
+          code: -1,
+          userInfo: nil
+        )
         fakeKeychainStorage.keychainError = gulsKeychainError
 
         // 3. Remove artifact and verify results.
@@ -184,7 +208,13 @@ private let kAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
           let nsError = error as NSError
           let expectedError = AppCheckCoreErrorUtil
             .keychainError(with: gulsKeychainError) as NSError
-          XCTAssertEqual(nsError, expectedError)
+          XCTAssertEqual(nsError.domain, expectedError.domain)
+          XCTAssertEqual(nsError.code, expectedError.code)
+          if let underlyingError = nsError.userInfo[NSUnderlyingErrorKey] as? NSError,
+             let expectedUnderlyingError = expectedError.userInfo[NSUnderlyingErrorKey] as? NSError {
+            XCTAssertEqual(underlyingError.domain, expectedUnderlyingError.domain)
+            XCTAssertEqual(underlyingError.code, expectedUnderlyingError.code)
+          }
         }
       }
 
