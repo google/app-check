@@ -153,17 +153,7 @@ public class AppCheckCore: NSObject {
   }
 
   private func refreshToken() async throws -> AppCheckCoreToken {
-    let token: AppCheckCoreToken = try await withCheckedThrowingContinuation { continuation in
-      self.appCheckProvider.getToken { token, error in
-        if let error = error {
-          continuation.resume(throwing: error)
-        } else if let token = token {
-          continuation.resume(returning: token)
-        } else {
-          continuation.resume(throwing: AppCheckCoreErrorCode.unknown)
-        }
-      }
-    }
+    let token = try await appCheckProvider.getToken()
 
     _ = try await storage.setToken(token)
 
@@ -192,17 +182,7 @@ public class AppCheckCore: NSObject {
   }
 
   public func limitedUseToken() async throws -> AppCheckCoreToken {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.appCheckProvider.getLimitedUseToken { token, error in
-        if let error = error {
-          continuation.resume(throwing: error)
-        } else if let token = token {
-          continuation.resume(returning: token)
-        } else {
-          continuation.resume(throwing: AppCheckCoreErrorCode.unknown)
-        }
-      }
-    }
+    return try await appCheckProvider.getLimitedUseToken()
   }
 
   @objc(limitedUseTokenWithCompletion:)
