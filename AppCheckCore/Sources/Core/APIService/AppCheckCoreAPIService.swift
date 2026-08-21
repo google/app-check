@@ -56,7 +56,7 @@ public class AppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
   public convenience init(urlSession: URLSession,
                           baseURL: String?,
                           apiKey: String?,
-                          requestHooks: [AppCheckCoreAPIRequestHook]?) {
+                          requestHooks: [Any]?) {
     self.init(
       urlSession: urlSession,
       baseURL: baseURL,
@@ -70,11 +70,11 @@ public class AppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
   init(urlSession: URLSession,
        baseURL: String?,
        apiKey: String?,
-       requestHooks: [AppCheckCoreAPIRequestHook]?,
+       requestHooks: [Any]?,
        environment: [String: String]) {
     self.urlSession = urlSession
     self.apiKey = apiKey
-    self.requestHooks = requestHooks ?? []
+    self.requestHooks = requestHooks?.compactMap { $0 as? AppCheckCoreAPIRequestHook } ?? []
 
     var resolvedBaseURL = baseURL
 

@@ -57,7 +57,7 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
                           resourceName: String,
                           baseURL: String?,
                           apiKey: String,
-                          requestHooks: [AppCheckCoreAPIRequestHook]?) {
+                          requestHooks: [Any]?) {
     self.init(serviceName: serviceName,
               resourceName: resourceName,
               baseURL: baseURL,
@@ -71,7 +71,7 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
                    resourceName: String,
                    baseURL: String?,
                    apiKey: String,
-                   requestHooks: [AppCheckCoreAPIRequestHook]?,
+                   requestHooks: [Any]?,
                    environment: [String: String]) {
     let urlSession = URLSession(configuration: .ephemeral)
     let coreAPIService = AppCheckCoreAPIService(urlSession: urlSession,

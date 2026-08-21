@@ -26,7 +26,7 @@ public class AppCheckCoreDeviceCheckProvider: NSObject, AppCheckCoreProvider {
 
   @objc(initWithServiceName:resourceName:APIKey:requestHooks:)
   public init(serviceName: String, resourceName: String, apiKey: String,
-              requestHooks: [AppCheckCoreAPIRequestHook]?) {
+              requestHooks: [Any]?) {
     let session = URLSession(configuration: .ephemeral)
     let coreAPIService = AppCheckCoreAPIService(
       urlSession: session,
