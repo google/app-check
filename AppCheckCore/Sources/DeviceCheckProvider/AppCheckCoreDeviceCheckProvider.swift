@@ -17,6 +17,7 @@ import Foundation
   import DeviceCheck
 #endif
 
+@available(iOS 11.0, macOS 10.15, macCatalyst 13.0, tvOS 11.0, watchOS 9.0, *)
 @objc(GACDeviceCheckProvider)
 public class AppCheckCoreDeviceCheckProvider: NSObject, AppCheckCoreProvider {
   private let apiService: AppCheckCoreDeviceCheckAPIServiceProtocol

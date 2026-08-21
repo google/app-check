@@ -57,11 +57,7 @@ public class AppCheckCoreStorage: NSObject, AppCheckCoreStorageProtocol {
       ) { storedToken, error in
         if let error = error {
           // Wrap keychain error
-          let wrappedError = NSError(
-            domain: AppCheckCoreErrorDomain,
-            code: AppCheckCoreErrorCode.keychain.rawValue,
-            userInfo: [NSUnderlyingErrorKey: error]
-          )
+          let wrappedError = AppCheckCoreErrorUtil.keychainError(with: error)
           continuation.resume(throwing: wrappedError)
         } else if let stored = storedToken as? AppCheckCoreStoredToken {
           continuation.resume(returning: stored.appCheckToken())
@@ -80,11 +76,7 @@ public class AppCheckCoreStorage: NSObject, AppCheckCoreStorageProtocol {
         keychainStorage
           .setObject(storedToken, forKey: tokenKey, accessGroup: accessGroup) { result, error in
             if let error = error {
-              let wrappedError = NSError(
-                domain: AppCheckCoreErrorDomain,
-                code: AppCheckCoreErrorCode.keychain.rawValue,
-                userInfo: [NSUnderlyingErrorKey: error]
-              )
+              let wrappedError = AppCheckCoreErrorUtil.keychainError(with: error)
               continuation.resume(throwing: wrappedError)
             } else {
               continuation.resume(returning: token)
@@ -93,11 +85,7 @@ public class AppCheckCoreStorage: NSObject, AppCheckCoreStorageProtocol {
       } else {
         keychainStorage.removeObject(forKey: tokenKey, accessGroup: accessGroup) { error in
           if let error = error {
-            let wrappedError = NSError(
-              domain: AppCheckCoreErrorDomain,
-              code: AppCheckCoreErrorCode.keychain.rawValue,
-              userInfo: [NSUnderlyingErrorKey: error]
-            )
+            let wrappedError = AppCheckCoreErrorUtil.keychainError(with: error)
             continuation.resume(throwing: wrappedError)
           } else {
             continuation.resume(returning: nil)
