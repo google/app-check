@@ -150,8 +150,7 @@ public class AppCheckCoreTokenRefresher: NSObject, AppCheckCoreTokenRefresherPro
       let targetRefreshSinceReceivedDate = timeToLive * kAutoRefreshFraction + 5 * 60
       let targetRefreshDate = receivedAtDate.addingTimeInterval(targetRefreshSinceReceivedDate)
 
-      var refreshDate = targetRefreshDate
-        .compare(expirationDate) == .orderedAscending ? targetRefreshDate : expirationDate
+      var refreshDate = min(targetRefreshDate, expirationDate)
 
       if refreshDate.timeIntervalSinceNow < kMinimumAutoRefreshTimeInterval {
         refreshDate = Date(timeIntervalSinceNow: kMinimumAutoRefreshTimeInterval)

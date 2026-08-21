@@ -17,19 +17,19 @@ import Foundation
 @objc(GACAppCheckStoredToken)
 @objcMembers
 public class AppCheckCoreStoredToken: NSObject, NSSecureCoding {
-  private let kTokenKey = "token"
-  private let kExpirationDateKey = "expirationDate"
-  private let kReceivedAtDateKey = "receivedAtDate"
-  private let kStorageVersionKey = "storageVersion"
+  private static let kTokenKey = "token"
+  private static let kExpirationDateKey = "expirationDate"
+  private static let kReceivedAtDateKey = "receivedAtDate"
+  private static let kStorageVersionKey = "storageVersion"
 
-  private let kStorageVersion: Int = 2
+  private static let kStorageVersion: Int = 2
 
   public var token: String?
   public var expirationDate: Date?
   public var receivedAtDate: Date?
 
   public var storageVersion: Int {
-    return kStorageVersion
+    return Self.kStorageVersion
   }
 
   public static var supportsSecureCoding: Bool {
@@ -41,22 +41,22 @@ public class AppCheckCoreStoredToken: NSObject, NSSecureCoding {
   }
 
   public func encode(with coder: NSCoder) {
-    coder.encode(token, forKey: kTokenKey)
-    coder.encode(expirationDate, forKey: kExpirationDateKey)
-    coder.encode(receivedAtDate, forKey: kReceivedAtDateKey)
-    coder.encode(storageVersion, forKey: kStorageVersionKey)
+    coder.encode(token, forKey: Self.kTokenKey)
+    coder.encode(expirationDate, forKey: Self.kExpirationDateKey)
+    coder.encode(receivedAtDate, forKey: Self.kReceivedAtDateKey)
+    coder.encode(storageVersion, forKey: Self.kStorageVersionKey)
   }
 
   public required init?(coder: NSCoder) {
     super.init()
-    let decodedStorageVersion = coder.decodeInteger(forKey: kStorageVersionKey)
-    if decodedStorageVersion > kStorageVersion {
+    let decodedStorageVersion = coder.decodeInteger(forKey: Self.kStorageVersionKey)
+    if decodedStorageVersion > Self.kStorageVersion {
       // TODO: Log a message.
     }
 
-    token = coder.decodeObject(of: NSString.self, forKey: kTokenKey) as String?
-    expirationDate = coder.decodeObject(of: NSDate.self, forKey: kExpirationDateKey) as Date?
-    receivedAtDate = coder.decodeObject(of: NSDate.self, forKey: kReceivedAtDateKey) as Date?
+    token = coder.decodeObject(of: NSString.self, forKey: Self.kTokenKey) as String?
+    expirationDate = coder.decodeObject(of: NSDate.self, forKey: Self.kExpirationDateKey) as Date?
+    receivedAtDate = coder.decodeObject(of: NSDate.self, forKey: Self.kReceivedAtDateKey) as Date?
   }
 }
 
