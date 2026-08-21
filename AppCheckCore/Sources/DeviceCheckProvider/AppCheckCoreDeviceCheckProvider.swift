@@ -57,41 +57,11 @@ public class AppCheckCoreDeviceCheckProvider: NSObject, AppCheckCoreProvider {
 
   @objc
   public func getToken() async throws -> AppCheckCoreToken {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.getToken { token, error in
-        if let error = error {
-          continuation.resume(throwing: error)
-        } else if let token = token {
-          continuation.resume(returning: token)
-        } else {
-          let wrappedError = NSError(
-            domain: AppCheckCoreErrorDomain,
-            code: AppCheckCoreErrorCode.unknown.rawValue,
-            userInfo: nil
-          )
-          continuation.resume(throwing: wrappedError)
-        }
-      }
-    }
+    return try await getToken(limitedUse: false)
   }
 
   public func getLimitedUseToken() async throws -> AppCheckCoreToken {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.getLimitedUseToken { token, error in
-        if let error = error {
-          continuation.resume(throwing: error)
-        } else if let token = token {
-          continuation.resume(returning: token)
-        } else {
-          let wrappedError = NSError(
-            domain: AppCheckCoreErrorDomain,
-            code: AppCheckCoreErrorCode.unknown.rawValue,
-            userInfo: nil
-          )
-          continuation.resume(throwing: wrappedError)
-        }
-      }
-    }
+    return try await getToken(limitedUse: true)
   }
 
   public func getToken(completion handler: @escaping (AppCheckCoreToken?, Error?) -> Void) {

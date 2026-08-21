@@ -101,6 +101,14 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
     getToken(limitedUse: true, completion: handler)
   }
 
+  public func getToken() async throws -> AppCheckCoreToken {
+    return try await getToken(limitedUse: false)
+  }
+
+  public func getLimitedUseToken() async throws -> AppCheckCoreToken {
+    return try await getToken(limitedUse: true)
+  }
+
   // MARK: - Internal
 
   private func getToken(limitedUse: Bool,

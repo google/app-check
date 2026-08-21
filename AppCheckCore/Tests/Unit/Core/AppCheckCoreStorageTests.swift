@@ -91,7 +91,8 @@ private let kGoogleAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
           XCTAssertEqual(nsError.domain, expectedError.domain)
           XCTAssertEqual(nsError.code, expectedError.code)
           if let underlyingError = nsError.userInfo[NSUnderlyingErrorKey] as? NSError,
-             let expectedUnderlyingError = expectedError.userInfo[NSUnderlyingErrorKey] as? NSError {
+             let expectedUnderlyingError = expectedError
+             .userInfo[NSUnderlyingErrorKey] as? NSError {
             XCTAssertEqual(underlyingError.domain, expectedUnderlyingError.domain)
             XCTAssertEqual(underlyingError.code, expectedUnderlyingError.code)
           }
@@ -127,7 +128,8 @@ private let kGoogleAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
           XCTAssertEqual(nsError.domain, expectedError.domain)
           XCTAssertEqual(nsError.code, expectedError.code)
           if let underlyingError = nsError.userInfo[NSUnderlyingErrorKey] as? NSError,
-             let expectedUnderlyingError = expectedError.userInfo[NSUnderlyingErrorKey] as? NSError {
+             let expectedUnderlyingError = expectedError
+             .userInfo[NSUnderlyingErrorKey] as? NSError {
             XCTAssertEqual(underlyingError.domain, expectedUnderlyingError.domain)
             XCTAssertEqual(underlyingError.code, expectedUnderlyingError.code)
           }
@@ -160,7 +162,8 @@ private let kGoogleAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
           XCTAssertEqual(nsError.domain, expectedError.domain)
           XCTAssertEqual(nsError.code, expectedError.code)
           if let underlyingError = nsError.userInfo[NSUnderlyingErrorKey] as? NSError,
-             let expectedUnderlyingError = expectedError.userInfo[NSUnderlyingErrorKey] as? NSError {
+             let expectedUnderlyingError = expectedError
+             .userInfo[NSUnderlyingErrorKey] as? NSError {
             XCTAssertEqual(underlyingError.domain, expectedUnderlyingError.domain)
             XCTAssertEqual(underlyingError.code, expectedUnderlyingError.code)
           }

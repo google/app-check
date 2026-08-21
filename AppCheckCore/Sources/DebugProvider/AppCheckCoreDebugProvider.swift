@@ -98,41 +98,11 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
   // MARK: - AppCheckCoreProvider
 
   public func getToken() async throws -> AppCheckCoreToken {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.getToken { token, error in
-        if let error = error {
-          continuation.resume(throwing: error)
-        } else if let token = token {
-          continuation.resume(returning: token)
-        } else {
-          let wrappedError = NSError(
-            domain: AppCheckCoreErrorDomain,
-            code: AppCheckCoreErrorCode.unknown.rawValue,
-            userInfo: nil
-          )
-          continuation.resume(throwing: wrappedError)
-        }
-      }
-    }
+    return try await getToken(limitedUse: false)
   }
 
   public func getLimitedUseToken() async throws -> AppCheckCoreToken {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.getLimitedUseToken { token, error in
-        if let error = error {
-          continuation.resume(throwing: error)
-        } else if let token = token {
-          continuation.resume(returning: token)
-        } else {
-          let wrappedError = NSError(
-            domain: AppCheckCoreErrorDomain,
-            code: AppCheckCoreErrorCode.unknown.rawValue,
-            userInfo: nil
-          )
-          continuation.resume(throwing: wrappedError)
-        }
-      }
-    }
+    return try await getToken(limitedUse: true)
   }
 
   public func getToken(completion handler: @escaping (AppCheckCoreToken?, Error?) -> Void) {
@@ -146,31 +116,40 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
 
   // MARK: - Internal
 
+  private func getToken(limitedUse: Bool) async throws -> AppCheckCoreToken {
+    do {
+      let token = try await apiService.appCheckToken(
+        debugToken: currentDebugToken(),
+        limitedUse: limitedUse
+      )
+      GULUserDefaults.standard().setObject(true, forKey: registeredUserDefaultsKey)
+      return token
+    } catch {
+      let logMessage = "Failed to exchange debug token to app check token: \(error)"
+      AppCheckCoreLogger.log(
+        code: .debugProviderFailedExchange,
+        logLevel: .debug,
+        message: logMessage
+      )
+
+      let nsError = error as NSError
+      if nsError.domain == AppCheckCoreErrorDomain && nsError.code == AppCheckCoreErrorCode
+        .serverUnreachable.rawValue {
+        // Do nothing
+      } else {
+        GULUserDefaults.standard().removeObject(forKey: registeredUserDefaultsKey)
+      }
+      throw error
+    }
+  }
+
   private func getToken(limitedUse: Bool,
                         completion handler: @escaping (AppCheckCoreToken?, Error?) -> Void) {
     Task {
       do {
-        let token = try await apiService.appCheckToken(
-          debugToken: currentDebugToken(),
-          limitedUse: limitedUse
-        )
-        GULUserDefaults.standard().setObject(true, forKey: registeredUserDefaultsKey)
+        let token = try await getToken(limitedUse: limitedUse)
         handler(token, nil)
       } catch {
-        let logMessage = "Failed to exchange debug token to app check token: \(error)"
-        AppCheckCoreLogger.log(
-          code: .debugProviderFailedExchange,
-          logLevel: .debug,
-          message: logMessage
-        )
-
-        let nsError = error as NSError
-        if nsError.domain == AppCheckCoreErrorDomain && nsError.code == AppCheckCoreErrorCode
-          .serverUnreachable.rawValue {
-          // Do nothing
-        } else {
-          GULUserDefaults.standard().removeObject(forKey: registeredUserDefaultsKey)
-        }
         handler(nil, error)
       }
     }

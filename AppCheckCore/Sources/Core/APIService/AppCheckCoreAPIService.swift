@@ -101,20 +101,20 @@ public class AppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
                           body: Data?,
                           additionalHeaders: [String: String]?) async throws
     -> AppCheckCoreURLSessionDataResponse {
-    let request = try await self.request(
+    let request = try self.request(
       withURL: requestURL,
       httpMethod: httpMethod,
       body: body,
       additionalHeaders: additionalHeaders
     )
     let response = try await sendURLRequest(request)
-    return try await validateHTTPResponseStatusCode(response)
+    return try validateHTTPResponseStatusCode(response)
   }
 
   private func request(withURL requestURL: URL,
                        httpMethod: String,
                        body: Data?,
-                       additionalHeaders: [String: String]?) async throws -> URLRequest {
+                       additionalHeaders: [String: String]?) throws -> URLRequest {
     guard let mutableRequest = NSMutableURLRequest(url: requestURL) as NSMutableURLRequest? else {
       throw AppCheckCoreErrorUtil.error(withFailureReason: "Failed to create URLRequest.")
     }
@@ -155,7 +155,7 @@ public class AppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
     }
   }
 
-  private func validateHTTPResponseStatusCode(_ response: AppCheckCoreURLSessionDataResponse) async throws
+  private func validateHTTPResponseStatusCode(_ response: AppCheckCoreURLSessionDataResponse) throws
     -> AppCheckCoreURLSessionDataResponse {
     let statusCode = response.httpResponse.statusCode
     if statusCode < 200 || statusCode >= 300 {
