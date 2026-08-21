@@ -41,7 +41,7 @@ public class AppCheckCoreTokenRefresher: NSObject, AppCheckCoreTokenRefresherPro
   private var initialRefreshResult: AppCheckCoreTokenRefreshResult?
   private var _tokenRefreshHandler: AppCheckCoreTokenRefreshBlock?
 
-  private let lock = NSLock()
+  private let lock = NSRecursiveLock()
 
   public init(refreshResult: AppCheckCoreTokenRefreshResult,
               timerProvider: @escaping AppCheckCoreTimerProvider,
@@ -71,20 +71,21 @@ public class AppCheckCoreTokenRefresher: NSObject, AppCheckCoreTokenRefresherPro
     }
     set {
       lock.lock()
+      defer { lock.unlock() }
       _tokenRefreshHandler = newValue
 
       if newValue != nil, let initialResult = initialRefreshResult {
         initialRefreshResult = nil
-        lock.unlock()
         schedule(with: initialResult)
-      } else {
-        lock.unlock()
       }
     }
   }
 
   @objc(updateWithRefreshResult:)
   public func updateWithRefreshResult(_ refreshResult: AppCheckCoreTokenRefreshResult) {
+    lock.lock()
+    defer { lock.unlock() }
+
     switch refreshResult.status {
     case .never, .success:
       retryCount = 0
@@ -115,6 +116,9 @@ public class AppCheckCoreTokenRefresher: NSObject, AppCheckCoreTokenRefresherPro
   }
 
   private func scheduleRefresh(at refreshDate: Date) {
+    lock.lock()
+    defer { lock.unlock() }
+
     cancelTimer()
 
     let scheduleInSec = refreshDate.timeIntervalSinceNow
@@ -132,6 +136,9 @@ public class AppCheckCoreTokenRefresher: NSObject, AppCheckCoreTokenRefresherPro
   }
 
   private func cancelTimer() {
+    lock.lock()
+    defer { lock.unlock() }
+
     timer?.invalidate()
     timer = nil
   }
