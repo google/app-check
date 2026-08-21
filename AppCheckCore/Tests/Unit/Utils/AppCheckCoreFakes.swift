@@ -14,6 +14,12 @@
 
 @testable import AppCheckCore
 import Foundation
+#if COCOAPODS
+  import GoogleUtilities
+#else
+  import GoogleUtilities_UserDefaults
+  import GoogleUtilities_Environment
+#endif
 
 class AppCheckCoreStorageFake: NSObject, AppCheckCoreStorageProtocol {
   var getTokenHandler: (() async throws -> AppCheckCoreToken?)?
@@ -107,12 +113,6 @@ class AppCheckCoreFakeTimer: NSObject, AppCheckCoreTimerProtocol {
     handler?()
   }
 }
-
-#if COCOAPODS
-  import GoogleUtilities
-#else
-  import GoogleUtilities_UserDefaults
-#endif
 
 class AppCheckCoreKeychainStorageFake: GULKeychainStorage {
   var keychainError: Error?

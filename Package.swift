@@ -35,7 +35,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/google/GoogleUtilities.git",
-      "8.0.0" ..< "9.0.0"
+      "8.1.0" ..< "9.0.0"
     ),
     .package(
       url: "https://github.com/google/interop-ios-for-google-sdks.git",

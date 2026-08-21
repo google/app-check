@@ -73,7 +73,7 @@ private let kGoogleAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
                                           accessGroup: nil)
 
         // 2. Create and expect keychain error.
-        let gulsKeychainError = NSError(domain: "com.guls.keychain", code: -1, userInfo: nil)
+        let gulsKeychainError = NSError(domain: "com.google.utilities.keychain", code: -1, userInfo: nil)
         fakeKeychainStorage.keychainError = gulsKeychainError
 
         // 3. Get token and verify results.
@@ -96,7 +96,7 @@ private let kGoogleAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
                                           accessGroup: nil)
 
         // 2. Create and expect keychain error.
-        let gulsKeychainError = NSError(domain: "com.guls.keychain", code: -1, userInfo: nil)
+        let gulsKeychainError = NSError(domain: "com.google.utilities.keychain", code: -1, userInfo: nil)
         fakeKeychainStorage.keychainError = gulsKeychainError
 
         // 3. Set token and verify results.
@@ -122,7 +122,7 @@ private let kGoogleAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
                                           accessGroup: nil)
 
         // 2. Create and expect keychain error.
-        let gulsKeychainError = NSError(domain: "com.guls.keychain", code: -1, userInfo: nil)
+        let gulsKeychainError = NSError(domain: "com.google.utilities.keychain", code: -1, userInfo: nil)
         fakeKeychainStorage.keychainError = gulsKeychainError
 
         // 3. Remove token and verify results.
