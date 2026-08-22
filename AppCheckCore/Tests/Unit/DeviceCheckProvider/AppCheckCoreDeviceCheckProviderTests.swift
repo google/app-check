@@ -13,9 +13,7 @@
 // limitations under the License.
 
 import XCTest
-#if canImport(FBLPromises)
-  import FBLPromises
-#endif
+
 @testable import AppCheckCore
 
 class AppCheckCoreDeviceCheckAPIServiceFake: NSObject, AppCheckCoreDeviceCheckAPIServiceProtocol {

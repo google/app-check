@@ -13,9 +13,7 @@
 // limitations under the License.
 
 import XCTest
-#if canImport(Promises)
-  import Promises
-#endif
+
 @testable import AppCheckCore
 
 private class MockAppCheckAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
