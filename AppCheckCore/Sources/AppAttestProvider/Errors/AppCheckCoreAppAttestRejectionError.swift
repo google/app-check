@@ -24,8 +24,8 @@ public class AppCheckCoreAppAttestRejectionError: NSError, @unchecked Sendable {
   @objc(initWithUnderlyingError:)
   public init(underlyingError: Error) {
     super.init(
-      domain: "AppCheckCoreErrorDomain",
-      code: 0, // AppCheckCoreErrorCodeUnknown is typically 0
+      domain: AppCheckCoreErrorDomain,
+      code: AppCheckCoreErrorCode.unknown.rawValue,
       userInfo: [NSUnderlyingErrorKey: underlyingError]
     )
   }
