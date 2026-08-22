@@ -86,7 +86,7 @@ final class RecaptchaTokenGenerator {
     guard let token = result as? String else {
       throw AppCheckCoreErrorUtil
         .error(
-          withFailureReason: "Unexpected result type from reCAPTCHA token exchange: \\(type(of: result)). Expected String."
+          withFailureReason: "Unexpected result type from reCAPTCHA token exchange: \(type(of: result)). Expected String."
         )
     }
     return token
