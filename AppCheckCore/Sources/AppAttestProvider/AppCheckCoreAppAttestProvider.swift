@@ -186,7 +186,8 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
           if let error = attestState.appAttestUnsupportedError {
             if let rejectionError = error as? AppCheckCoreAppAttestRejectionError {
               throw rejectionError.underlyingError ?? rejectionError
-            }; throw error
+            }
+            throw error
           }
           throw AppCheckCoreErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
         case .supportedInitial, .keyGenerated:
@@ -210,7 +211,8 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
         }
         if let rejectionError = error as? AppCheckCoreAppAttestRejectionError {
           throw rejectionError.underlyingError ?? rejectionError
-        }; throw error
+        }
+        throw error
       }
     }
     throw AppCheckCoreErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
@@ -288,7 +290,8 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
     } catch {
       if let rejectionError = error as? AppCheckCoreAppAttestRejectionError {
         throw rejectionError.underlyingError ?? rejectionError
-      }; throw error
+      }
+      throw error
     }
 
     let attestationResult: AppCheckCoreAppAttestKeyAttestationResult
@@ -310,7 +313,8 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
       }
       if let rejectionError = error as? AppCheckCoreAppAttestRejectionError {
         throw rejectionError.underlyingError ?? rejectionError
-      }; throw error
+      }
+      throw error
     }
 
     do {
@@ -332,7 +336,8 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
     } catch {
       if let rejectionError = error as? AppCheckCoreAppAttestRejectionError {
         throw rejectionError.underlyingError ?? rejectionError
-      }; throw error
+      }
+      throw error
     }
   }
 

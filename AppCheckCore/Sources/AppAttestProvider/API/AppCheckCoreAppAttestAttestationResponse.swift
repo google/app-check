@@ -61,10 +61,6 @@ public class AppCheckCoreAppAttestAttestationResponse: NSObject {
         .appAttestAttestationResponseError(withMissingField: kResponseFieldAppCheckTokenDict)
     }
 
-    // Assuming AppCheckCoreToken has this initializer available in Swift now.
-    // If not, we use the method that handles API response.
-    // We'll throw if it fails to initialize.
-    // Assuming there is a throwing initializer or we just use `init(responseDict:requestDate:)`
     let appCheckToken = try AppCheckCoreToken(
       responseDict: appCheckTokenDict,
       requestDate: requestDate

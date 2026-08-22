@@ -115,7 +115,6 @@ public class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPI
     )
 
     let token = try await apiService.appCheckToken(withAPIResponse: urlResponse)
-    // We assume AppCheckCoreToken is identical to AppCheckCoreToken or bridges correctly
     return token
   }
 

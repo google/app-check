@@ -55,7 +55,6 @@ public class AppCheckCoreDeviceCheckProvider: NSObject, AppCheckCoreProvider {
 
   // MARK: - AppCheckCoreProvider
 
-  @objc
   public func getToken() async throws -> AppCheckCoreToken {
     return try await getToken(limitedUse: false)
   }
