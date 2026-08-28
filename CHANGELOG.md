@@ -1,3 +1,8 @@
+# Unreleased
+- [fixed] Parse the token `exp` claim to correctly clamp the `expirationDate`
+  and avoid artificially extending cached token
+  lifetimes. (https://github.com/firebase/firebase-ios-sdk/issues/16573)
+
 # 11.3.1
 - [fixed] Added recovery logic to reset and retry attestation when App Attest
   returns `DCErrorUnknownSystemFailure` during assertion
