@@ -29,6 +29,46 @@ static NSString *const kResponseFieldTTL = @"ttl";
 
 @implementation GACAppCheckToken (APIResponse)
 
+static NSDate *GACAppCheckTokenExpirationDateFromJWT(NSString *token) {
+  NSArray<NSString *> *components = [token componentsSeparatedByString:@"."];
+  if (components.count != 3) {
+    return nil;
+  }
+
+  NSString *payloadBase64 = components[1];
+
+  // Convert base64url to base64
+  NSString *padded = [payloadBase64 stringByReplacingOccurrencesOfString:@"-" withString:@"+"];
+  padded = [padded stringByReplacingOccurrencesOfString:@"_" withString:@"/"];
+
+  NSUInteger paddingLength = padded.length % 4;
+  if (paddingLength > 0) {
+    padded = [padded stringByPaddingToLength:padded.length + (4 - paddingLength)
+                                  withString:@"="
+                             startingAtIndex:0];
+  }
+
+  NSData *payloadData = [[NSData alloc] initWithBase64EncodedString:padded options:0];
+  if (!payloadData) {
+    return nil;
+  }
+
+  NSDictionary *payloadDict = [NSJSONSerialization JSONObjectWithData:payloadData
+                                                              options:0
+                                                                error:nil];
+  if (![payloadDict isKindOfClass:[NSDictionary class]]) {
+    return nil;
+  }
+
+  NSNumber *expValue = payloadDict[@"exp"];
+  if (![expValue isKindOfClass:[NSNumber class]]) {
+    return nil;
+  }
+
+  NSTimeInterval exp = expValue.doubleValue;
+  return [NSDate dateWithTimeIntervalSince1970:exp];
+}
+
 - (nullable instancetype)initWithTokenExchangeResponse:(NSData *)response
                                            requestDate:(NSDate *)requestDate
                                                  error:(NSError **)outError {
@@ -64,7 +104,7 @@ static NSString *const kResponseFieldTTL = @"ttl";
   }
 
   NSString *timeToLiveString = responseDict[kResponseFieldTTL];
-  if (![token isKindOfClass:[NSString class]] || token.length <= 0) {
+  if (![timeToLiveString isKindOfClass:[NSString class]] || timeToLiveString.length <= 0) {
     GACAppCheckSetErrorToPointer(
         [_GACAppCheckErrorUtil appCheckTokenResponseErrorWithMissingField:kResponseFieldTTL],
         outError);
@@ -84,6 +124,10 @@ static NSString *const kResponseFieldTTL = @"ttl";
   }
 
   NSDate *expirationDate = [requestDate dateByAddingTimeInterval:secondsToLive];
+  NSDate *jwtExpirationDate = GACAppCheckTokenExpirationDateFromJWT(token);
+  if (jwtExpirationDate && [jwtExpirationDate compare:expirationDate] == NSOrderedAscending) {
+    expirationDate = jwtExpirationDate;
+  }
 
   return [self initWithToken:token expirationDate:expirationDate receivedAtDate:requestDate];
 }

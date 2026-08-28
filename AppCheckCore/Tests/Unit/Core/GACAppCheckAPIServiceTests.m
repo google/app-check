@@ -388,6 +388,78 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
                                       precision:10]);
 }
 
+- (void)qtestAppCheckTokenWithAPIResponseValidJWTWithExp {
+  // 1. Prepare input parameters.
+  NSTimeInterval expTime = [[NSDate date] timeIntervalSince1970] + 500;
+  NSDictionary *payload = @{@"exp" : @(expTime)};
+  NSData *payloadData = [NSJSONSerialization dataWithJSONObject:payload options:0 error:nil];
+  NSString *payloadBase64 = [payloadData base64EncodedStringWithOptions:0];
+  payloadBase64 = [payloadBase64 stringByReplacingOccurrencesOfString:@"+" withString:@"-"];
+  payloadBase64 = [payloadBase64 stringByReplacingOccurrencesOfString:@"/" withString:@"_"];
+  payloadBase64 = [payloadBase64 stringByReplacingOccurrencesOfString:@"=" withString:@""];
+
+  NSString *jwtToken = [NSString stringWithFormat:@"header.%@.signature", payloadBase64];
+  NSDictionary *responseDict = @{@"token" : jwtToken, @"ttl" : @"1800s"};
+  NSData *responseBody = [NSJSONSerialization dataWithJSONObject:responseDict options:0 error:nil];
+
+  NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:200];
+  _GACURLSessionDataResponse *APIResponse =
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
+
+  // 2. Expected result.
+  NSString *expectedFACToken = jwtToken;
+
+  // 3. Parse API response.
+  __auto_type tokenPromise = [self.APIService appCheckTokenWithAPIResponse:APIResponse];
+
+  // 4. Verify.
+  XCTAssert(FBLWaitForPromisesWithTimeout(1));
+
+  XCTAssertTrue(tokenPromise.isFulfilled);
+  XCTAssertNil(tokenPromise.error);
+
+  XCTAssertEqualObjects(tokenPromise.value.token, expectedFACToken);
+  XCTAssertTrue([GACDateTestUtils isDate:tokenPromise.value.expirationDate
+      approximatelyEqualCurrentPlusTimeInterval:500
+                                      precision:10]);
+}
+
+- (void)testAppCheckTokenWithAPIResponseValidJWTWithExpGreaterThenTTL {
+  // 1. Prepare input parameters.
+  NSTimeInterval expTime = [[NSDate date] timeIntervalSince1970] + 2000;
+  NSDictionary *payload = @{@"exp" : @(expTime)};
+  NSData *payloadData = [NSJSONSerialization dataWithJSONObject:payload options:0 error:nil];
+  NSString *payloadBase64 = [payloadData base64EncodedStringWithOptions:0];
+  payloadBase64 = [payloadBase64 stringByReplacingOccurrencesOfString:@"+" withString:@"-"];
+  payloadBase64 = [payloadBase64 stringByReplacingOccurrencesOfString:@"/" withString:@"_"];
+  payloadBase64 = [payloadBase64 stringByReplacingOccurrencesOfString:@"=" withString:@""];
+
+  NSString *jwtToken = [NSString stringWithFormat:@"header.%@.signature", payloadBase64];
+  NSDictionary *responseDict = @{@"token" : jwtToken, @"ttl" : @"1800s"};
+  NSData *responseBody = [NSJSONSerialization dataWithJSONObject:responseDict options:0 error:nil];
+
+  NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:200];
+  _GACURLSessionDataResponse *APIResponse =
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
+
+  // 2. Expected result.
+  NSString *expectedFACToken = jwtToken;
+
+  // 3. Parse API response.
+  __auto_type tokenPromise = [self.APIService appCheckTokenWithAPIResponse:APIResponse];
+
+  // 4. Verify.
+  XCTAssert(FBLWaitForPromisesWithTimeout(1));
+
+  XCTAssertTrue(tokenPromise.isFulfilled);
+  XCTAssertNil(tokenPromise.error);
+
+  XCTAssertEqualObjects(tokenPromise.value.token, expectedFACToken);
+  XCTAssertTrue([GACDateTestUtils isDate:tokenPromise.value.expirationDate
+      approximatelyEqualCurrentPlusTimeInterval:1800
+                                      precision:10]);
+}
+
 - (void)testAppCheckTokenWithAPIResponseInvalidFormat {
   // 1. Prepare input parameters.
   NSString *responseBodyString = @"Token verification failed.";
