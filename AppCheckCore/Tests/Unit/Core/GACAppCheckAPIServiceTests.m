@@ -388,7 +388,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
                                       precision:10]);
 }
 
-- (void)qtestAppCheckTokenWithAPIResponseValidJWTWithExp {
+- (void)testAppCheckTokenWithAPIResponseValidJWTWithExp {
   // 1. Prepare input parameters.
   NSTimeInterval expTime = [[NSDate date] timeIntervalSince1970] + 500;
   NSDictionary *payload = @{@"exp" : @(expTime)};
@@ -424,7 +424,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
                                       precision:10]);
 }
 
-- (void)testAppCheckTokenWithAPIResponseValidJWTWithExpGreaterThenTTL {
+- (void)testAppCheckTokenWithAPIResponseValidJWTWithExpGreaterThanTTL {
   // 1. Prepare input parameters.
   NSTimeInterval expTime = [[NSDate date] timeIntervalSince1970] + 2000;
   NSDictionary *payload = @{@"exp" : @(expTime)};
