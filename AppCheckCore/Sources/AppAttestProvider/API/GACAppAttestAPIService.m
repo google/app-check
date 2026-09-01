@@ -166,17 +166,17 @@ static NSString *const kHTTPMethodPost = @"POST";
                                               body:HTTPBody
                                  additionalHeaders:@{kContentTypeKey : kJSONContentType}];
       })
-      .thenOn(
-          [self backgroundQueue], ^id _Nullable(_GACURLSessionDataResponse *_Nullable URLResponse) {
-            NSError *error;
+      .thenOn([self backgroundQueue],
+              ^id _Nullable(_GACURLSessionDataResponse *_Nullable URLResponse) {
+                NSError *error;
 
-            __auto_type response =
-                [[GACAppAttestAttestationResponse alloc] initWithResponseData:URLResponse.HTTPBody
-                                                                  requestDate:URLResponse.requestDate
-                                                                        error:&error];
+                __auto_type response = [[GACAppAttestAttestationResponse alloc]
+                    initWithResponseData:URLResponse.HTTPBody
+                             requestDate:URLResponse.requestDate
+                                   error:&error];
 
-            return response ?: error;
-          });
+                return response ?: error;
+              });
 }
 
 #pragma mark - Request HTTP Body
