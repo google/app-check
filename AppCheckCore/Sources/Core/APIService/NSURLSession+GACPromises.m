@@ -28,6 +28,7 @@
 
 - (FBLPromise<_GACURLSessionDataResponse *> *)gac_dataTaskPromiseWithRequest:
     (NSURLRequest *)URLRequest {
+  NSDate *requestDate = [NSDate date];
   return [FBLPromise async:^(FBLPromiseFulfillBlock fulfill, FBLPromiseRejectBlock reject) {
     [[self dataTaskWithRequest:URLRequest
              completionHandler:^(NSData *_Nullable data, NSURLResponse *_Nullable response,
@@ -37,7 +38,8 @@
                } else {
                  fulfill([[_GACURLSessionDataResponse alloc]
                      initWithResponse:(NSHTTPURLResponse *)response
-                             HTTPBody:data]);
+                             HTTPBody:data
+                          requestDate:requestDate]);
                }
              }] resume];
   }];

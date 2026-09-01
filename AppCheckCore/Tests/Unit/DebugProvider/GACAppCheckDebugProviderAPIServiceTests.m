@@ -77,7 +77,7 @@ static NSString *const kResourceName = @"projects/test_project_id/apps/test_app_
   NSData *fakeResponseData = [@"fake response" dataUsingEncoding:NSUTF8StringEncoding];
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:200];
   _GACURLSessionDataResponse *APIResponse =
-      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:fakeResponseData];
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:fakeResponseData requestDate:[NSDate date]];
 
   self.mockAPIService.sendRequestPromise = [FBLPromise resolvedWith:APIResponse];
 
@@ -122,7 +122,7 @@ static NSString *const kResourceName = @"projects/test_project_id/apps/test_app_
   NSData *fakeResponseData = [@"fake response" dataUsingEncoding:NSUTF8StringEncoding];
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:200];
   _GACURLSessionDataResponse *APIResponse =
-      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:fakeResponseData];
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:fakeResponseData requestDate:[NSDate date]];
 
   self.mockAPIService.sendRequestPromise = [FBLPromise resolvedWith:APIResponse];
 

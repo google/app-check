@@ -196,7 +196,7 @@ static NSString *const kAppCheckUseStagingEnvKey = @"_AppCheckUseStaging";
 
                             GACAppCheckToken *token = [[GACAppCheckToken alloc]
                                 initWithTokenExchangeResponse:response.HTTPBody
-                                                  requestDate:[NSDate date]
+                                                  requestDate:response.requestDate
                                                         error:&error];
                             return token ?: error;
                           }];

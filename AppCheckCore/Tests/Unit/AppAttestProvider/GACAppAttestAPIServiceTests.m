@@ -534,7 +534,7 @@ static NSString *const kResourceName = @"projects/project_id/apps/app_id";
   XCTAssertNotNil(responseBody);
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:code];
   _GACURLSessionDataResponse *APIResponse =
-      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody requestDate:[NSDate date]];
   return APIResponse;
 }
 

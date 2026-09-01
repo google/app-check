@@ -368,7 +368,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   XCTAssertNotNil(responseBody);
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:200];
   _GACURLSessionDataResponse *APIResponse =
-      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody requestDate:[NSDate date]];
 
   // 2. Expected result.
   NSString *expectedFACToken = @"valid_app_check_token";
@@ -394,7 +394,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   NSData *responseBody = [responseBodyString dataUsingEncoding:NSUTF8StringEncoding];
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:200];
   _GACURLSessionDataResponse *APIResponse =
-      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody requestDate:[NSDate date]];
 
   // 2. Parse API response.
   __auto_type tokenPromise = [self.APIService appCheckTokenWithAPIResponse:APIResponse];
@@ -429,7 +429,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
 
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:200];
   _GACURLSessionDataResponse *APIResponse =
-      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:missingFiledBody];
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:missingFiledBody requestDate:[NSDate date]];
 
   // 2. Parse API response.
   __auto_type tokenPromise = [self.APIService appCheckTokenWithAPIResponse:APIResponse];
@@ -466,7 +466,7 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   FBLPromise<_GACURLSessionDataResponse *> *result = [FBLPromise pendingPromise];
   if (error == nil) {
     _GACURLSessionDataResponse *response =
-        [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:body];
+        [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:body requestDate:[NSDate date]];
     [result fulfill:response];
   } else {
     [result reject:error];

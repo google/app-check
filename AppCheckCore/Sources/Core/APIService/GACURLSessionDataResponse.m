@@ -18,11 +18,14 @@
 
 @implementation _GACURLSessionDataResponse
 
-- (instancetype)initWithResponse:(NSHTTPURLResponse *)response HTTPBody:(NSData *)body {
+- (instancetype)initWithResponse:(NSHTTPURLResponse *)response
+                        HTTPBody:(NSData *)body
+                     requestDate:(NSDate *)requestDate {
   self = [super init];
   if (self) {
     _HTTPResponse = response;
     _HTTPBody = body;
+    _requestDate = requestDate;
   }
   return self;
 }

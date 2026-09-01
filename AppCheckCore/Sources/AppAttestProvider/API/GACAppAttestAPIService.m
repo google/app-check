@@ -172,7 +172,7 @@ static NSString *const kHTTPMethodPost = @"POST";
 
             __auto_type response =
                 [[GACAppAttestAttestationResponse alloc] initWithResponseData:URLResponse.HTTPBody
-                                                                  requestDate:[NSDate date]
+                                                                  requestDate:URLResponse.requestDate
                                                                         error:&error];
 
             return response ?: error;
