@@ -390,6 +390,36 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
                                       precision:10]);
 }
 
+- (void)testAppCheckTokenWithAPIResponseUsesRequestDate {
+  // 1. Prepare input parameters.
+  NSData *responseBody =
+      [GACFixtureLoader loadFixtureNamed:@"FACTokenExchangeResponseSuccess.json"];
+  XCTAssertNotNil(responseBody);
+  NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:200];
+  NSDate *requestDate = [NSDate dateWithTimeIntervalSince1970:100000];
+  _GACURLSessionDataResponse *APIResponse =
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse
+                                                  HTTPBody:responseBody
+                                               requestDate:requestDate];
+
+  // 2. Expected result.
+  NSString *expectedFACToken = @"valid_app_check_token";
+
+  // 3. Parse API response.
+  __auto_type tokenPromise = [self.APIService appCheckTokenWithAPIResponse:APIResponse];
+
+  // 4. Verify.
+  XCTAssert(FBLWaitForPromisesWithTimeout(1));
+
+  XCTAssertTrue(tokenPromise.isFulfilled);
+  XCTAssertNil(tokenPromise.error);
+
+  XCTAssertEqualObjects(tokenPromise.value.token, expectedFACToken);
+
+  NSDate *expectedExpiration = [requestDate dateByAddingTimeInterval:1800];
+  XCTAssertEqualObjects(tokenPromise.value.expirationDate, expectedExpiration);
+}
+
 - (void)testAppCheckTokenWithAPIResponseInvalidFormat {
   // 1. Prepare input parameters.
   NSString *responseBodyString = @"Token verification failed.";

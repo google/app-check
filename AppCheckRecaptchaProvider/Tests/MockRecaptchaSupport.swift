@@ -110,7 +110,8 @@ class MockAppCheckCoreAPIService: NSObject, _GACAppCheckAPIServiceProtocol {
     } else {
       let response = expectedResponse ?? _GACURLSessionDataResponse(
         response: HTTPURLResponse(),
-        httpBody: Data()
+        httpBody: Data(),
+        requestDate: Date()
       )
       promise.fulfill(response)
     }
