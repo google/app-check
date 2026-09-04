@@ -16,7 +16,6 @@
   import AppCheckCore
 #endif
 import Foundation
-import Promises
 import RecaptchaInterop
 
 /// Firebase App Check provider that verifies app integrity using the
@@ -71,7 +70,7 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
       return nil
     }
 
-    let backoffWrapper = _GACAppCheckBackoffWrapper()
+    let backoffWrapper = AppCheckCoreBackoffWrapper()
     let tokenGenerator = RecaptchaTokenGenerator(
       siteKey: siteKey,
       recaptchaAction: sdk.action,
@@ -80,8 +79,8 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
     )
 
     let urlSession = URLSession(configuration: .ephemeral)
-    let appCheckAPIService = _GACAppCheckAPIService(urlSession: urlSession,
-                                                    baseURL: nil,
+    let appCheckAPIService = AppCheckCoreAPIService(urlSession: urlSession,
+                                                    baseURL: nil as String?,
                                                     apiKey: APIKey,
                                                     requestHooks: requestHooks)
     let apiService = RecaptchaAPIService(
@@ -99,38 +98,48 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
     super.init()
   }
 
+  public func getToken() async throws -> AppCheckCoreToken {
+    return try await getToken(limitedUse: false)
+  }
+
+  public func getLimitedUseToken() async throws -> AppCheckCoreToken {
+    return try await getToken(limitedUse: true)
+  }
+
   @objc(getTokenWithCompletion:)
   public func getToken(completion handler: @escaping (AppCheckCoreToken?, (any Error)?) -> Void) {
-    getToken(limitedUse: false)
-      .then { token in
+    Task {
+      do {
+        let token = try await getToken(limitedUse: false)
         handler(token, nil)
-      }.catch { error in
+      } catch {
         handler(nil, error)
       }
+    }
   }
 
   @objc(getLimitedUseTokenWithCompletion:)
   public func getLimitedUseToken(completion handler: @escaping (AppCheckCoreToken?, (any Error)?)
     -> Void) {
-    getToken(limitedUse: true)
-      .then { token in
+    Task {
+      do {
+        let token = try await getToken(limitedUse: true)
         handler(token, nil)
-      }.catch { error in
+      } catch {
         handler(nil, error)
       }
+    }
   }
 
-  private func getToken(limitedUse: Bool) -> Promise<AppCheckCoreToken> {
+  private func getToken(limitedUse: Bool) async throws -> AppCheckCoreToken {
     guard let tokenGenerator else {
-      return Promise(_GACAppCheckErrorUtil.missingRecaptchaSDKError())
+      throw AppCheckCoreErrorUtil.missingRecaptchaSDKError()
     }
-    return tokenGenerator.getRecaptchaToken()
-      .then { recaptchaToken in
-        self.apiService.appCheckToken(
-          with: recaptchaToken,
-          limitedUse: limitedUse
-        )
-      }
+    let recaptchaToken = try await tokenGenerator.getRecaptchaToken()
+    return try await apiService.appCheckToken(
+      with: recaptchaToken,
+      limitedUse: limitedUse
+    )
   }
 }
 

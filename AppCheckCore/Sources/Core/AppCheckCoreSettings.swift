@@ -12,12 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#import <Foundation/Foundation.h>
+import Foundation
 
-#if __has_include(<AppCheckCore/AppCheckCore-Swift.h>)
-#import <AppCheckCore/AppCheckCore-Swift.h>
-#elif __has_include("AppCheckCore-Swift.h")
-#import "AppCheckCore-Swift.h"
-#else
-// Fallback for Swift package manager which auto-generates the bridging header
-#endif
+@objc(GACAppCheckSettingsProtocol)
+public protocol AppCheckCoreSettingsProtocol: NSObjectProtocol {
+  @objc var isTokenAutoRefreshEnabled: Bool { get set }
+}
+
+@objc(GACAppCheckSettings)
+@objcMembers
+open class AppCheckCoreSettings: NSObject, AppCheckCoreSettingsProtocol {
+  open var isTokenAutoRefreshEnabled: Bool = false
+
+  override public init() {
+    super.init()
+  }
+}

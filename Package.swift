@@ -19,7 +19,7 @@ import PackageDescription
 
 let package = Package(
   name: "AppCheck",
-  platforms: [.iOS(.v12), .macCatalyst(.v13), .macOS(.v10_15), .tvOS(.v13), .watchOS(.v7)],
+  platforms: [.iOS(.v15), .macCatalyst(.v15), .macOS(.v10_15), .tvOS(.v15), .watchOS(.v7)],
   products: [
     .library(
       name: "AppCheckCore",
@@ -34,12 +34,8 @@ let package = Package(
   ],
   dependencies: [
     .package(
-      url: "https://github.com/google/promises.git",
-      "2.4.0" ..< "3.0.0"
-    ),
-    .package(
       url: "https://github.com/google/GoogleUtilities.git",
-      "8.0.0" ..< "9.0.0"
+      "8.1.0" ..< "9.0.0"
     ),
     .package(
       url: "https://github.com/google/interop-ios-for-google-sdks.git",
@@ -49,7 +45,6 @@ let package = Package(
   targets: [
     .target(name: "AppCheckCore",
             dependencies: [
-              .product(name: "FBLPromises", package: "Promises"),
               .product(name: "GULEnvironment", package: "GoogleUtilities"),
               .product(name: "GULUserDefaults", package: "GoogleUtilities"),
             ],
@@ -68,7 +63,6 @@ let package = Package(
             dependencies: [
               "AppCheckCore",
               .product(name: "RecaptchaInterop", package: "interop-ios-for-google-sdks"),
-              .product(name: "Promises", package: "Promises"),
             ],
             path: "AppCheckRecaptchaProvider/Sources"),
     .testTarget(

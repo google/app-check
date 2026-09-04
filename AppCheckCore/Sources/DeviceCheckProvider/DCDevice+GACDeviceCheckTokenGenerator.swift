@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#import <Foundation/Foundation.h>
+import Foundation
+#if canImport(DeviceCheck)
+  import DeviceCheck
 
-#if __has_include(<AppCheckCore/AppCheckCore-Swift.h>)
-#import <AppCheckCore/AppCheckCore-Swift.h>
-#elif __has_include("AppCheckCore-Swift.h")
-#import "AppCheckCore-Swift.h"
-#else
-// Fallback for Swift package manager which auto-generates the bridging header
+  @available(iOS 11.0, macOS 10.15, tvOS 11.0, watchOS 9.0, *)
+  extension DCDevice: AppCheckCoreDeviceCheckTokenGenerator {}
 #endif

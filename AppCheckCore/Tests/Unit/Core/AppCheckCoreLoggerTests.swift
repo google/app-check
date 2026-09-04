@@ -12,12 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#import <Foundation/Foundation.h>
+@testable import AppCheckCore
+import XCTest
 
-#if __has_include(<AppCheckCore/AppCheckCore-Swift.h>)
-#import <AppCheckCore/AppCheckCore-Swift.h>
-#elif __has_include("AppCheckCore-Swift.h")
-#import "AppCheckCore-Swift.h"
-#else
-// Fallback for Swift package manager which auto-generates the bridging header
-#endif
+class AppCheckCoreLoggerTests: XCTestCase {
+  func testDefaultLogLevel() {
+    let defaultLogLevel = AppCheckCoreLogger.logLevel
+
+    XCTAssertEqual(defaultLogLevel, .warning)
+  }
+
+  func testSetLogLevel() {
+    let expectedLogLevel: AppCheckCoreLogLevel = .debug
+
+    AppCheckCoreLogger.logLevel = expectedLogLevel
+
+    XCTAssertEqual(AppCheckCoreLogger.logLevel, expectedLogLevel)
+  }
+}

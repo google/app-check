@@ -12,12 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#import <Foundation/Foundation.h>
+import CommonCrypto
+import Foundation
 
-#if __has_include(<AppCheckCore/AppCheckCore-Swift.h>)
-#import <AppCheckCore/AppCheckCore-Swift.h>
-#elif __has_include("AppCheckCore-Swift.h")
-#import "AppCheckCore-Swift.h"
-#else
-// Fallback for Swift package manager which auto-generates the bridging header
-#endif
+@objc(GACAppCheckCryptoUtils)
+@objcMembers
+public class AppCheckCoreCryptoUtils: NSObject {
+  @objc(sha256HashFromData:)
+  public static func sha256Hash(from dataToHash: Data) -> Data {
+    var digest = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
+    dataToHash.withUnsafeBytes { buffer in
+      _ = CC_SHA256(buffer.baseAddress, CC_LONG(dataToHash.count), &digest)
+    }
+    return Data(digest)
+  }
+}

@@ -16,8 +16,6 @@ import XCTest
 
 @testable import AppCheckCore
 @testable import AppCheckRecaptchaProvider
-import FBLPromises
-import Promises
 import RecaptchaInterop
 
 @available(iOS 15.0, visionOS 1.0, *)
@@ -36,7 +34,7 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
     MockRecaptcha.mockError = nil
   }
 
-  func testGetRecaptchaTokenSuccess() {
+  func testGetRecaptchaTokenSuccess() async throws {
     // Arrange
     let mockClient = MockRecaptchaClient()
     mockClient.mockToken = "valid-recaptcha-token"
@@ -49,21 +47,18 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
       backoffWrapper: MockBackoffWrapper()
     )
 
-    let expectation = self.expectation(description: "Generates token successfully")
-
     // Act
-    generator.getRecaptchaToken().then { token in
+    do {
+      let token = try await generator.getRecaptchaToken()
       // Assert
       XCTAssertEqual(token, "valid-recaptcha-token")
-      expectation.fulfill()
-    }.catch { error in
+
+    } catch {
       XCTFail("Unexpected error: \(error)")
     }
-
-    waitForExpectations(timeout: 1.0)
   }
 
-  func testGetRecaptchaTokenFetchClientFailure() {
+  func testGetRecaptchaTokenFetchClientFailure() async throws {
     // Arrange
     let expectedError = NSError(domain: "test", code: -1, userInfo: nil)
     MockRecaptcha.mockError = expectedError
@@ -75,22 +70,18 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
       backoffWrapper: MockBackoffWrapper()
     )
 
-    let expectation = self.expectation(description: "Fails when fetchClient fails")
-
     // Act
-    generator.getRecaptchaToken().then { token in
+    do {
+      let _ = try await generator.getRecaptchaToken()
       XCTFail("Should not succeed when fetchClient fails")
-    }.catch { error in
+    } catch {
       // Assert
       XCTAssertEqual((error as NSError).domain, expectedError.domain)
       XCTAssertEqual((error as NSError).code, expectedError.code)
-      expectation.fulfill()
     }
-
-    waitForExpectations(timeout: 1.0)
   }
 
-  func testGetRecaptchaTokenExecutionFailure() {
+  func testGetRecaptchaTokenExecutionFailure() async throws {
     // Arrange
     let mockClient = MockRecaptchaClient()
     let expectedError = NSError(domain: "test", code: -2, userInfo: nil)
@@ -104,12 +95,11 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
       backoffWrapper: MockBackoffWrapper()
     )
 
-    let expectation = self.expectation(description: "Fails when execute fails")
-
     // Act
-    generator.getRecaptchaToken().then { token in
+    do {
+      let _ = try await generator.getRecaptchaToken()
       XCTFail("Should not succeed when execute fails")
-    }.catch { error in
+    } catch {
       // Assert
       let nsError = error as NSError
       XCTAssertEqual(nsError.domain, AppCheckCoreErrorDomain)
@@ -119,13 +109,10 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
       XCTAssertNotNil(underlyingError)
       XCTAssertEqual(underlyingError?.domain, expectedError.domain)
       XCTAssertEqual(underlyingError?.code, expectedError.code)
-      expectation.fulfill()
     }
-
-    waitForExpectations(timeout: 1.0)
   }
 
-  func testGetRecaptchaTokenCallsBackoffWrapper() {
+  func testGetRecaptchaTokenCallsBackoffWrapper() async throws {
     // Arrange
     let mockClient = MockRecaptchaClient()
     mockClient.mockToken = "valid-recaptcha-token"
@@ -140,21 +127,18 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
       backoffWrapper: mockBackoffWrapper
     )
 
-    let expectation = self.expectation(description: "Calls backoff wrapper")
-
     // Act
-    generator.getRecaptchaToken().then { token in
+    do {
+      let _ = try await generator.getRecaptchaToken()
       // Assert
       XCTAssertTrue(mockBackoffWrapper.applyBackoffCalled)
-      expectation.fulfill()
-    }.catch { error in
+
+    } catch {
       XCTFail("Unexpected error: \(error)")
     }
-
-    waitForExpectations(timeout: 1.0)
   }
 
-  func testGetRecaptchaTokenBackoffWrapperError() {
+  func testGetRecaptchaTokenBackoffWrapperError() async throws {
     // Arrange
     let mockClient = MockRecaptchaClient()
     MockRecaptcha.mockClient = mockClient
@@ -171,22 +155,18 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
       backoffWrapper: mockBackoffWrapper
     )
 
-    let expectation = self.expectation(description: "Fails when backoff wrapper fails")
-
     // Act
-    generator.getRecaptchaToken().then { token in
+    do {
+      let _ = try await generator.getRecaptchaToken()
       XCTFail("Should not succeed when backoff wrapper fails")
-    }.catch { error in
+    } catch {
       // Assert
       XCTAssertEqual((error as NSError).domain, expectedError.domain)
       XCTAssertEqual((error as NSError).code, expectedError.code)
-      expectation.fulfill()
     }
-
-    waitForExpectations(timeout: 1.0)
   }
 
-  func testGetRecaptchaTokenMapsNetworkErrorToServerUnreachable() {
+  func testGetRecaptchaTokenMapsNetworkErrorToServerUnreachable() async throws {
     // Arrange
     let mockClient = MockRecaptchaClient()
     let recaptchaError = NSError(
@@ -206,23 +186,19 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
       backoffWrapper: mockBackoffWrapper
     )
 
-    let expectation = self.expectation(description: "Maps NetworkError to ServerUnreachable")
-
     // Act
-    generator.getRecaptchaToken().then { token in
+    do {
+      let _ = try await generator.getRecaptchaToken()
       XCTFail("Should not succeed when execute fails")
-    }.catch { error in
+    } catch {
       // Assert
       let nsError = error as NSError
       XCTAssertEqual(nsError.domain, AppCheckCoreErrorDomain)
       XCTAssertEqual(nsError.code, AppCheckCoreErrorCode.serverUnreachable.rawValue)
-      expectation.fulfill()
     }
-
-    waitForExpectations(timeout: 1.0)
   }
 
-  func testGetRecaptchaTokenMapsInternalErrorToServerUnreachable() {
+  func testGetRecaptchaTokenMapsInternalErrorToServerUnreachable() async throws {
     // Arrange
     let mockClient = MockRecaptchaClient()
     let recaptchaError = NSError(
@@ -242,23 +218,19 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
       backoffWrapper: mockBackoffWrapper
     )
 
-    let expectation = self.expectation(description: "Maps InternalError to ServerUnreachable")
-
     // Act
-    generator.getRecaptchaToken().then { token in
+    do {
+      let _ = try await generator.getRecaptchaToken()
       XCTFail("Should not succeed when execute fails")
-    }.catch { error in
+    } catch {
       // Assert
       let nsError = error as NSError
       XCTAssertEqual(nsError.domain, AppCheckCoreErrorDomain)
       XCTAssertEqual(nsError.code, AppCheckCoreErrorCode.serverUnreachable.rawValue)
-      expectation.fulfill()
     }
-
-    waitForExpectations(timeout: 1.0)
   }
 
-  func testErrorHandlerTriggersBackoffForServerUnreachable() {
+  func testErrorHandlerTriggersBackoffForServerUnreachable() async throws {
     // Arrange
     let mockClient = MockRecaptchaClient()
     mockClient.mockToken = "valid-recaptcha-token"
@@ -273,10 +245,9 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
       backoffWrapper: mockBackoffWrapper
     )
 
-    let expectation = self.expectation(description: "Calls backoff wrapper")
-
     // Act
-    generator.getRecaptchaToken().then { _ in
+    do {
+      let _ = try await generator.getRecaptchaToken()
       // Assert
       XCTAssertNotNil(mockBackoffWrapper.capturedErrorHandler)
       if let errorHandler = mockBackoffWrapper.capturedErrorHandler {
@@ -286,17 +257,15 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
           userInfo: nil
         )
         let backoffType = errorHandler(serverUnreachableError)
-        XCTAssertEqual(backoffType, .typeExponential)
+        XCTAssertEqual(backoffType, .exponential)
       }
-      expectation.fulfill()
-    }.catch { error in
+
+    } catch {
       XCTFail("Unexpected error: \(error)")
     }
-
-    waitForExpectations(timeout: 1.0)
   }
 
-  func testErrorHandlerDoesNotTriggerBackoffForOtherErrors() {
+  func testErrorHandlerDoesNotTriggerBackoffForOtherErrors() async throws {
     // Arrange
     let mockClient = MockRecaptchaClient()
     mockClient.mockToken = "valid-recaptcha-token"
@@ -311,10 +280,9 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
       backoffWrapper: mockBackoffWrapper
     )
 
-    let expectation = self.expectation(description: "Calls backoff wrapper")
-
     // Act
-    generator.getRecaptchaToken().then { _ in
+    do {
+      let _ = try await generator.getRecaptchaToken()
       // Assert
       XCTAssertNotNil(mockBackoffWrapper.capturedErrorHandler)
       if let errorHandler = mockBackoffWrapper.capturedErrorHandler {
@@ -324,17 +292,15 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
           userInfo: nil
         )
         let backoffType = errorHandler(otherError)
-        XCTAssertEqual(backoffType, .typeNone)
+        XCTAssertEqual(backoffType, .none)
       }
-      expectation.fulfill()
-    }.catch { error in
+
+    } catch {
       XCTFail("Unexpected error: \(error)")
     }
-
-    waitForExpectations(timeout: 1.0)
   }
 
-  func testGetRecaptchaTokenExecutionNilNilFallback() {
+  func testGetRecaptchaTokenExecutionNilNilFallback() async throws {
     // Arrange
     let mockClient = MockRecaptchaClient()
     MockRecaptcha.mockClient = mockClient
@@ -346,21 +312,16 @@ final class RecaptchaTokenGeneratorTests: XCTestCase {
       backoffWrapper: MockBackoffWrapper()
     )
 
-    let expectation = self
-      .expectation(description: "Fails with fallback error when execute returns nil, nil")
-
     // Act
-    generator.getRecaptchaToken().then { token in
+    do {
+      let _ = try await generator.getRecaptchaToken()
       XCTFail("Should not succeed when execute returns nil, nil")
-    }.catch { error in
+    } catch {
       // Assert
       let nsError = error as NSError
       XCTAssertEqual(nsError.domain, AppCheckCoreErrorDomain)
       XCTAssertEqual(nsError.code, AppCheckCoreErrorCode.unknown.rawValue)
       XCTAssertEqual(nsError.localizedFailureReason, "Failed to execute Recaptcha action")
-      expectation.fulfill()
     }
-
-    waitForExpectations(timeout: 1.0)
   }
 }

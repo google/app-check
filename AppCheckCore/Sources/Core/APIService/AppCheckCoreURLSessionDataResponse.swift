@@ -12,12 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#import <Foundation/Foundation.h>
+import Foundation
 
-#if __has_include(<AppCheckCore/AppCheckCore-Swift.h>)
-#import <AppCheckCore/AppCheckCore-Swift.h>
-#elif __has_include("AppCheckCore-Swift.h")
-#import "AppCheckCore-Swift.h"
-#else
-// Fallback for Swift package manager which auto-generates the bridging header
-#endif
+/// The class represents HTTP response received from `URLSession`.
+@objc(GACURLSessionDataResponse)
+public class AppCheckCoreURLSessionDataResponse: NSObject {
+  @objc public let httpResponse: HTTPURLResponse
+  @objc public let httpBody: Data?
+
+  @objc(initWithResponse:HTTPBody:)
+  public init(response: HTTPURLResponse, httpBody: Data?) {
+    httpResponse = response
+    self.httpBody = httpBody
+    super.init()
+  }
+}
