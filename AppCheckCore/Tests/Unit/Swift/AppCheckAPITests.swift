@@ -72,15 +72,12 @@ final class AppCheckAPITests {
     })
 
     // Get token (async/await)
-    if #available(iOS 13.0, macOS 10.15, macCatalyst 13.0, tvOS 13.0, watchOS 7.0, *) {
-      // async/await is only available on iOS 13+
-      Task {
-        do {
-          let token = try await appCheck.token(forcingRefresh: false)
-          _ /* token */ = token.token
-        } catch {
-          _ /* error */ = error
-        }
+    Task {
+      do {
+        let token = try await appCheck.token(forcingRefresh: false)
+        _ /* token */ = token.token
+      } catch {
+        _ /* error */ = error
       }
     }
 
@@ -96,15 +93,12 @@ final class AppCheckAPITests {
     })
 
     // Get limited-use token (async/await)
-    if #available(iOS 13.0, macOS 10.15, macCatalyst 13.0, tvOS 13.0, watchOS 7.0, *) {
-      // async/await is only available on iOS 13+
-      Task {
-        do {
-          let token = try await appCheck.limitedUseToken()
-          _ /* token */ = token.token
-        } catch {
-          _ /* error */ = error
-        }
+    Task {
+      do {
+        let token = try await appCheck.limitedUseToken()
+        _ /* token */ = token.token
+      } catch {
+        _ /* error */ = error
       }
     }
 
@@ -129,14 +123,11 @@ final class AppCheckAPITests {
     }
 
     // Get token (async/await)
-    if #available(iOS 13.0, macOS 10.15, macCatalyst 13.0, tvOS 13.0, watchOS 7.0, *) {
-      // async/await is only available on iOS 13+
-      Task {
-        do {
-          _ = try await debugProvider.getToken()
-        } catch {
-          // ...
-        }
+    Task {
+      do {
+        _ = try await debugProvider.getToken()
+      } catch {
+        // ...
       }
     }
 
@@ -182,33 +173,31 @@ final class AppCheckAPITests {
 
     // `DeviceCheckProvider` initializer
     #if !os(watchOS)
-      if #available(iOS 11.0, macOS 10.15, macCatalyst 13.0, tvOS 11.0, *) {
-        // TODO(andrewheard): Add `requestHooks` in API tests.
-        let deviceCheckProvider = AppCheckCoreDeviceCheckProvider(
-          serviceName: serviceName,
-          resourceName: resourceName,
-          apiKey: apiKey,
-          requestHooks: nil as [AppCheckCoreAPIRequestHook]?
-        )
-        // Get token
-        deviceCheckProvider.getToken { token, error in
-          if let _ /* error */ = error {
-            // ...
-          } else if let _ /* token */ = token {
-            // ...
-          }
+      // TODO(andrewheard): Add `requestHooks` in API tests.
+      let deviceCheckProvider = AppCheckCoreDeviceCheckProvider(
+        serviceName: serviceName,
+        resourceName: resourceName,
+        apiKey: apiKey,
+        requestHooks: nil as [AppCheckCoreAPIRequestHook]?
+      )
+      // Get token
+      deviceCheckProvider.getToken { token, error in
+        if let _ /* error */ = error {
+          // ...
+        } else if let _ /* token */ = token {
+          // ...
         }
-        // Get token (async/await)
-        if #available(iOS 13.0, tvOS 13.0, *) {
-          // async/await is only available on iOS 13+
-          Task {
-            do {
-              _ = try await deviceCheckProvider.getToken()
-            } catch AppCheckCoreErrorCode.unsupported {
-              // ...
-            } catch {
-              // ...
-            }
+      }
+      // Get token (async/await)
+      if #available(iOS 13.0, tvOS 13.0, *) {
+        // async/await is only available on iOS 13+
+        Task {
+          do {
+            _ = try await deviceCheckProvider.getToken()
+          } catch AppCheckCoreErrorCode.unsupported {
+            // ...
+          } catch {
+            // ...
           }
         }
       }

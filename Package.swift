@@ -19,7 +19,7 @@ import PackageDescription
 
 let package = Package(
   name: "AppCheck",
-  platforms: [.iOS(.v13), .macCatalyst(.v13), .macOS(.v10_15), .tvOS(.v13), .watchOS(.v7)],
+  platforms: [.iOS(.v15), .macCatalyst(.v15), .macOS(.v10_15), .tvOS(.v15), .watchOS(.v7)],
   products: [
     .library(
       name: "AppCheckCore",
