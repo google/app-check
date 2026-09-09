@@ -356,55 +356,228 @@ static NSString *const kAppGroupID = @"app_group_id";
   XCTAssertEqual(self.fakeTokenRefresher.updateWithRefreshResultCallCount, 1);
   XCTAssertEqual(self.fakeTokenDelegate.tokenDidUpdateCallCount, 1);
 
-  // 5. Check a get token call after.
-  [self assertGetToken_WhenCachedTokenIsValid_Success];
+  // 5. Check a get token call after returns the cached token without re-fetching.
+  XCTestExpectation *afterExpectation = [self expectationWithDescription:@"getTokenAfter"];
+  [self.appCheck tokenForcingRefresh:NO
+                          completion:^(GACAppCheckTokenResult *result) {
+                            [afterExpectation fulfill];
+                            XCTAssertEqualObjects(result.token, expectedToken);
+                            XCTAssertNil(result.error);
+                          }];
+  [self waitForExpectations:@[ afterExpectation ] timeout:0.5];
+  XCTAssertEqual(self.fakeAppCheckProvider.getTokenCallCount, 1);
 }
 
 - (void)testGetToken_WhenCalledSeveralTimesError_ThenThereIsOnlyOneOperation {
-  // 1. Expect a token to be requested and stored.
-  NSArray * /*[expectedToken, storeTokenPromise]*/ expectedTokenAndPromise =
-      [self expectTokenRequestFromAppCheckProvider];
-  FBLPromise *storeTokenPromise = expectedTokenAndPromise.lastObject;
+  // 1. Expect a token to be requested from storage, kept pending to merge multiple calls.
+  FBLPromise<GACAppCheckToken *> *storageGetPromise = [FBLPromise pendingPromise];
+  self.fakeStorage.getTokenPromise = storageGetPromise;
 
-  // 1.1. Create an expected error to be reject the store token promise with later.
-  NSError *storageError = [NSError errorWithDomain:self.name code:0 userInfo:nil];
+  // 1.1. Create an expected error to reject the provider request with later.
+  NSError *providerError = [self internalError];
+  self.fakeAppCheckProvider.errorToReturn = providerError;
 
-  // 3. Request token several times.
+  // 2. Request token several times.
   NSInteger getTokenCallsCount = 10;
   NSMutableArray *getTokenCompletionExpectations =
       [NSMutableArray arrayWithCapacity:getTokenCallsCount];
 
   for (NSInteger i = 0; i < getTokenCallsCount; i++) {
-    // 3.1. Expect a completion to be called for each method call.
+    // 2.1. Expect a completion to be called for each method call.
     XCTestExpectation *getTokenExpectation =
         [self expectationWithDescription:[NSString stringWithFormat:@"getToken%@", @(i)]];
     [getTokenCompletionExpectations addObject:getTokenExpectation];
 
-    // 3.2. Request token and verify result.
+    // 2.2. Request token and verify result.
     [self.appCheck tokenForcingRefresh:NO
                             completion:^(GACAppCheckTokenResult *result) {
                               [getTokenExpectation fulfill];
                               XCTAssertEqualObjects(result.token.token, kPlaceholderTokenValue);
                               XCTAssertNotNil(result.error);
-                              XCTAssertNotNil(result.error);
-                              XCTAssertEqualObjects(result.error, storageError);
+                              XCTAssertEqualObjects(result.error, providerError);
                             }];
   }
 
-  // 3.3. Reject the pending promise to finish the get token operation.
-  [storeTokenPromise reject:storageError];
+  // 2.3. Finish storage get with nil so it proceeds to refresh with provider.
+  [storageGetPromise fulfill:nil];
 
-  // 4. Wait for expectations and validate mocks.
+  // 3. Wait for expectations and validate mocks.
   [self waitForExpectations:getTokenCompletionExpectations timeout:0.5];
 
-  // After the first token generation fails and caches the result, the call count will be 1
+  // After the first token generation fails, call count will be 1
   XCTAssertEqual(self.fakeAppCheckProvider.getTokenCallCount, 1);
   XCTAssertEqual(self.fakeTokenDelegate.tokenDidUpdateCallCount, 0);  // No updates on error
-  XCTAssertEqualObjects(self.fakeStorage.lastSetToken, expectedTokenAndPromise.firstObject);
+  XCTAssertNil(self.fakeStorage.lastSetToken);
   XCTAssertEqual(self.fakeTokenRefresher.updateWithRefreshResultCallCount, 0);
 
-  // 5. Check a get token call after.
+  // 4. Check a get token call after.
   [self assertGetToken_WhenCachedTokenIsValid_Success];
+}
+
+- (void)testGetToken_WhenStorageFails_ThenTokenReturnedAndCachedInMemory {
+  // 1. Expect token to be requested from storage (cache miss) and provider to return a valid token.
+  self.fakeStorage.getTokenPromise = [FBLPromise resolvedWith:nil];
+
+  GACAppCheckToken *expectedToken = [self validToken];
+  self.fakeAppCheckProvider.tokenToReturn = expectedToken;
+
+  // 2. Make storage setToken fail with a keychain error.
+  NSError *storageError = [_GACAppCheckErrorUtil keychainErrorWithError:[self internalError]];
+  FBLPromise<GACAppCheckToken *> *rejectedStoragePromise = [FBLPromise pendingPromise];
+  [rejectedStoragePromise reject:storageError];
+  self.fakeStorage.setTokenPromise = rejectedStoragePromise;
+
+  // 3. Request token and verify it succeeds with the valid token despite storage failure.
+  XCTestExpectation *getTokenExpectation = [self expectationWithDescription:@"getToken"];
+  [self.appCheck tokenForcingRefresh:NO
+                          completion:^(GACAppCheckTokenResult *result) {
+                            [getTokenExpectation fulfill];
+                            XCTAssertEqualObjects(result.token, expectedToken);
+                            XCTAssertNil(result.error);
+                          }];
+
+  [self waitForExpectations:@[ getTokenExpectation ] timeout:0.5];
+
+  XCTAssertEqual(self.fakeAppCheckProvider.getTokenCallCount, 1);
+  XCTAssertEqualObjects(self.fakeStorage.lastSetToken, expectedToken);
+  XCTAssertEqual(self.fakeTokenRefresher.updateWithRefreshResultCallCount, 1);
+  XCTAssertEqual(self.fakeTokenDelegate.tokenDidUpdateCallCount, 1);
+
+  // 4. Request token again: should be retrieved from in-memory cache without hitting provider or
+  // storage.
+  self.fakeStorage.getTokenPromise = [FBLPromise resolvedWith:nil];
+  XCTestExpectation *cachedExpectation = [self expectationWithDescription:@"getCachedToken"];
+  [self.appCheck tokenForcingRefresh:NO
+                          completion:^(GACAppCheckTokenResult *result) {
+                            [cachedExpectation fulfill];
+                            XCTAssertEqualObjects(result.token, expectedToken);
+                            XCTAssertNil(result.error);
+                          }];
+
+  [self waitForExpectations:@[ cachedExpectation ] timeout:0.5];
+
+  // Provider call count should remain 1.
+  XCTAssertEqual(self.fakeAppCheckProvider.getTokenCallCount, 1);
+}
+
+- (void)testGetToken_WhenForcingRefresh_ThenInMemoryCacheIsBypassed {
+  // 1. Prime the in-memory cache with an initial token.
+  self.fakeStorage.getTokenPromise = [FBLPromise resolvedWith:nil];
+  GACAppCheckToken *token1 = [self validToken];
+  self.fakeAppCheckProvider.tokenToReturn = token1;
+  self.fakeStorage.setTokenPromise = [FBLPromise resolvedWith:token1];
+
+  XCTestExpectation *expectation1 = [self expectationWithDescription:@"getToken1"];
+  [self.appCheck tokenForcingRefresh:NO
+                          completion:^(GACAppCheckTokenResult *result) {
+                            [expectation1 fulfill];
+                            XCTAssertEqualObjects(result.token, token1);
+                            XCTAssertNil(result.error);
+                          }];
+  [self waitForExpectations:@[ expectation1 ] timeout:0.5];
+  XCTAssertEqual(self.fakeAppCheckProvider.getTokenCallCount, 1);
+
+  // 2. Request token with forcingRefresh:YES; should bypass in-memory cache and fetch new token.
+  GACAppCheckToken *token2 = [self validToken];
+  self.fakeAppCheckProvider.tokenToReturn = token2;
+  self.fakeStorage.setTokenPromise = [FBLPromise resolvedWith:token2];
+
+  XCTestExpectation *expectation2 = [self expectationWithDescription:@"getToken2"];
+  [self.appCheck tokenForcingRefresh:YES
+                          completion:^(GACAppCheckTokenResult *result) {
+                            [expectation2 fulfill];
+                            XCTAssertEqualObjects(result.token, token2);
+                            XCTAssertNil(result.error);
+                          }];
+  [self waitForExpectations:@[ expectation2 ] timeout:0.5];
+
+  // Provider call count should now be 2.
+  XCTAssertEqual(self.fakeAppCheckProvider.getTokenCallCount, 2);
+
+  // 3. Subsequent call with forcingRefresh:NO should return token2 from in-memory cache without
+  // calling provider again.
+  XCTestExpectation *expectation3 = [self expectationWithDescription:@"getToken3"];
+  [self.appCheck tokenForcingRefresh:NO
+                          completion:^(GACAppCheckTokenResult *result) {
+                            [expectation3 fulfill];
+                            XCTAssertEqualObjects(result.token, token2);
+                            XCTAssertNil(result.error);
+                          }];
+  [self waitForExpectations:@[ expectation3 ] timeout:0.5];
+  XCTAssertEqual(self.fakeAppCheckProvider.getTokenCallCount, 2);
+}
+
+- (void)testGetToken_WhenForcingRefresh_ThenInMemoryTokenIsInvalidated {
+  // 1. Prime the in-memory cache with an initial token.
+  self.fakeStorage.getTokenPromise = [FBLPromise resolvedWith:nil];
+  GACAppCheckToken *token1 = [self validToken];
+  self.fakeAppCheckProvider.tokenToReturn = token1;
+  self.fakeStorage.setTokenPromise = [FBLPromise resolvedWith:token1];
+
+  XCTestExpectation *expectation1 = [self expectationWithDescription:@"getToken1"];
+  [self.appCheck tokenForcingRefresh:NO
+                          completion:^(GACAppCheckTokenResult *result) {
+                            [expectation1 fulfill];
+                            XCTAssertEqualObjects(result.token, token1);
+                          }];
+  [self waitForExpectations:@[ expectation1 ] timeout:0.5];
+  XCTAssertEqual(self.fakeAppCheckProvider.getTokenCallCount, 1);
+
+  // 2. Force refresh with provider failure.
+  NSError *providerError = [self internalError];
+  self.fakeAppCheckProvider.errorToReturn = providerError;
+  self.fakeAppCheckProvider.tokenToReturn = nil;
+
+  XCTestExpectation *expectation2 = [self expectationWithDescription:@"getToken2"];
+  [self.appCheck tokenForcingRefresh:YES
+                          completion:^(GACAppCheckTokenResult *result) {
+                            [expectation2 fulfill];
+                            XCTAssertEqualObjects(result.error, providerError);
+                          }];
+  [self waitForExpectations:@[ expectation2 ] timeout:0.5];
+  XCTAssertEqual(self.fakeAppCheckProvider.getTokenCallCount, 2);
+
+  // 3. Now request token with forcingRefresh:NO; since token1 was invalidated, it should NOT return
+  // token1. Provider will be called again (or fail).
+  XCTestExpectation *expectation3 = [self expectationWithDescription:@"getToken3"];
+  [self.appCheck tokenForcingRefresh:NO
+                          completion:^(GACAppCheckTokenResult *result) {
+                            [expectation3 fulfill];
+                            XCTAssertEqualObjects(result.error, providerError);
+                          }];
+  [self waitForExpectations:@[ expectation3 ] timeout:0.5];
+  XCTAssertEqual(self.fakeAppCheckProvider.getTokenCallCount, 3);
+}
+
+- (void)testGetToken_WhenInMemoryTokenExpires_ThenRefreshesWithProvider {
+  // 1. Prime the in-memory cache with a soon-expiring token.
+  self.fakeStorage.getTokenPromise = [FBLPromise resolvedWith:nil];
+  GACAppCheckToken *expiringToken = [self soonExpiringToken];
+  self.fakeAppCheckProvider.tokenToReturn = expiringToken;
+  self.fakeStorage.setTokenPromise = [FBLPromise resolvedWith:expiringToken];
+
+  XCTestExpectation *expectation1 = [self expectationWithDescription:@"getToken1"];
+  [self.appCheck tokenForcingRefresh:NO
+                          completion:^(GACAppCheckTokenResult *result) {
+                            [expectation1 fulfill];
+                            XCTAssertEqualObjects(result.token, expiringToken);
+                          }];
+  [self waitForExpectations:@[ expectation1 ] timeout:0.5];
+  XCTAssertEqual(self.fakeAppCheckProvider.getTokenCallCount, 1);
+
+  // 2. Next call with forcingRefresh:NO detects in-memory token expires soon and refreshes.
+  GACAppCheckToken *newToken = [self validToken];
+  self.fakeAppCheckProvider.tokenToReturn = newToken;
+  self.fakeStorage.setTokenPromise = [FBLPromise resolvedWith:newToken];
+
+  XCTestExpectation *expectation2 = [self expectationWithDescription:@"getToken2"];
+  [self.appCheck tokenForcingRefresh:NO
+                          completion:^(GACAppCheckTokenResult *result) {
+                            [expectation2 fulfill];
+                            XCTAssertEqualObjects(result.token, newToken);
+                          }];
+  [self waitForExpectations:@[ expectation2 ] timeout:0.5];
+  XCTAssertEqual(self.fakeAppCheckProvider.getTokenCallCount, 2);
 }
 
 #pragma mark - Helpers
