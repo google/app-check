@@ -46,6 +46,8 @@ typedef NS_ENUM(NSInteger, GACAppCheckMessageCode) {
   // App Check
   GACLoggerAppCheckMessageCodeProviderIsMissing = 2002,
   GACLoggerAppCheckMessageCodeStagingModeEnabled = 2003,
+  /// Failed to cache the App Check token in persistent storage.
+  GACLoggerAppCheckMessageCodeTokenStorageFailed = 2004,
   GACLoggerAppCheckMessageCodeUnexpectedHTTPCode = 3001,
 
   // Debug Provider

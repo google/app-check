@@ -230,6 +230,7 @@ final class AppCheckAPITests {
     case .loggerAppCheckMessageCodeUnknown: break
     case .loggerAppCheckMessageCodeProviderIsMissing: break
     case .loggerAppCheckMessageCodeStagingModeEnabled: break
+    case .loggerAppCheckMessageCodeTokenStorageFailed: break
     case .loggerAppCheckMessageCodeUnexpectedHTTPCode: break
     case .loggerAppCheckMessageLocalDebugToken: break
     case .loggerAppCheckMessageEnvironmentVariableDebugToken: break

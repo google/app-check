@@ -53,6 +53,8 @@ typedef void (^GACAppCheckTokenHandler)(GACAppCheckTokenResult *result);
 
 @property(nonatomic, nullable) FBLPromise<GACAppCheckToken *> *ongoingRetrieveOrRefreshTokenPromise;
 
+@property(nonatomic, strong, nullable) GACAppCheckToken *inMemoryToken;
+
 @end
 
 @implementation GACAppCheck
@@ -163,11 +165,21 @@ typedef void (^GACAppCheckTokenHandler)(GACAppCheckTokenResult *result);
       });
 }
 
+- (BOOL)isTokenExpiredOrExpiresSoon:(GACAppCheckToken *)token {
+  return [token.expirationDate timeIntervalSinceNow] < kTokenExpirationThreshold;
+}
+
 - (FBLPromise<GACAppCheckToken *> *)getCachedValidTokenForcingRefresh:(BOOL)forcingRefresh {
   if (forcingRefresh) {
+    self.inMemoryToken = nil;
     FBLPromise *rejectedPromise = [FBLPromise pendingPromise];
     [rejectedPromise reject:[_GACAppCheckErrorUtil cachedTokenNotFound]];
     return rejectedPromise;
+  }
+
+  GACAppCheckToken *inMemoryToken = self.inMemoryToken;
+  if (inMemoryToken != nil && ![self isTokenExpiredOrExpiresSoon:inMemoryToken]) {
+    return [FBLPromise resolvedWith:inMemoryToken];
   }
 
   return [self.storage getToken].then(^id(GACAppCheckToken *_Nullable token) {
@@ -175,12 +187,11 @@ typedef void (^GACAppCheckTokenHandler)(GACAppCheckTokenResult *result);
       return [_GACAppCheckErrorUtil cachedTokenNotFound];
     }
 
-    BOOL isTokenExpiredOrExpiresSoon =
-        [token.expirationDate timeIntervalSinceNow] < kTokenExpirationThreshold;
-    if (isTokenExpiredOrExpiresSoon) {
+    if ([self isTokenExpiredOrExpiresSoon:token]) {
       return [_GACAppCheckErrorUtil cachedTokenExpired];
     }
 
+    self.inMemoryToken = token;
     return token;
   });
 }
@@ -191,7 +202,13 @@ typedef void (^GACAppCheckTokenHandler)(GACAppCheckTokenResult *result);
                [self.appCheckProvider getTokenWithCompletion:handler];
              }]
       .then(^id _Nullable(GACAppCheckToken *_Nullable token) {
-        return [self.storage setToken:token];
+        self.inMemoryToken = token;
+        return [self.storage setToken:token].recover(^id _Nullable(NSError *_Nonnull error) {
+          NSString *logMessage =
+              [NSString stringWithFormat:@"Failed to cache App Check token: %@", error];
+          GACAppCheckLogWarning(GACLoggerAppCheckMessageCodeTokenStorageFailed, logMessage);
+          return token;
+        });
       })
       .then(^id _Nullable(GACAppCheckToken *_Nullable token) {
         // TODO: Make sure the self.tokenRefresher is updated only once. Currently the timer will be
