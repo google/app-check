@@ -1,3 +1,8 @@
+# Unreleased
+- [changed] Made Keychain token caching errors non-fatal by logging a warning
+  and falling back to an in-memory cache, enabling token retrieval in
+  environments without Keychain access (such as `swift test` and CI).
+
 # 11.3.1
 - [fixed] Added recovery logic to reset and retry attestation when App Attest
   returns `DCErrorUnknownSystemFailure` during assertion
