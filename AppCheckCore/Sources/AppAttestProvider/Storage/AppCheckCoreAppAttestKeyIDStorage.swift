@@ -25,18 +25,21 @@ public protocol AppCheckCoreAppAttestKeyIDStorageProtocol: NSObjectProtocol {
   @objc func getAppAttestKeyID() async throws -> String?
 }
 
-private let kKeyIDStorageDefaultsSuiteName = "com.firebase.AppCheckCoreAppAttestKeyIDStorage"
-
 @objc(GACAppAttestKeyIDStorage)
 public class AppCheckCoreAppAttestKeyIDStorage: NSObject,
   AppCheckCoreAppAttestKeyIDStorageProtocol {
+  /// Suite name for the app attest key ID in UserDefaults.
+  /// Do not rename: retains the "GAC" prefix for compatibility with existing stored data from v11
+  /// or lower.
+  static let keyIDStorageDefaultsSuiteName = "com.firebase.GACAppAttestKeyIDStorage"
+
   private let keySuffix: String
   private let userDefaults: GULUserDefaults
 
   @objc(initWithKeySuffix:)
   public init(keySuffix: String) {
     self.keySuffix = keySuffix
-    userDefaults = GULUserDefaults(suiteName: kKeyIDStorageDefaultsSuiteName)
+    userDefaults = GULUserDefaults(suiteName: Self.keyIDStorageDefaultsSuiteName)
     super.init()
   }
 

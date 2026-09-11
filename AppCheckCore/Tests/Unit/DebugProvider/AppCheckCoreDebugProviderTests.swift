@@ -47,8 +47,9 @@ class MockAppCheckDebugProviderAPIService: NSObject, AppCheckCoreDebugProviderAP
 class AppCheckCoreDebugProviderTests: XCTestCase {
   let kDebugTokenEnvKey = "AppCheckDebugToken"
   let kFirebaseDebugTokenEnvKey = "FIRAAppCheckDebugToken"
-  let kDebugTokenUserDefaultsKey = "AppCheckCoreDebugToken"
-  let kDebugTokenRegisteredUserDefaultsKey = "AppCheckCoreDebugTokenRegistered"
+  let kDebugTokenUserDefaultsKey = AppCheckCoreDebugProvider.debugTokenUserDefaultsKey
+  let kDebugTokenRegisteredUserDefaultsKey = AppCheckCoreDebugProvider
+    .debugTokenRegisteredUserDefaultsKeyPrefix
 
   var provider: AppCheckCoreDebugProvider!
   var fakeAPIService: MockAppCheckDebugProviderAPIService!
@@ -70,6 +71,67 @@ class AppCheckCoreDebugProviderTests: XCTestCase {
   }
 
   // MARK: - Debug token generating/storing
+
+  // IMMUTABLE TEST: Do not edit, update, or remove under any circumstance.
+  // This test locks in an immutable backwards compatibility contract with App Check 11.
+  // If this test fails, revert changes to the implementation instead of modifying this test.
+  func testDebugTokenUserDefaultsKeys_MatchContract() {
+    XCTAssertEqual(
+      AppCheckCoreDebugProvider.debugTokenUserDefaultsKey,
+      "GACAppCheckDebugToken",
+      "Debug token key mismatch breaks App Check 11 migration compatibility."
+    )
+    XCTAssertEqual(
+      AppCheckCoreDebugProvider.debugTokenRegisteredUserDefaultsKeyPrefix,
+      "GACAppCheckDebugTokenRegistered",
+      "Registered token key prefix mismatch breaks App Check 11 migration compatibility."
+    )
+  }
+
+  func testLegacyDebugTokenCompatibility() {
+    let legacyKey = kDebugTokenUserDefaultsKey
+    let legacyToken = "legacy_stored_debug_token"
+    UserDefaults.standard.set(legacyToken, forKey: legacyKey)
+    defer {
+      UserDefaults.standard.removeObject(forKey: legacyKey)
+    }
+
+    let debugProvider = AppCheckCoreDebugProvider(
+      apiService: fakeAPIService,
+      serviceName: "test-service",
+      resourceName: "projects/test-project/apps/test-app",
+      environment: [:]
+    )
+
+    XCTAssertEqual(
+      debugProvider.currentDebugToken(),
+      legacyToken,
+      "Debug token mismatch breaks App Check 11 migration compatibility."
+    )
+  }
+
+  func testSetDebugToken_CompatibilityWithLegacyGACStorage() {
+    let legacyKey = kDebugTokenUserDefaultsKey
+    UserDefaults.standard.removeObject(forKey: legacyKey)
+    defer {
+      UserDefaults.standard.removeObject(forKey: legacyKey)
+    }
+
+    let debugProvider = AppCheckCoreDebugProvider(
+      apiService: fakeAPIService,
+      serviceName: "test-service",
+      resourceName: "projects/test-project/apps/test-app",
+      environment: [:]
+    )
+
+    let generatedToken = debugProvider.currentDebugToken()
+    let storedLegacyValue = UserDefaults.standard.string(forKey: legacyKey)
+    XCTAssertEqual(
+      storedLegacyValue,
+      generatedToken,
+      "Generated debug token was not stored under legacy key."
+    )
+  }
 
   func testCurrentTokenWhenEnvironmentVariableSetAndTokenStored() {
     UserDefaults.standard.set("stored token", forKey: kDebugTokenUserDefaultsKey)
