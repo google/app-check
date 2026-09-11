@@ -1,4 +1,4 @@
-# Unreleased
+# 11.3.2
 - [fixed] Fixed an issue where the time-to-live (TTL) for a cached token was calculated from the
   moment the token response was processed locally, rather than when the request was initiated,
   which could lead to artificially extended token lifetimes during app suspension.
