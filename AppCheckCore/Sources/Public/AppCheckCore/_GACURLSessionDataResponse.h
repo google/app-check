@@ -26,8 +26,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property(nonatomic, readonly) NSHTTPURLResponse *HTTPResponse;
 @property(nonatomic, nullable, readonly) NSData *HTTPBody;
+@property(nonatomic, readonly) NSDate *requestDate;
 
-- (instancetype)initWithResponse:(NSHTTPURLResponse *)response HTTPBody:(nullable NSData *)body;
+- (instancetype)initWithResponse:(NSHTTPURLResponse *)response
+                        HTTPBody:(nullable NSData *)body
+                     requestDate:(NSDate *)requestDate;
 
 @end
 

@@ -368,7 +368,9 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   XCTAssertNotNil(responseBody);
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:200];
   _GACURLSessionDataResponse *APIResponse =
-      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse
+                                                  HTTPBody:responseBody
+                                               requestDate:[NSDate date]];
 
   // 2. Expected result.
   NSString *expectedFACToken = @"valid_app_check_token";
@@ -388,13 +390,45 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
                                       precision:10]);
 }
 
+- (void)testAppCheckTokenWithAPIResponseUsesRequestDate {
+  // 1. Prepare input parameters.
+  NSData *responseBody =
+      [GACFixtureLoader loadFixtureNamed:@"FACTokenExchangeResponseSuccess.json"];
+  XCTAssertNotNil(responseBody);
+  NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:200];
+  NSDate *requestDate = [NSDate dateWithTimeIntervalSince1970:100000];
+  _GACURLSessionDataResponse *APIResponse =
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse
+                                                  HTTPBody:responseBody
+                                               requestDate:requestDate];
+
+  // 2. Expected result.
+  NSString *expectedFACToken = @"valid_app_check_token";
+
+  // 3. Parse API response.
+  __auto_type tokenPromise = [self.APIService appCheckTokenWithAPIResponse:APIResponse];
+
+  // 4. Verify.
+  XCTAssert(FBLWaitForPromisesWithTimeout(1));
+
+  XCTAssertTrue(tokenPromise.isFulfilled);
+  XCTAssertNil(tokenPromise.error);
+
+  XCTAssertEqualObjects(tokenPromise.value.token, expectedFACToken);
+
+  NSDate *expectedExpiration = [requestDate dateByAddingTimeInterval:1800];
+  XCTAssertEqualObjects(tokenPromise.value.expirationDate, expectedExpiration);
+}
+
 - (void)testAppCheckTokenWithAPIResponseInvalidFormat {
   // 1. Prepare input parameters.
   NSString *responseBodyString = @"Token verification failed.";
   NSData *responseBody = [responseBodyString dataUsingEncoding:NSUTF8StringEncoding];
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:200];
   _GACURLSessionDataResponse *APIResponse =
-      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse
+                                                  HTTPBody:responseBody
+                                               requestDate:[NSDate date]];
 
   // 2. Parse API response.
   __auto_type tokenPromise = [self.APIService appCheckTokenWithAPIResponse:APIResponse];
@@ -429,7 +463,9 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
 
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:200];
   _GACURLSessionDataResponse *APIResponse =
-      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:missingFiledBody];
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse
+                                                  HTTPBody:missingFiledBody
+                                               requestDate:[NSDate date]];
 
   // 2. Parse API response.
   __auto_type tokenPromise = [self.APIService appCheckTokenWithAPIResponse:APIResponse];
@@ -466,7 +502,9 @@ static NSString *const kTestHeaderValue = @"TEST_HEADER_VALUE";
   FBLPromise<_GACURLSessionDataResponse *> *result = [FBLPromise pendingPromise];
   if (error == nil) {
     _GACURLSessionDataResponse *response =
-        [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:body];
+        [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse
+                                                    HTTPBody:body
+                                                 requestDate:[NSDate date]];
     [result fulfill:response];
   } else {
     [result reject:error];

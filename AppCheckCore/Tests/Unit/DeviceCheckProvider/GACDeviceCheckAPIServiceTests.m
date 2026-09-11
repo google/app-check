@@ -84,7 +84,9 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
 
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:200];
   _GACURLSessionDataResponse *APIResponse =
-      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse
+                                                  HTTPBody:responseBody
+                                               requestDate:[NSDate date]];
 
   self.mockAPIService.sendRequestPromise = [FBLPromise resolvedWith:APIResponse];
 
@@ -135,7 +137,9 @@ typedef BOOL (^FIRRequestValidationBlock)(NSURLRequest *request);
 
   NSHTTPURLResponse *HTTPResponse = [GACURLSessionFake HTTPResponseWithCode:200];
   _GACURLSessionDataResponse *APIResponse =
-      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse HTTPBody:responseBody];
+      [[_GACURLSessionDataResponse alloc] initWithResponse:HTTPResponse
+                                                  HTTPBody:responseBody
+                                               requestDate:[NSDate date]];
 
   self.mockAPIService.sendRequestPromise = [FBLPromise resolvedWith:APIResponse];
 

@@ -1,3 +1,9 @@
+# Unreleased
+- [fixed] Fixed an issue where the time-to-live (TTL) for a cached token was calculated from the
+  moment the token response was processed locally, rather than when the request was initiated,
+  which could lead to artificially extended token lifetimes during app suspension.
+  (https://github.com/firebase/firebase-ios-sdk/issues/16573)
+
 # 11.3.1
 - [fixed] Added recovery logic to reset and retry attestation when App Attest
   returns `DCErrorUnknownSystemFailure` during assertion
