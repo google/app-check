@@ -25,12 +25,20 @@ import Foundation
 
 private let kDebugTokenEnvKey = "AppCheckDebugToken"
 private let kFirebaseDebugTokenEnvKey = "FIRAAppCheckDebugToken"
-private let kDebugTokenUserDefaultsKey = "AppCheckCoreDebugToken"
-private let kDebugTokenRegisteredUserDefaultsKey = "AppCheckCoreDebugTokenRegistered"
 
 @objc(GACAppCheckDebugProvider)
 @objcMembers
 public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
+  /// Storage key for the debug token in UserDefaults.
+  /// Do not rename: retains the "GAC" prefix for compatibility with existing stored data from v11
+  /// or lower.
+  static let debugTokenUserDefaultsKey = "GACAppCheckDebugToken"
+
+  /// Storage key prefix for registered debug tokens in UserDefaults.
+  /// Do not rename: retains the "GAC" prefix for compatibility with existing stored data from v11
+  /// or lower.
+  static let debugTokenRegisteredUserDefaultsKeyPrefix = "GACAppCheckDebugTokenRegistered"
+
   private let apiService: AppCheckCoreDebugProviderAPIServiceProtocol
   private let debugTokenEnvValue: String?
   private let registeredUserDefaultsKey: String
@@ -156,11 +164,11 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
   }
 
   private static func localDebugToken() -> String {
-    if let token = GULUserDefaults.standard().string(forKey: kDebugTokenUserDefaultsKey) {
+    if let token = GULUserDefaults.standard().string(forKey: debugTokenUserDefaultsKey) {
       return token
     } else {
       let token = UUID().uuidString
-      GULUserDefaults.standard().setObject(token, forKey: kDebugTokenUserDefaultsKey)
+      GULUserDefaults.standard().setObject(token, forKey: debugTokenUserDefaultsKey)
       return token
     }
   }
@@ -172,7 +180,7 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
     if safeResourceName.isEmpty {
       safeResourceName = "default"
     }
-    return "\(kDebugTokenRegisteredUserDefaultsKey)_\(safeServiceName)_\(safeResourceName)"
+    return "\(debugTokenRegisteredUserDefaultsKeyPrefix)_\(safeServiceName)_\(safeResourceName)"
   }
 
   private static func environmentVariableDebugToken(registeredUserDefaultsKey: String,

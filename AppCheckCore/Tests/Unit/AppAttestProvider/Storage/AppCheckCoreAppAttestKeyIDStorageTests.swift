@@ -54,6 +54,46 @@ class AppCheckCoreAppAttestKeyIDStorageTests: XCTestCase {
     XCTAssertNil(setKeyID)
   }
 
+  // IMMUTABLE TEST: Do not edit, update, or remove under any circumstance.
+  // This test locks in an immutable backwards compatibility contract with App Check 11.
+  // If this test fails, revert changes to the implementation instead of modifying this test.
+  func testKeyIDStorageDefaultsSuiteName_MatchesContract() {
+    XCTAssertEqual(
+      AppCheckCoreAppAttestKeyIDStorage.keyIDStorageDefaultsSuiteName,
+      "com.firebase.GACAppAttestKeyIDStorage",
+      "Suite name mismatch breaks App Check 11 migration compatibility."
+    )
+  }
+
+  func testGetAppAttestKeyID_CompatibilityWithLegacyGACStorage() async throws {
+    let legacySuiteName = AppCheckCoreAppAttestKeyIDStorage.keyIDStorageDefaultsSuiteName
+    let legacyDefaults = try XCTUnwrap(UserDefaults(suiteName: legacySuiteName))
+    let legacyKey = "app_attest_keyID.\(keySuffix!)"
+    let expectedKeyID = "legacy_test_key_id"
+    legacyDefaults.set(expectedKeyID, forKey: legacyKey)
+    defer {
+      legacyDefaults.removeObject(forKey: legacyKey)
+    }
+
+    let retrievedKeyID = try await storage.getAppAttestKeyID()
+    XCTAssertEqual(retrievedKeyID, expectedKeyID)
+  }
+
+  func testSetAppAttestKeyID_CompatibilityWithLegacyGACStorage() async throws {
+    let legacySuiteName = AppCheckCoreAppAttestKeyIDStorage.keyIDStorageDefaultsSuiteName
+    let legacyDefaults = try XCTUnwrap(UserDefaults(suiteName: legacySuiteName))
+    let legacyKey = "app_attest_keyID.\(keySuffix!)"
+    let newKeyID = "new_test_key_id"
+    defer {
+      legacyDefaults.removeObject(forKey: legacyKey)
+    }
+
+    _ = try await storage.setAppAttestKeyID(newKeyID)
+
+    let storedValue = legacyDefaults.string(forKey: legacyKey)
+    XCTAssertEqual(storedValue, newKeyID)
+  }
+
   func testGetAppAttestKeyID_WhenAppAttestKeyIDNotFoundError() async {
     do {
       _ = try await storage.getAppAttestKeyID()
