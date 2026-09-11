@@ -30,11 +30,13 @@ private let kFirebaseDebugTokenEnvKey = "FIRAAppCheckDebugToken"
 @objcMembers
 public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
   /// Storage key for the debug token in UserDefaults.
+  /// Internal scope exists for testing purposes.
   /// Do not rename: retains the "GAC" prefix for compatibility with existing stored data from v11
   /// or lower.
   static let debugTokenUserDefaultsKey = "GACAppCheckDebugToken"
 
   /// Storage key prefix for registered debug tokens in UserDefaults.
+  /// Internal scope exists for testing purposes.
   /// Do not rename: retains the "GAC" prefix for compatibility with existing stored data from v11
   /// or lower.
   static let debugTokenRegisteredUserDefaultsKeyPrefix = "GACAppCheckDebugTokenRegistered"
@@ -173,8 +175,9 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
     }
   }
 
-  private static func registeredUserDefaultsKey(forServiceName serviceName: String,
-                                                resourceName: String) -> String {
+  /// Internal scope exists for testing purposes.
+  static func registeredUserDefaultsKey(forServiceName serviceName: String,
+                                        resourceName: String) -> String {
     let safeServiceName = serviceName.isEmpty ? "default" : serviceName
     var safeResourceName = resourceName.replacingOccurrences(of: "/", with: "_")
     if safeResourceName.isEmpty {
