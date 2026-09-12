@@ -18,7 +18,39 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  cat << 'EOF'
+Usage: generate_storage_fixtures.sh [GIT_TAG_OR_REF]
+
+Purpose:
+  Generates frozen legacy binary property list (.bin) fixtures from
+  Objective-C model definitions in historical git revisions. These
+  fixtures validate backward compatibility in Swift unarchiving tests.
+
+Arguments:
+  GIT_TAG_OR_REF   Git tag, branch, or commit SHA containing legacy
+                   Objective-C models (default: 11.0.0).
+
+Examples:
+  ./tools/generate_storage_fixtures.sh
+  ./tools/generate_storage_fixtures.sh 11.0.0
+  ./tools/generate_storage_fixtures.sh 10.18.0
+EOF
+  exit 0
+fi
+
 TAG="${1:-11.0.0}"
+
+if ! git -C "${REPO_ROOT}" rev-parse --verify --quiet "${TAG}^{commit}" >/dev/null; then
+  echo "Error: Git ref '${TAG}' does not exist." >&2
+  exit 1
+fi
+
+if ! git -C "${REPO_ROOT}" cat-file -e "${TAG}:AppCheckCore/Sources/Core/Storage/GACAppCheckStoredToken.h" 2>/dev/null; then
+  echo "Error: Git ref '${TAG}' lacks legacy Objective-C storage models (expected AppCheckCore <= 11.x)." >&2
+  exit 1
+fi
+
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "${TMP_DIR}"' EXIT
 
