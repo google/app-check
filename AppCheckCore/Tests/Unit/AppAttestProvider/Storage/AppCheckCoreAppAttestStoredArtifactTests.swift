@@ -81,4 +81,86 @@ class AppCheckCoreAppAttestStoredArtifactTests: XCTestCase {
     XCTAssertEqual(unarchived.artifact, artifact.artifact)
     XCTAssertEqual(unarchived.storageVersion, 1)
   }
+
+  func testSecureCoding_RejectsEmptyKeyID() throws {
+    let invalidArtifact = AppCheckCoreAppAttestStoredArtifact(
+      keyID: "",
+      artifact: Data("valid_payload".utf8)
+    )
+
+    let archivedData = try NSKeyedArchiver.archivedData(
+      withRootObject: invalidArtifact,
+      requiringSecureCoding: true
+    )
+
+    let unarchived = try? NSKeyedUnarchiver.unarchivedObject(
+      ofClass: AppCheckCoreAppAttestStoredArtifact.self,
+      from: archivedData
+    )
+    XCTAssertNil(unarchived, "Unarchiving must reject empty keyID string.")
+  }
+
+  func testSecureCoding_RejectsEmptyArtifactData() throws {
+    let invalidArtifact = AppCheckCoreAppAttestStoredArtifact(
+      keyID: "valid_key_id",
+      artifact: Data()
+    )
+
+    let archivedData = try NSKeyedArchiver.archivedData(
+      withRootObject: invalidArtifact,
+      requiringSecureCoding: true
+    )
+
+    let unarchived = try? NSKeyedUnarchiver.unarchivedObject(
+      ofClass: AppCheckCoreAppAttestStoredArtifact.self,
+      from: archivedData
+    )
+    XCTAssertNil(unarchived, "Unarchiving must reject zero-byte artifact payload.")
+  }
+
+  func testUnarchiving_CorruptedDataFailsGracefully() {
+    let corruptedBytes = Data([0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE])
+    XCTAssertThrowsError(
+      try NSKeyedUnarchiver.unarchivedObject(
+        ofClass: AppCheckCoreAppAttestStoredArtifact.self,
+        from: corruptedBytes
+      )
+    )
+
+    let truncatedBytes = Data("bplist00".utf8)
+    XCTAssertThrowsError(
+      try NSKeyedUnarchiver.unarchivedObject(
+        ofClass: AppCheckCoreAppAttestStoredArtifact.self,
+        from: truncatedBytes
+      )
+    )
+  }
+
+  func testDowngradeCompatibility_RuntimeClassNameAndEncodedPropertyTypes() throws {
+    XCTAssertEqual(
+      NSStringFromClass(AppCheckCoreAppAttestStoredArtifact.self),
+      "GACAppAttestStoredArtifact",
+      "Runtime class name must equal GACAppAttestStoredArtifact for Objective-C 11 unarchiving."
+    )
+
+    let artifact = AppCheckCoreAppAttestStoredArtifact(
+      keyID: "test_key",
+      artifact: Data("test_payload".utf8)
+    )
+
+    let archivedData = try NSKeyedArchiver.archivedData(
+      withRootObject: artifact,
+      requiringSecureCoding: true
+    )
+
+    let unarchived = try XCTUnwrap(
+      NSKeyedUnarchiver.unarchivedObject(
+        ofClass: AppCheckCoreAppAttestStoredArtifact.self,
+        from: archivedData
+      )
+    )
+    XCTAssertTrue((unarchived.keyID as Any) is String)
+    XCTAssertTrue((unarchived.artifact as Any) is Data)
+    XCTAssertTrue((unarchived.storageVersion as Any) is Int)
+  }
 }

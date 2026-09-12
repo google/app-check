@@ -104,4 +104,89 @@ class AppCheckCoreStoredTokenTests: XCTestCase {
     XCTAssertEqual(recoveredToken?.expirationDate, storedToken.expirationDate)
     XCTAssertEqual(recoveredToken?.receivedAtDate, storedToken.receivedAtDate)
   }
+
+  func testAppCheckToken_ReturnsNilWhenPropertiesAreMissing() {
+    let storedToken = AppCheckCoreStoredToken()
+    XCTAssertNil(storedToken.appCheckToken(), "Should return nil when all fields are nil.")
+
+    storedToken.token = "token"
+    storedToken.expirationDate = Date()
+    storedToken.receivedAtDate = nil
+    XCTAssertNil(storedToken.appCheckToken(), "Should return nil when receivedAtDate is nil.")
+
+    storedToken.receivedAtDate = Date()
+    storedToken.expirationDate = nil
+    XCTAssertNil(storedToken.appCheckToken(), "Should return nil when expirationDate is nil.")
+
+    storedToken.expirationDate = Date()
+    storedToken.token = nil
+    XCTAssertNil(storedToken.appCheckToken(), "Should return nil when token is nil.")
+  }
+
+  func testSecureCoding_WithNilProperties() throws {
+    let tokenToArchive = AppCheckCoreStoredToken()
+
+    let archivedData = try NSKeyedArchiver.archivedData(
+      withRootObject: tokenToArchive,
+      requiringSecureCoding: true
+    )
+
+    let unarchived = try XCTUnwrap(
+      NSKeyedUnarchiver.unarchivedObject(
+        ofClass: AppCheckCoreStoredToken.self,
+        from: archivedData
+      )
+    )
+    XCTAssertNil(unarchived.token)
+    XCTAssertNil(unarchived.expirationDate)
+    XCTAssertNil(unarchived.receivedAtDate)
+    XCTAssertEqual(unarchived.storageVersion, 2)
+  }
+
+  func testUnarchiving_CorruptedDataFailsGracefully() {
+    let corruptedBytes = Data([0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x01])
+    XCTAssertThrowsError(
+      try NSKeyedUnarchiver.unarchivedObject(
+        ofClass: AppCheckCoreStoredToken.self,
+        from: corruptedBytes
+      )
+    )
+
+    let truncatedBytes = Data("bplist00".utf8)
+    XCTAssertThrowsError(
+      try NSKeyedUnarchiver.unarchivedObject(
+        ofClass: AppCheckCoreStoredToken.self,
+        from: truncatedBytes
+      )
+    )
+  }
+
+  func testDowngradeCompatibility_RuntimeClassNameAndEncodedPropertyTypes() throws {
+    XCTAssertEqual(
+      NSStringFromClass(AppCheckCoreStoredToken.self),
+      "GACAppCheckStoredToken",
+      "Runtime class name must equal GACAppCheckStoredToken for Objective-C 11 unarchiving."
+    )
+
+    let tokenToArchive = AppCheckCoreStoredToken()
+    tokenToArchive.token = "test_token"
+    tokenToArchive.expirationDate = Date()
+    tokenToArchive.receivedAtDate = Date()
+
+    let archivedData = try NSKeyedArchiver.archivedData(
+      withRootObject: tokenToArchive,
+      requiringSecureCoding: true
+    )
+
+    let unarchived = try XCTUnwrap(
+      NSKeyedUnarchiver.unarchivedObject(
+        ofClass: AppCheckCoreStoredToken.self,
+        from: archivedData
+      )
+    )
+    XCTAssertTrue((unarchived.token as Any) is String)
+    XCTAssertTrue((unarchived.expirationDate as Any) is Date)
+    XCTAssertTrue((unarchived.receivedAtDate as Any) is Date)
+    XCTAssertTrue((unarchived.storageVersion as Any) is Int)
+  }
 }
