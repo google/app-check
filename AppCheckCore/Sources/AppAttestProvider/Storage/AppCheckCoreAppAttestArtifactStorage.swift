@@ -25,11 +25,14 @@ public protocol AppCheckCoreAppAttestArtifactStorageProtocol: NSObjectProtocol {
   @objc func getArtifact(forKey keyID: String) async throws -> Data?
 }
 
-private let kKeychainService = "com.firebase.app_check.app_attest_artifact_storage"
-
 @objc(GACAppAttestArtifactStorage)
 public class AppCheckCoreAppAttestArtifactStorage: NSObject,
   AppCheckCoreAppAttestArtifactStorageProtocol {
+  /// Storage service name for Keychain.
+  /// Internal scope exists for testing purposes.
+  /// Do not rename: retains value for compatibility with existing stored data from v11 or lower.
+  static let keychainService = "com.firebase.app_check.app_attest_artifact_storage"
+
   private let keySuffix: String
   private let keychainStorage: GULKeychainStorage
   private let accessGroup: String?
@@ -44,7 +47,7 @@ public class AppCheckCoreAppAttestArtifactStorage: NSObject,
 
   @objc(initWithKeySuffix:accessGroup:)
   public convenience init(keySuffix: String, accessGroup: String?) {
-    let keychainStorage = GULKeychainStorage(service: kKeychainService)
+    let keychainStorage = GULKeychainStorage(service: Self.keychainService)
     self.init(keySuffix: keySuffix, keychainStorage: keychainStorage, accessGroup: accessGroup)
   }
 
