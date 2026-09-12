@@ -16,6 +16,55 @@
 import XCTest
 
 class AppCheckCoreStoredTokenTests: XCTestCase {
+  // IMMUTABLE TEST: Do not edit, update, or remove under any circumstance.
+  // This test locks in an immutable backwards compatibility contract with App Check 11.
+  // If this test fails, revert changes to the implementation instead of modifying this test.
+  func testKeychainService_MatchesContract() {
+    XCTAssertEqual(
+      AppCheckCoreStorage.keychainService,
+      "com.google.app_check_core.token_storage",
+      "Keychain service name mismatch breaks App Check 11 migration compatibility."
+    )
+  }
+
+  func testLegacyStoredTokenCompatibility() throws {
+    let fixtureData = try AppCheckCoreFixtureLoader.loadFixture(named: "GACAppCheckStoredToken.bin")
+
+    let unarchived = try XCTUnwrap(
+      NSKeyedUnarchiver.unarchivedObject(
+        ofClass: AppCheckCoreStoredToken.self,
+        from: fixtureData
+      ),
+      "Failed to unarchive legacy GACAppCheckStoredToken binary fixture."
+    )
+
+    XCTAssertEqual(
+      unarchived.token,
+      "test_legacy_app_check_token_value",
+      "Token mismatch when unarchiving legacy GACAppCheckStoredToken."
+    )
+    XCTAssertEqual(
+      unarchived.expirationDate,
+      Date(timeIntervalSince1970: 1_800_000_000),
+      "Expiration date mismatch when unarchiving legacy GACAppCheckStoredToken."
+    )
+    XCTAssertEqual(
+      unarchived.receivedAtDate,
+      Date(timeIntervalSince1970: 1_700_000_000),
+      "Received at date mismatch when unarchiving legacy GACAppCheckStoredToken."
+    )
+    XCTAssertEqual(
+      unarchived.storageVersion,
+      2,
+      "Storage version mismatch when unarchiving legacy GACAppCheckStoredToken."
+    )
+
+    let appCheckToken = try XCTUnwrap(unarchived.appCheckToken())
+    XCTAssertEqual(appCheckToken.token, "test_legacy_app_check_token_value")
+    XCTAssertEqual(appCheckToken.expirationDate, Date(timeIntervalSince1970: 1_800_000_000))
+    XCTAssertEqual(appCheckToken.receivedAtDate, Date(timeIntervalSince1970: 1_700_000_000))
+  }
+
   func testSecureCoding() throws {
     let tokenToArchive = AppCheckCoreStoredToken()
     tokenToArchive.token = "some_token"
