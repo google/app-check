@@ -14,6 +14,9 @@
 
 import Foundation
 
+/// Explicit Objective-C class name registration for NSSecureCoding backward compatibility.
+/// Do not rename or remove: required to unarchive legacy data stored by Objective-C versions of the
+/// SDK.
 @objc(GACAppCheckStoredToken)
 @objcMembers
 public class AppCheckCoreStoredToken: NSObject, NSSecureCoding {
