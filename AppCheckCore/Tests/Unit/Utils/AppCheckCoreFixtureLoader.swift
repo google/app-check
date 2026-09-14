@@ -56,6 +56,9 @@ class AppCheckCoreFixtureLoader {
         }
       }
     }
+    #if SWIFT_PACKAGE
+      bundlesForResources.append(Bundle.module)
+    #endif
 
     return bundlesForResources
   }

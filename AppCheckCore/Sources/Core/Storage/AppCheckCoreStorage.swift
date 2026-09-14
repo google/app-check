@@ -28,7 +28,10 @@ public protocol AppCheckCoreStorageProtocol: NSObjectProtocol {
 @objc(GACAppCheckStorage)
 @objcMembers
 public class AppCheckCoreStorage: NSObject, AppCheckCoreStorageProtocol {
-  private let kKeychainService = "com.google.app_check_core.token_storage"
+  /// Storage service name for Keychain.
+  /// Internal scope exists for testing purposes.
+  /// Do not rename: retains value for compatibility with existing stored data from v11 or lower.
+  static let keychainService = "com.google.app_check_core.token_storage"
 
   public let tokenKey: String
   public let keychainStorage: GULKeychainStorage
@@ -44,7 +47,7 @@ public class AppCheckCoreStorage: NSObject, AppCheckCoreStorageProtocol {
   }
 
   public convenience init(tokenKey: String, accessGroup: String?) {
-    let keychainStorage = GULKeychainStorage(service: "com.google.app_check_core.token_storage")
+    let keychainStorage = GULKeychainStorage(service: Self.keychainService)
     self.init(tokenKey: tokenKey, keychainStorage: keychainStorage, accessGroup: accessGroup)
   }
 

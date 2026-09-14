@@ -20,6 +20,9 @@ private let kStorageVersionKey = "storageVersion"
 
 private let kStorageVersion = 1
 
+/// Explicit Objective-C class name registration for NSSecureCoding backward compatibility.
+/// Do not rename or remove: required to unarchive legacy data stored by Objective-C versions of the
+/// SDK.
 @objc(GACAppAttestStoredArtifact)
 public class AppCheckCoreAppAttestStoredArtifact: NSObject, NSSecureCoding {
   @objc public let keyID: String

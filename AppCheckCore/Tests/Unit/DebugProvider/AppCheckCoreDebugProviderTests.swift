@@ -133,6 +133,55 @@ class AppCheckCoreDebugProviderTests: XCTestCase {
     )
   }
 
+  func testLegacyRegisteredDebugTokenCompatibility() async throws {
+    let serviceName = "test-service"
+    let resourceName = "projects/test-project/apps/test-app"
+    let expectedLegacyRegisteredKey =
+      "GACAppCheckDebugTokenRegistered_test-service_projects_test-project_apps_test-app"
+
+    // 1. Verify key resolution matches legacy v11 format.
+    let resolvedKey = AppCheckCoreDebugProvider.registeredUserDefaultsKey(
+      forServiceName: serviceName,
+      resourceName: resourceName
+    )
+    XCTAssertEqual(
+      resolvedKey,
+      expectedLegacyRegisteredKey,
+      "Resolved registered token key does not match legacy v11 format."
+    )
+
+    // 2. Verify write-back persists to UserDefaults using legacy key format.
+    UserDefaults.standard.removeObject(forKey: expectedLegacyRegisteredKey)
+    defer {
+      UserDefaults.standard.removeObject(forKey: expectedLegacyRegisteredKey)
+    }
+
+    let validToken = AppCheckCoreToken(
+      token: "valid_token",
+      expirationDate: Date().addingTimeInterval(3600)
+    )
+    fakeAPIService.tokenResult = .success(validToken)
+
+    let debugProvider = AppCheckCoreDebugProvider(
+      apiService: fakeAPIService,
+      serviceName: serviceName,
+      resourceName: resourceName,
+      environment: [:]
+    )
+
+    XCTAssertFalse(
+      UserDefaults.standard.bool(forKey: expectedLegacyRegisteredKey),
+      "Precondition: Key should not be registered before getToken()."
+    )
+
+    _ = try await debugProvider.getToken()
+
+    XCTAssertTrue(
+      UserDefaults.standard.bool(forKey: expectedLegacyRegisteredKey),
+      "Registered flag was not stored under legacy key format GACAppCheckDebugTokenRegistered_<service>_<resource>."
+    )
+  }
+
   func testCurrentTokenWhenEnvironmentVariableSetAndTokenStored() {
     UserDefaults.standard.set("stored token", forKey: kDebugTokenUserDefaultsKey)
     let envToken = "env token"

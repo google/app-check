@@ -84,6 +84,7 @@ class AppCheckCoreAppAttestKeyIDStorageTests: XCTestCase {
     let legacyDefaults = try XCTUnwrap(UserDefaults(suiteName: legacySuiteName))
     let legacyKey = "app_attest_keyID.\(keySuffix!)"
     let newKeyID = "new_test_key_id"
+    legacyDefaults.removeObject(forKey: legacyKey)
     defer {
       legacyDefaults.removeObject(forKey: legacyKey)
     }

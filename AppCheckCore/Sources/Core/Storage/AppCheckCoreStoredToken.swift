@@ -14,6 +14,9 @@
 
 import Foundation
 
+/// Explicit Objective-C class name registration for NSSecureCoding backward compatibility.
+/// Do not rename or remove: required to unarchive legacy data stored by Objective-C versions of the
+/// SDK.
 @objc(GACAppCheckStoredToken)
 @objcMembers
 public class AppCheckCoreStoredToken: NSObject, NSSecureCoding {
@@ -54,6 +57,8 @@ public class AppCheckCoreStoredToken: NSObject, NSSecureCoding {
       // TODO: Log a message.
     }
 
+    // Decodes known fields leniently across schema versions to support forward and backward
+    // compatibility without strict version branching.
     token = coder.decodeObject(of: NSString.self, forKey: Self.kTokenKey) as String?
     expirationDate = coder.decodeObject(of: NSDate.self, forKey: Self.kExpirationDateKey) as Date?
     receivedAtDate = coder.decodeObject(of: NSDate.self, forKey: Self.kReceivedAtDateKey) as Date?
@@ -68,6 +73,8 @@ public extension AppCheckCoreStoredToken {
   }
 
   @objc func appCheckToken() -> AppCheckCoreToken? {
+    // Returns nil if any property is missing. A nil token represents an expired or corrupted
+    // cache entry, prompting the SDK to acquire a fresh token from the backend.
     guard let token = token,
           let expirationDate = expirationDate,
           let receivedAtDate = receivedAtDate else {

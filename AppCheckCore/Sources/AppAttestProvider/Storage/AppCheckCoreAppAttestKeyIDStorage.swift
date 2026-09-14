@@ -29,6 +29,7 @@ public protocol AppCheckCoreAppAttestKeyIDStorageProtocol: NSObjectProtocol {
 public class AppCheckCoreAppAttestKeyIDStorage: NSObject,
   AppCheckCoreAppAttestKeyIDStorageProtocol {
   /// Suite name for the app attest key ID in UserDefaults.
+  /// Internal scope exists for testing purposes.
   /// Do not rename: retains the "GAC" prefix for compatibility with existing stored data from v11
   /// or lower.
   static let keyIDStorageDefaultsSuiteName = "com.firebase.GACAppAttestKeyIDStorage"
