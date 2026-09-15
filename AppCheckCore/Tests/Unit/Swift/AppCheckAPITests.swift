@@ -60,6 +60,18 @@ final class AppCheckAPITests {
       keychainAccessGroup: appGroupID
     )
 
+    let appCheckProtocol: AppCheckCoreProtocol = appCheck
+    _ = appCheckProtocol
+
+    // MARK: - AppCheckCoreSettings
+
+    let settings = AppCheckCoreSettings()
+    settings.isTokenAutoRefreshEnabled = true
+    _ = settings.isTokenAutoRefreshEnabled
+
+    let customSettings = CustomSubclassSettings()
+    _ = customSettings.isTokenAutoRefreshEnabled
+
     // Get token
     appCheck.token(forcingRefresh: false, completion: { result in
       if let _ /* error */ = result.error {
@@ -104,14 +116,16 @@ final class AppCheckAPITests {
 
     // MARK: - `AppCheckDebugProvider`
 
+    let dummyHook: AppCheckCoreAPIRequestHook = { _ in }
+    let requestHooks: [AppCheckCoreAPIRequestHook] = [dummyHook]
+
     // `AppCheckDebugProvider` initializer
-    // TODO(andrewheard): Add `requestHooks` in API tests.
     let debugProvider = AppCheckCoreDebugProvider(
       serviceName: serviceName,
       resourceName: resourceName,
       baseURL: nil,
       apiKey: apiKey,
-      requestHooks: nil as [AppCheckCoreAPIRequestHook]?
+      requestHooks: requestHooks
     )
     // Get token
     debugProvider.getToken { token, error in
@@ -139,8 +153,34 @@ final class AppCheckAPITests {
     let token = AppCheckCoreToken(token: "token", expirationDate: Date.distantFuture)
     _ = token.token
     _ = token.expirationDate
+    _ = token.receivedAtDate
+
+    let tokenWithReceivedAt = AppCheckCoreToken(
+      token: "token",
+      expirationDate: Date.distantFuture,
+      receivedAt: Date()
+    )
+    _ = tokenWithReceivedAt.receivedAtDate
+
+    // MARK: - AppCheckCoreTokenResult
+
+    let successResult = AppCheckCoreTokenResult(token: token)
+    _ = successResult.token
+    _ = successResult.error
+
+    let failureResult = AppCheckCoreTokenResult(error: NSError(domain: "test", code: 1))
+    _ = failureResult.token
+    _ = failureResult.error
+
+    let designatedResult = AppCheckCoreTokenResult(token: token, error: nil)
+    _ = designatedResult.token
+    _ = designatedResult.error
+
+    _ = AppCheckCoreTokenResult.placeholderToken()
 
     // MARK: - AppCheckErrors
+
+    _ = AppCheckCoreErrorDomain
 
     appCheck.token(forcingRefresh: false, completion: { result in
       if let error = result.error {
@@ -245,6 +285,8 @@ class DummyAppCheckProvider: NSObject, AppCheckCoreProvider {
 class DummyAppCheckSettings: NSObject, AppCheckCoreSettingsProtocol {
   var isTokenAutoRefreshEnabled: Bool = true
 }
+
+class CustomSubclassSettings: AppCheckCoreSettings {}
 
 class DummyAppCheckTokenDelegate: NSObject, AppCheckCoreTokenDelegate {
   func tokenDidUpdate(_ token: AppCheckCoreToken, serviceName: String) {}

@@ -16,8 +16,17 @@ import Foundation
 
 public typealias AppCheckCoreTokenHandler = (AppCheckCoreTokenResult) -> Void
 
+@objc(GACAppCheckProtocol)
+public protocol AppCheckCoreProtocol: NSObjectProtocol {
+  @objc(tokenForcingRefresh:completion:)
+  func token(forcingRefresh: Bool, completion: @escaping AppCheckCoreTokenHandler)
+
+  @objc(limitedUseTokenWithCompletion:)
+  func limitedUseToken(completion: @escaping AppCheckCoreTokenHandler)
+}
+
 @objc(GACAppCheck)
-public class AppCheckCore: NSObject {
+public class AppCheckCore: NSObject, AppCheckCoreProtocol {
   public let serviceName: String
   public let appCheckProvider: AppCheckCoreProvider
   public let settings: AppCheckCoreSettingsProtocol

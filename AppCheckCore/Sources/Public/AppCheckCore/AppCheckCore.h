@@ -14,6 +14,32 @@
 
 #import <Foundation/Foundation.h>
 
+#if !defined(SWIFT_RUNTIME_NAME)
+#if __has_attribute(objc_runtime_name)
+#define SWIFT_RUNTIME_NAME(X) __attribute__((objc_runtime_name(X)))
+#else
+#define SWIFT_RUNTIME_NAME(X)
+#endif
+#endif
+
+#if !defined(SWIFT_COMPILE_NAME)
+#if __has_attribute(swift_name)
+#define SWIFT_COMPILE_NAME(X) __attribute__((swift_name(X)))
+#else
+#define SWIFT_COMPILE_NAME(X)
+#endif
+#endif
+
+#if !defined(SWIFT_CLASS_EXTRA)
+#define SWIFT_CLASS_EXTRA
+#endif
+
+// Allow Objective-C subclassing of open classes such as GACAppCheckSettings.
+#if !defined(SWIFT_CLASS)
+#define SWIFT_CLASS(SWIFT_NAME) SWIFT_RUNTIME_NAME(SWIFT_NAME) SWIFT_CLASS_EXTRA
+#define SWIFT_CLASS_NAMED(SWIFT_NAME) SWIFT_COMPILE_NAME(SWIFT_NAME) SWIFT_CLASS_EXTRA
+#endif
+
 #if __has_include(<AppCheckCore/AppCheckCore-Swift.h>)
 #import <AppCheckCore/AppCheckCore-Swift.h>
 #elif __has_include("AppCheckCore-Swift.h")
@@ -21,3 +47,31 @@
 #else
 // Fallback for Swift package manager which auto-generates the bridging header
 #endif
+
+NS_ASSUME_NONNULL_BEGIN
+
+/// Error domain for App Check errors.
+static NSString *const GACAppCheckErrorDomain = @"com.google.app_check_core";
+
+/// A block to be called before sending API requests.
+typedef void (^GACAppCheckAPIRequestHook)(NSMutableURLRequest *request);
+
+/// Backward compatibility enum aliases for message codes from v11.
+typedef NS_ENUM(NSInteger, GACLoggerAppCheckMessageCode) {
+  GACLoggerAppCheckMessageCodeUnknown = GACAppCheckMessageCodeUnknown,
+  GACLoggerAppCheckMessageCodeProviderIsMissing = GACAppCheckMessageCodeProviderIsMissing,
+  GACLoggerAppCheckMessageCodeStagingModeEnabled = GACAppCheckMessageCodeStagingModeEnabled,
+  GACLoggerAppCheckMessageCodeUnexpectedHTTPCode = GACAppCheckMessageCodeUnexpectedHTTPCode,
+  GACLoggerAppCheckMessageLocalDebugToken = GACAppCheckMessageCodeLocalDebugToken,
+  GACLoggerAppCheckMessageEnvironmentVariableDebugToken =
+      GACAppCheckMessageCodeEnvironmentVariableDebugToken,
+  GACLoggerAppCheckMessageDebugProviderFirebaseEnvironmentVariable =
+      GACAppCheckMessageCodeDebugProviderFirebaseEnvironmentVariable,
+  GACLoggerAppCheckMessageDebugProviderFailedExchange =
+      GACAppCheckMessageCodeDebugProviderFailedExchange,
+  GACLoggerAppCheckMessageCodeAppAttestNotSupported = GACAppCheckMessageCodeAppAttestNotSupported,
+  GACLoggerAppCheckMessageCodeAttestationRejected = GACAppCheckMessageCodeAttestationRejected,
+  GACLoggerAppCheckMessageCodeAssertionRejected = GACAppCheckMessageCodeAssertionRejected
+};
+
+NS_ASSUME_NONNULL_END
