@@ -27,7 +27,6 @@ private let kDebugTokenEnvKey = "AppCheckDebugToken"
 private let kFirebaseDebugTokenEnvKey = "FIRAAppCheckDebugToken"
 
 @objc(GACAppCheckDebugProvider)
-@objcMembers
 public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
   /// Storage key for the debug token in UserDefaults.
   /// Internal scope exists for testing purposes.
@@ -97,11 +96,11 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
               environment: environment)
   }
 
-  public func localDebugToken() -> String {
+  @objc public func localDebugToken() -> String {
     return Self.localDebugToken()
   }
 
-  public func currentDebugToken() -> String {
+  @objc public func currentDebugToken() -> String {
     return debugTokenEnvValue ?? Self.localDebugToken()
   }
 
@@ -115,10 +114,12 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
     return try await getToken(limitedUse: true)
   }
 
+  @objc(getTokenWithCompletion:)
   public func getToken(completion handler: @escaping (AppCheckCoreToken?, Error?) -> Void) {
     getToken(limitedUse: false, completion: handler)
   }
 
+  @objc(getLimitedUseTokenWithCompletion:)
   public func getLimitedUseToken(completion handler: @escaping (AppCheckCoreToken?, Error?)
     -> Void) {
     getToken(limitedUse: true, completion: handler)

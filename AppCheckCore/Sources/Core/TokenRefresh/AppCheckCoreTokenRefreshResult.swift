@@ -22,11 +22,10 @@ public enum AppCheckCoreTokenRefreshStatus: Int {
 }
 
 @objc(GACAppCheckTokenRefreshResult)
-@objcMembers
 public class AppCheckCoreTokenRefreshResult: NSObject {
-  public let status: AppCheckCoreTokenRefreshStatus
-  public let tokenExpirationDate: Date?
-  public let tokenReceivedAtDate: Date?
+  @objc public let status: AppCheckCoreTokenRefreshStatus
+  @objc public let tokenExpirationDate: Date?
+  @objc public let tokenReceivedAtDate: Date?
 
   public init(status: AppCheckCoreTokenRefreshStatus,
               expirationDate tokenExpirationDate: Date?,

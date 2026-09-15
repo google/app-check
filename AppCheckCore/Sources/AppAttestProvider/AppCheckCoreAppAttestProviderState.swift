@@ -23,12 +23,11 @@ public enum AppCheckCoreAppAttestAttestationState: Int {
 }
 
 @objc(GACAppAttestProviderState)
-@objcMembers
 public class AppCheckCoreAppAttestProviderState: NSObject {
-  public let state: AppCheckCoreAppAttestAttestationState
-  public let appAttestUnsupportedError: Error?
-  public let appAttestKeyID: String?
-  public let attestationArtifact: Data?
+  @objc public let state: AppCheckCoreAppAttestAttestationState
+  @objc public let appAttestUnsupportedError: Error?
+  @objc public let appAttestKeyID: String?
+  @objc public let attestationArtifact: Data?
 
   @objc(initUnsupportedWithError:)
   public init(unsupportedWithError error: Error) {

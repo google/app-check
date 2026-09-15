@@ -16,7 +16,6 @@ import CommonCrypto
 import Foundation
 
 @objc(GACAppCheckCryptoUtils)
-@objcMembers
 public class AppCheckCoreCryptoUtils: NSObject {
   @objc(sha256HashFromData:)
   public static func sha256Hash(from dataToHash: Data) -> Data {

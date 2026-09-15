@@ -16,14 +16,13 @@ import Foundation
 
 @objc(GACAppCheckTimerProtocol)
 public protocol AppCheckCoreTimerProtocol: NSObjectProtocol {
-  func invalidate()
+  @objc func invalidate()
 }
 
 public typealias AppCheckCoreTimerProvider = (Date, DispatchQueue, @escaping () -> Void)
   -> AppCheckCoreTimerProtocol?
 
 @objc(GACAppCheckTimer)
-@objcMembers
 public class AppCheckCoreTimer: NSObject, AppCheckCoreTimerProtocol {
   private var timer: DispatchSourceTimer?
 
@@ -53,7 +52,7 @@ public class AppCheckCoreTimer: NSObject, AppCheckCoreTimerProtocol {
     super.init()
   }
 
-  public func invalidate() {
+  @objc public func invalidate() {
     timer?.cancel()
     timer = nil
   }

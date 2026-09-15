@@ -24,11 +24,10 @@ public enum AppCheckCoreLogLevel: Int {
 }
 
 @objc(GACAppCheckLogger)
-@objcMembers
 public class AppCheckCoreLogger: NSObject {
   private static var _logLevel: AppCheckCoreLogLevel = .warning
 
-  public static var logLevel: AppCheckCoreLogLevel {
+  @objc public static var logLevel: AppCheckCoreLogLevel {
     get { return _logLevel }
     set { _logLevel = newValue }
   }
