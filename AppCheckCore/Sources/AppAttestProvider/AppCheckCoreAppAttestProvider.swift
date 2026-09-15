@@ -17,7 +17,6 @@ import Foundation
 
 @available(iOS 14.0, macOS 11.0, tvOS 15.0, watchOS 9.0, *)
 @objc(GACAppAttestProvider)
-@objcMembers
 public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
   // MARK: - Internal Properties
 
@@ -92,10 +91,12 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
 
   // MARK: - AppCheckCoreProvider
 
+  @objc(getTokenWithCompletion:)
   public func getToken(completion handler: @escaping (AppCheckCoreToken?, Error?) -> Void) {
     getToken(limitedUse: false, completion: handler)
   }
 
+  @objc(getLimitedUseTokenWithCompletion:)
   public func getLimitedUseToken(completion handler: @escaping (AppCheckCoreToken?, Error?)
     -> Void) {
     getToken(limitedUse: true, completion: handler)

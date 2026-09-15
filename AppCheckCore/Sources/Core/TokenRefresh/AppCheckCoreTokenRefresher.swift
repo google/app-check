@@ -25,7 +25,6 @@ public protocol AppCheckCoreTokenRefresherProtocol: NSObjectProtocol {
 }
 
 @objc(GACAppCheckTokenRefresher)
-@objcMembers
 public class AppCheckCoreTokenRefresher: NSObject, AppCheckCoreTokenRefresherProtocol {
   private static let kInitialBackoffTimeInterval: TimeInterval = 30
   private static let kMaximumBackoffTimeInterval: TimeInterval = 16 * 60
@@ -63,7 +62,7 @@ public class AppCheckCoreTokenRefresher: NSObject, AppCheckCoreTokenRefresherPro
     cancelTimer()
   }
 
-  public var tokenRefreshHandler: AppCheckCoreTokenRefreshBlock? {
+  @objc public var tokenRefreshHandler: AppCheckCoreTokenRefreshBlock? {
     get {
       lock.lock()
       defer { lock.unlock() }

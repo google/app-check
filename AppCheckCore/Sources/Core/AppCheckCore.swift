@@ -17,7 +17,6 @@ import Foundation
 public typealias AppCheckCoreTokenHandler = (AppCheckCoreTokenResult) -> Void
 
 @objc(GACAppCheck)
-@objcMembers
 public class AppCheckCore: NSObject {
   public let serviceName: String
   public let appCheckProvider: AppCheckCoreProvider
@@ -26,6 +25,9 @@ public class AppCheckCore: NSObject {
   public let storage: AppCheckCoreStorageProtocol
   public let tokenRefresher: AppCheckCoreTokenRefresherProtocol
 
+  @objc(
+    initWithServiceName:resourceName:appCheckProvider:settings:tokenDelegate:keychainAccessGroup:
+  )
   public init(serviceName: String,
               resourceName: String,
               appCheckProvider: AppCheckCoreProvider,

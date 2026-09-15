@@ -15,11 +15,10 @@
 import Foundation
 
 @objc(GACAppCheckToken)
-@objcMembers
 public class AppCheckCoreToken: NSObject, @unchecked Sendable {
-  public let token: String
-  public let expirationDate: Date
-  public let receivedAtDate: Date
+  @objc public let token: String
+  @objc public let expirationDate: Date
+  @objc public let receivedAtDate: Date
 
   @objc(initWithToken:expirationDate:receivedAtDate:)
   public init(token: String, expirationDate: Date, receivedAt receivedAtDate: Date) {
@@ -29,6 +28,7 @@ public class AppCheckCoreToken: NSObject, @unchecked Sendable {
     super.init()
   }
 
+  @objc(initWithToken:expirationDate:)
   public convenience init(token: String, expirationDate: Date) {
     self.init(token: token, expirationDate: expirationDate, receivedAt: Date())
   }

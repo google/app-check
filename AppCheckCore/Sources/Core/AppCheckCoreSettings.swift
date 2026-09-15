@@ -20,9 +20,8 @@ public protocol AppCheckCoreSettingsProtocol: NSObjectProtocol {
 }
 
 @objc(GACAppCheckSettings)
-@objcMembers
 open class AppCheckCoreSettings: NSObject, AppCheckCoreSettingsProtocol {
-  open var isTokenAutoRefreshEnabled: Bool = false
+  @objc open var isTokenAutoRefreshEnabled: Bool = false
 
   override public init() {
     super.init()

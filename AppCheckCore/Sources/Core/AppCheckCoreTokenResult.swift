@@ -17,21 +17,23 @@ import Foundation
 private let kPlaceholderTokenValue = "eyJlcnJvciI6IlVOS05PV05fRVJST1IifQ=="
 
 @objc(GACAppCheckTokenResult)
-@objcMembers
 public class AppCheckCoreTokenResult: NSObject {
-  public let token: AppCheckCoreToken
-  public let error: Error?
+  @objc public let token: AppCheckCoreToken
+  @objc public let error: Error?
 
+  @objc(initWithToken:error:)
   public init(token: AppCheckCoreToken, error: Error?) {
     self.token = token
     self.error = error
     super.init()
   }
 
+  @objc(initWithToken:)
   public convenience init(token: AppCheckCoreToken) {
     self.init(token: token, error: nil)
   }
 
+  @objc(initWithError:)
   public convenience init(error: Error) {
     let placeholder = AppCheckCoreTokenResult.placeholderToken()
     self.init(token: placeholder, error: error)
