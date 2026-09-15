@@ -26,7 +26,7 @@ public protocol AppCheckCoreAppAttestKeyIDStorageProtocol: NSObjectProtocol {
 }
 
 @objc(GACAppAttestKeyIDStorage)
-public class AppCheckCoreAppAttestKeyIDStorage: NSObject,
+public final class AppCheckCoreAppAttestKeyIDStorage: NSObject,
   AppCheckCoreAppAttestKeyIDStorageProtocol {
   /// Suite name for the app attest key ID in UserDefaults.
   /// Internal scope exists for testing purposes.

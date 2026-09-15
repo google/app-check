@@ -117,6 +117,7 @@ EOF
 
 echo "Compiling generator with clang..."
 clang -fobjc-arc -framework Foundation \
+  -isysroot "$(xcrun --sdk macosx --show-sdk-path)" \
   -I "${TMP_DIR}" \
   "${TMP_DIR}/main.m" \
   "${TMP_DIR}/AppCheckCore/Sources/Core/Storage/GACAppCheckStoredToken.m" \
