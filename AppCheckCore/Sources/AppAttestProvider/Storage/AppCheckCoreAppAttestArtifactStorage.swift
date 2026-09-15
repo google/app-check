@@ -26,7 +26,7 @@ public protocol AppCheckCoreAppAttestArtifactStorageProtocol: NSObjectProtocol {
 }
 
 @objc(GACAppAttestArtifactStorage)
-public class AppCheckCoreAppAttestArtifactStorage: NSObject,
+public final class AppCheckCoreAppAttestArtifactStorage: NSObject,
   AppCheckCoreAppAttestArtifactStorageProtocol {
   /// Storage service name for Keychain.
   /// Internal scope exists for testing purposes.

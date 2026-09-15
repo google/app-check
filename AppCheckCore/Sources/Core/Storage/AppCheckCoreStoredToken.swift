@@ -18,7 +18,7 @@ import Foundation
 /// Do not rename or remove: required to unarchive legacy data stored by Objective-C versions of the
 /// SDK.
 @objc(GACAppCheckStoredToken)
-public class AppCheckCoreStoredToken: NSObject, NSSecureCoding {
+public final class AppCheckCoreStoredToken: NSObject, NSSecureCoding {
   private static let kTokenKey = "token"
   private static let kExpirationDateKey = "expirationDate"
   private static let kReceivedAtDateKey = "receivedAtDate"

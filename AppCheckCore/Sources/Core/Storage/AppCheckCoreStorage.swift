@@ -26,7 +26,7 @@ public protocol AppCheckCoreStorageProtocol: NSObjectProtocol {
 }
 
 @objc(GACAppCheckStorage)
-public class AppCheckCoreStorage: NSObject, AppCheckCoreStorageProtocol {
+public final class AppCheckCoreStorage: NSObject, AppCheckCoreStorageProtocol {
   /// Storage service name for Keychain.
   /// Internal scope exists for testing purposes.
   /// Do not rename: retains value for compatibility with existing stored data from v11 or lower.
