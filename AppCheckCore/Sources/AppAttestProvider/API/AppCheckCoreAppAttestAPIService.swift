@@ -90,7 +90,7 @@ public class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPI
     }
     let response = try AppCheckCoreAppAttestAttestationResponse(
       responseData: responseData,
-      requestDate: Date()
+      requestDate: urlResponse.requestDate
     )
 
     return response

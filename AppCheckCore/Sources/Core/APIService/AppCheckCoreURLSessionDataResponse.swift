@@ -19,11 +19,18 @@ import Foundation
 public class AppCheckCoreURLSessionDataResponse: NSObject {
   @objc public let httpResponse: HTTPURLResponse
   @objc public let httpBody: Data?
+  @objc public let requestDate: Date
 
-  @objc(initWithResponse:HTTPBody:)
-  public init(response: HTTPURLResponse, httpBody: Data?) {
+  @objc(initWithResponse:HTTPBody:requestDate:)
+  public init(response: HTTPURLResponse, httpBody: Data?, requestDate: Date) {
     httpResponse = response
     self.httpBody = httpBody
+    self.requestDate = requestDate
     super.init()
+  }
+
+  @objc(initWithResponse:HTTPBody:)
+  public convenience init(response: HTTPURLResponse, httpBody: Data?) {
+    self.init(response: response, httpBody: httpBody, requestDate: Date())
   }
 }

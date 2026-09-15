@@ -327,6 +327,30 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
     XCTAssertEqual(token.expirationDate.timeIntervalSinceNow, 1800, accuracy: 10)
   }
 
+  func testAppCheckTokenWithAPIResponseUsesRequestDate() async throws {
+    // 1. Prepare input parameters.
+    let responseBody = try AppCheckCoreFixtureLoader
+      .loadFixture(named: "FACTokenExchangeResponseSuccess.json")
+    let httpResponse = AppCheckCoreURLSessionFake.httpResponse(withCode: 200)
+    let requestDate = Date(timeIntervalSince1970: 100_000)
+    let apiResponse = AppCheckCoreURLSessionDataResponse(
+      response: httpResponse,
+      httpBody: responseBody,
+      requestDate: requestDate
+    )
+
+    // 2. Expected result.
+    let expectedFACToken = "valid_app_check_token"
+
+    // 3. Parse API response.
+    let token = try await apiService.appCheckToken(withAPIResponse: apiResponse)
+
+    // 4. Verify.
+    XCTAssertEqual(token.token, expectedFACToken)
+    let expectedExpiration = requestDate.addingTimeInterval(1800)
+    XCTAssertEqual(token.expirationDate, expectedExpiration)
+  }
+
   func testAppCheckTokenWithAPIResponseInvalidFormat() async {
     let responseBodyString = "Token verification failed."
     let responseBody = responseBodyString.data(using: .utf8)!

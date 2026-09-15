@@ -143,11 +143,16 @@ public class AppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
   private func sendURLRequest(_ request: URLRequest) async throws
     -> AppCheckCoreURLSessionDataResponse {
     do {
+      let requestDate = Date()
       let (data, response) = try await urlSession.data(for: request)
       guard let httpResponse = response as? HTTPURLResponse else {
         throw AppCheckCoreErrorUtil.apiError(withNetworkError: URLError(.badServerResponse))
       }
-      return AppCheckCoreURLSessionDataResponse(response: httpResponse, httpBody: data)
+      return AppCheckCoreURLSessionDataResponse(
+        response: httpResponse,
+        httpBody: data,
+        requestDate: requestDate
+      )
     } catch {
       throw AppCheckCoreErrorUtil.apiError(withNetworkError: error)
     }
@@ -170,7 +175,7 @@ public class AppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
     -> AppCheckCoreToken {
     return try AppCheckCoreToken(
       tokenExchangeResponse: response.httpBody ?? Data(),
-      requestDate: Date()
+      requestDate: response.requestDate
     )
   }
 }
