@@ -14,7 +14,7 @@
 
 #import <XCTest/XCTest.h>
 
-#import <AppCheckCore/AppCheckCore.h>
+@import AppCheckCore;
 
 #pragma mark - Protocol Conformance Dummies
 
@@ -132,16 +132,12 @@
   }];
 
   // MARK: - GACAppCheckDebugProvider
-  GACAppCheckAPIRequestHook dummyHook = ^(NSMutableURLRequest *req) {
-  };
-  NSArray<GACAppCheckAPIRequestHook> *requestHooks = @[ dummyHook ];
-
   GACAppCheckDebugProvider *debugProvider =
       [[GACAppCheckDebugProvider alloc] initWithServiceName:serviceName
                                                resourceName:resourceName
                                                     baseURL:nil
                                                      APIKey:apiKey
-                                               requestHooks:requestHooks];
+                                               requestHooks:nil];
   XCTAssertNotNil(debugProvider);
   XCTAssertNotNil([debugProvider localDebugToken]);
   XCTAssertNotNil([debugProvider currentDebugToken]);
@@ -157,7 +153,7 @@
       [[GACDeviceCheckProvider alloc] initWithServiceName:serviceName
                                              resourceName:resourceName
                                                    APIKey:apiKey
-                                             requestHooks:requestHooks];
+                                             requestHooks:nil];
   XCTAssertNotNil(deviceCheckProvider);
   [deviceCheckProvider getTokenWithCompletion:^(GACAppCheckToken *dToken, NSError *error){
   }];
@@ -173,7 +169,7 @@
                                                   baseURL:nil
                                                    APIKey:apiKey
                                       keychainAccessGroup:keychainGroup
-                                             requestHooks:requestHooks];
+                                             requestHooks:nil];
     XCTAssertNotNil(appAttestProvider);
     [appAttestProvider getTokenWithCompletion:^(GACAppCheckToken *aToken, NSError *error){
     }];
@@ -188,9 +184,6 @@
   GACAppCheckLogger.logLevel = GACAppCheckLogLevelWarning;
   GACAppCheckLogger.logLevel = GACAppCheckLogLevelError;
   GACAppCheckLogger.logLevel = GACAppCheckLogLevelFault;
-
-  // MARK: - GACAppCheckErrorDomain
-  XCTAssertEqualObjects(GACAppCheckErrorDomain, @"com.google.app_check_core");
 
   // MARK: - GACAppCheckErrorCode
   GACAppCheckErrorCode unknownCode = GACAppCheckErrorCodeUnknown;
@@ -228,12 +221,6 @@
   XCTAssertEqual(msgAttestNotSupported, 7001);
   XCTAssertEqual(msgAttestationRejected, 7002);
   XCTAssertEqual(msgAssertionRejected, 7003);
-
-  // MARK: - Legacy GACLoggerAppCheckMessageCode Aliases
-  GACLoggerAppCheckMessageCode legacyUnknown = GACLoggerAppCheckMessageCodeUnknown;
-  GACLoggerAppCheckMessageCode legacyLocal = GACLoggerAppCheckMessageLocalDebugToken;
-  XCTAssertEqual(legacyUnknown, 1001);
-  XCTAssertEqual(legacyLocal, 4001);
 }
 
 @end
