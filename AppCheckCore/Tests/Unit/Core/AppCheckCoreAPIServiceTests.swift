@@ -352,17 +352,18 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
   }
 
   func testSendRequestCapturesRequestDateBeforeNetworkDispatch() async throws {
-    let tStart = Date()
+    let requestInitiationDate = Date()
     let httpResponseBody = "A response".data(using: .utf8)!
     let httpResponse = AppCheckCoreURLSessionFake.httpResponse(withCode: 200)
 
+    let artificialNetworkDelay: TimeInterval = 0.25
     stubURLSessionDataTask(
       response: httpResponse,
       body: httpResponseBody,
       error: nil,
       requestValidationBlock: { _ in
         // Simulate network or suspension latency.
-        Thread.sleep(forTimeInterval: 0.25)
+        Thread.sleep(forTimeInterval: artificialNetworkDelay)
         return true
       }
     )
@@ -374,26 +375,27 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
       body: nil,
       additionalHeaders: nil
     )
-    let tEnd = Date()
+    let responseReceiptDate = Date()
 
-    // Verify requestDate was captured before network dispatch, not after response receipt.
-    XCTAssertGreaterThanOrEqual(result.requestDate, tStart)
-    XCTAssertLessThan(result.requestDate, tEnd.addingTimeInterval(-0.2))
+    // Verify requestDate captures pre-dispatch initiation date, not post-response date.
+    XCTAssertGreaterThanOrEqual(result.requestDate, requestInitiationDate)
+    XCTAssertLessThan(result.requestDate, responseReceiptDate.addingTimeInterval(-0.2))
   }
 
   func testAppCheckTokenCalculatesExpirationFromRequestInitiationDate() async throws {
-    let tStart = Date()
+    let requestInitiationDate = Date()
     let responseBody = try AppCheckCoreFixtureLoader
       .loadFixture(named: "FACTokenExchangeResponseSuccess.json")
     let httpResponse = AppCheckCoreURLSessionFake.httpResponse(withCode: 200)
 
+    let artificialNetworkDelay: TimeInterval = 0.25
     stubURLSessionDataTask(
       response: httpResponse,
       body: responseBody,
       error: nil,
       requestValidationBlock: { _ in
         // Simulate network or suspension latency.
-        Thread.sleep(forTimeInterval: 0.25)
+        Thread.sleep(forTimeInterval: artificialNetworkDelay)
         return true
       }
     )
@@ -405,16 +407,19 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
       body: nil,
       additionalHeaders: nil
     )
-    let tEnd = Date()
+    let responseReceiptDate = Date()
 
     let token = try await apiService.appCheckToken(withAPIResponse: apiResponse)
 
-    // Verify token expiration is calculated from pre-dispatch requestDate (approx tStart + 1800),
-    // not post-response time (approx tEnd + 1800).
+    // Verify token expiration is calculated from pre-dispatch requestDate,
+    // distinct from post-response receipt time.
     let expectedExpiration = apiResponse.requestDate.addingTimeInterval(1800)
     XCTAssertEqual(token.expirationDate, expectedExpiration)
-    XCTAssertGreaterThanOrEqual(token.expirationDate, tStart.addingTimeInterval(1800))
-    XCTAssertLessThan(token.expirationDate, tEnd.addingTimeInterval(1800 - 0.2))
+    XCTAssertGreaterThanOrEqual(
+      token.expirationDate,
+      requestInitiationDate.addingTimeInterval(1800)
+    )
+    XCTAssertLessThan(token.expirationDate, responseReceiptDate.addingTimeInterval(1800 - 0.2))
   }
 
   func testAppCheckTokenWithAPIResponseInvalidFormat() async {
