@@ -351,6 +351,72 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
     XCTAssertEqual(token.expirationDate, expectedExpiration)
   }
 
+  func testSendRequestCapturesRequestDateBeforeNetworkDispatch() async throws {
+    let tStart = Date()
+    let httpResponseBody = "A response".data(using: .utf8)!
+    let httpResponse = AppCheckCoreURLSessionFake.httpResponse(withCode: 200)
+
+    stubURLSessionDataTask(
+      response: httpResponse,
+      body: httpResponseBody,
+      error: nil,
+      requestValidationBlock: { _ in
+        // Simulate network or suspension latency.
+        Thread.sleep(forTimeInterval: 0.25)
+        return true
+      }
+    )
+
+    let url = URL(string: "https://test.com")!
+    let result = try await apiService.sendRequest(
+      withURL: url,
+      httpMethod: "POST",
+      body: nil,
+      additionalHeaders: nil
+    )
+    let tEnd = Date()
+
+    // Verify requestDate was captured before network dispatch, not after response receipt.
+    XCTAssertGreaterThanOrEqual(result.requestDate, tStart)
+    XCTAssertLessThan(result.requestDate, tEnd.addingTimeInterval(-0.2))
+  }
+
+  func testAppCheckTokenCalculatesExpirationFromRequestInitiationDate() async throws {
+    let tStart = Date()
+    let responseBody = try AppCheckCoreFixtureLoader
+      .loadFixture(named: "FACTokenExchangeResponseSuccess.json")
+    let httpResponse = AppCheckCoreURLSessionFake.httpResponse(withCode: 200)
+
+    stubURLSessionDataTask(
+      response: httpResponse,
+      body: responseBody,
+      error: nil,
+      requestValidationBlock: { _ in
+        // Simulate network or suspension latency.
+        Thread.sleep(forTimeInterval: 0.25)
+        return true
+      }
+    )
+
+    let url = URL(string: "https://test.com")!
+    let apiResponse = try await apiService.sendRequest(
+      withURL: url,
+      httpMethod: "POST",
+      body: nil,
+      additionalHeaders: nil
+    )
+    let tEnd = Date()
+
+    let token = try await apiService.appCheckToken(withAPIResponse: apiResponse)
+
+    // Verify token expiration is calculated from pre-dispatch requestDate (approx tStart + 1800),
+    // not post-response time (approx tEnd + 1800).
+    let expectedExpiration = apiResponse.requestDate.addingTimeInterval(1800)
+    XCTAssertEqual(token.expirationDate, expectedExpiration)
+    XCTAssertGreaterThanOrEqual(token.expirationDate, tStart.addingTimeInterval(1800))
+    XCTAssertLessThan(token.expirationDate, tEnd.addingTimeInterval(1800 - 0.2))
+  }
+
   func testAppCheckTokenWithAPIResponseInvalidFormat() async {
     let responseBodyString = "Token verification failed."
     let responseBody = responseBodyString.data(using: .utf8)!
