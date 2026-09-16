@@ -1,4 +1,4 @@
-// swift-tools-version:5.5
+// swift-tools-version:6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 // Copyright 2023 Google LLC
@@ -56,7 +56,7 @@ let package = Package(
             linkerSettings: [
               .linkedFramework(
                 "DeviceCheck",
-                .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .appCheckVisionOS])
+                .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .visionOS])
               ),
             ]),
     .target(name: "AppCheckRecaptchaProvider",
@@ -108,21 +108,7 @@ let package = Package(
       ],
       path: "AppCheckRecaptchaProvider/Tests"
     ),
-  ]
+  ],
+  swiftLanguageModes: [.v5]
 )
 
-extension Platform {
-  // Xcode dependent value for the visionOS platform. Namespaced with an "appCheck" prefix to
-  // prevent any API collisions (such issues should not arise as the manifest APIs should be
-  // confined to the `Package.swift`).
-  static var appCheckVisionOS: Self {
-    #if swift(>=5.9)
-      // For Xcode 15, return the available `visionOS` platform.
-      return .visionOS
-    #else
-      // For Xcode 14, return `iOS` as `visionOS` is unavailable. Since all targets support iOS,
-      // this acts as a no-op.
-      return .iOS
-    #endif // swift(>=5.9)
-  }
-}
