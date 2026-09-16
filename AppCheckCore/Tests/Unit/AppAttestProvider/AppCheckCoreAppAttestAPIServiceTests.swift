@@ -240,6 +240,44 @@ class AppCheckCoreAppAttestAPIServiceTests: XCTestCase {
     )
   }
 
+  func testAttestKeySuccessUsesRequestDate() async throws {
+    let attestation = generateRandomData()
+    let challenge = generateRandomData()
+    let keyID = UUID().uuidString
+    let requestDate = Date(timeIntervalSince1970: 100_000)
+
+    let responseDict: [String: Any] = [
+      "artifact": "artifact".data(using: .utf8)!.base64EncodedString(),
+      "appCheckToken": [
+        "token": "valid_token",
+        "ttl": "1800s",
+      ],
+    ]
+    let responseBody = try JSONSerialization.data(withJSONObject: responseDict, options: [])
+    let httpResponse = HTTPURLResponse(
+      url: URL(string: "https://test.com")!,
+      statusCode: 200,
+      httpVersion: nil,
+      headerFields: nil
+    )!
+    let apiResponse = AppCheckCoreURLSessionDataResponse(
+      response: httpResponse,
+      httpBody: responseBody,
+      requestDate: requestDate
+    )
+    fakeAPIService.sendRequestResult = .success(apiResponse)
+
+    let response = try await appAttestAPIService.attestKey(
+      withAttestation: attestation,
+      keyID: keyID,
+      challenge: challenge,
+      limitedUse: false
+    )
+
+    let expectedExpiration = requestDate.addingTimeInterval(1800)
+    XCTAssertEqual(response.token.expirationDate, expectedExpiration)
+  }
+
   // MARK: - Helpers
 
   private func APIResponse(code: Int, responseBody: Data) -> AppCheckCoreURLSessionDataResponse {
