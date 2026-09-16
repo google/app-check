@@ -229,16 +229,13 @@ final class AppCheckAPITests {
         }
       }
       // Get token (async/await)
-      if #available(iOS 13.0, tvOS 13.0, *) {
-        // async/await is only available on iOS 13+
-        Task {
-          do {
-            _ = try await deviceCheckProvider.getToken()
-          } catch AppCheckCoreErrorCode.unsupported {
-            // ...
-          } catch {
-            // ...
-          }
+      Task {
+        do {
+          _ = try await deviceCheckProvider.getToken()
+        } catch AppCheckCoreErrorCode.unsupported {
+          // ...
+        } catch {
+          // ...
         }
       }
     #endif // !os(watchOS)
