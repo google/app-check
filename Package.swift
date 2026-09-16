@@ -72,9 +72,10 @@ let package = Package(
       ],
       path: "AppCheckCore/Tests",
       exclude: [
-        // Swift tests are in the target `AppCheckCoreUnitSwift` since mixed language targets are
-        // not supported (as of Xcode 14.3).
+        // Swift tests and ObjC tests are separated since mixed language targets are
+        // not supported.
         "Unit/Swift",
+        "Unit/ObjC",
       ],
       resources: [
         .process("Fixture"),
@@ -89,6 +90,15 @@ let package = Package(
       path: "AppCheckCore/Tests/Unit/Swift",
       cSettings: [
         .headerSearchPath("../.."),
+      ]
+    ),
+    .testTarget(
+      name: "AppCheckCoreUnitObjC",
+      dependencies: ["AppCheckCore"],
+      path: "AppCheckCore/Tests/Unit/ObjC",
+      cSettings: [
+        .headerSearchPath("../.."),
+        .headerSearchPath("../../../Sources/Public"),
       ]
     ),
     .testTarget(
