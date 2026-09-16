@@ -1,5 +1,6 @@
 # 12.0.0
 - [changed] Ported AppCheckCore from Objective-C to Swift.
+- [changed] Raised Swift tools version to 6.0 for Swift Package Manager.
 - [changed] **Breaking change**: AppCheckCore's minimum supported versions have
   updated for the following platforms:
     - | Platform  | AppCheckCore 12 |
