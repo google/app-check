@@ -1,4 +1,16 @@
-# Unreleased
+# 12.0.0
+- [changed] Ported AppCheckCore from Objective-C to Swift.
+- [changed] **Breaking change**: AppCheckCore's minimum supported versions have
+  updated for the following platforms:
+    - | Platform  | AppCheckCore 12 |
+      | ------------- | ------------- |
+      | iOS  | **15.0**  |
+      | macOS  | **11.0**  |
+      | tvOS  | **15.0**  |
+      | watchOS  | **8.0**  |
+      | Mac Catalyst  | **15.0**  |
+
+# 11.3.2
 - [fixed] Fixed an issue where the time-to-live (TTL) for a cached token was
   calculated from the moment the token response was processed locally, rather
   than when the request was initiated, which could lead to artificially extended
