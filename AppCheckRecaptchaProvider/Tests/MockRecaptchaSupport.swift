@@ -109,6 +109,7 @@ class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
         response: HTTPURLResponse(),
         httpBody: Data(),
         requestDate: Date()
+        request: Date()
       )
       return response
     }
