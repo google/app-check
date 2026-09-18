@@ -37,7 +37,7 @@ final class AppCheckAPITests {
         baseURL: nil,
         apiKey: apiKey,
         keychainAccessGroup: nil,
-        requestHooks: nil
+        requestHooks: nil as [AppCheckCoreAPIRequestHook]?
       )
       provider.getToken { token, error in
         if let _ /* error */ = error {
@@ -60,8 +60,20 @@ final class AppCheckAPITests {
       keychainAccessGroup: appGroupID
     )
 
+    let appCheckProtocol: AppCheckCoreProtocol = appCheck
+    _ = appCheckProtocol
+
+    // MARK: - AppCheckCoreSettings
+
+    let settings = AppCheckCoreSettings()
+    settings.isTokenAutoRefreshEnabled = true
+    _ = settings.isTokenAutoRefreshEnabled
+
+    let customSettings = CustomSubclassSettings()
+    _ = customSettings.isTokenAutoRefreshEnabled
+
     // Get token
-    appCheck.token(forcingRefresh: false) { result in
+    appCheck.token(forcingRefresh: false, completion: { result in
       if let _ /* error */ = result.error {
         _ /* placeholder token */ = result.token
         // ...
@@ -69,25 +81,20 @@ final class AppCheckAPITests {
         _ /* token */ = result.token
         // ...
       }
-    }
+    })
 
     // Get token (async/await)
-    if #available(iOS 13.0, macOS 10.15, macCatalyst 13.0, tvOS 13.0, watchOS 7.0, *) {
-      // async/await is only available on iOS 13+
-      Task {
-        let result = await appCheck.token(forcingRefresh: false)
-        if let _ /* error */ = result.error {
-          _ /* placeholder token */ = result.token
-          // ...
-        } else {
-          _ /* token */ = result.token
-          // ...
-        }
+    Task {
+      do {
+        let token = try await appCheck.token(forcingRefresh: false)
+        _ /* token */ = token.token
+      } catch {
+        _ /* error */ = error
       }
     }
 
     // Get limited-use token
-    appCheck.limitedUseToken { result in
+    appCheck.limitedUseToken(completion: { result in
       if let _ /* error */ = result.error {
         _ /* placeholder token */ = result.token
         // ...
@@ -95,33 +102,30 @@ final class AppCheckAPITests {
         _ /* token */ = result.token
         // ...
       }
-    }
+    })
 
     // Get limited-use token (async/await)
-    if #available(iOS 13.0, macOS 10.15, macCatalyst 13.0, tvOS 13.0, watchOS 7.0, *) {
-      // async/await is only available on iOS 13+
-      Task {
-        let result = await appCheck.limitedUseToken()
-        if let _ /* error */ = result.error {
-          _ /* placeholder token */ = result.token
-          // ...
-        } else {
-          _ /* token */ = result.token
-          // ...
-        }
+    Task {
+      do {
+        let token = try await appCheck.limitedUseToken()
+        _ /* token */ = token.token
+      } catch {
+        _ /* error */ = error
       }
     }
 
     // MARK: - `AppCheckDebugProvider`
 
+    let dummyHook: AppCheckCoreAPIRequestHook = { _ in }
+    let requestHooks: [AppCheckCoreAPIRequestHook] = [dummyHook]
+
     // `AppCheckDebugProvider` initializer
-    // TODO(andrewheard): Add `requestHooks` in API tests.
     let debugProvider = AppCheckCoreDebugProvider(
       serviceName: serviceName,
       resourceName: resourceName,
       baseURL: nil,
       apiKey: apiKey,
-      requestHooks: nil
+      requestHooks: requestHooks
     )
     // Get token
     debugProvider.getToken { token, error in
@@ -133,14 +137,11 @@ final class AppCheckAPITests {
     }
 
     // Get token (async/await)
-    if #available(iOS 13.0, macOS 10.15, macCatalyst 13.0, tvOS 13.0, watchOS 7.0, *) {
-      // async/await is only available on iOS 13+
-      Task {
-        do {
-          _ = try await debugProvider.getToken()
-        } catch {
-          // ...
-        }
+    Task {
+      do {
+        _ = try await debugProvider.getToken()
+      } catch {
+        // ...
       }
     }
 
@@ -152,10 +153,36 @@ final class AppCheckAPITests {
     let token = AppCheckCoreToken(token: "token", expirationDate: Date.distantFuture)
     _ = token.token
     _ = token.expirationDate
+    _ = token.receivedAtDate
+
+    let tokenWithReceivedAt = AppCheckCoreToken(
+      token: "token",
+      expirationDate: Date.distantFuture,
+      receivedAt: Date()
+    )
+    _ = tokenWithReceivedAt.receivedAtDate
+
+    // MARK: - AppCheckCoreTokenResult
+
+    let successResult = AppCheckCoreTokenResult(token: token)
+    _ = successResult.token
+    _ = successResult.error
+
+    let failureResult = AppCheckCoreTokenResult(error: NSError(domain: "test", code: 1))
+    _ = failureResult.token
+    _ = failureResult.error
+
+    let designatedResult = AppCheckCoreTokenResult(token: token, error: nil)
+    _ = designatedResult.token
+    _ = designatedResult.error
+
+    _ = AppCheckCoreTokenResult.placeholderToken()
 
     // MARK: - AppCheckErrors
 
-    appCheck.token(forcingRefresh: false) { result in
+    _ = AppCheckCoreErrorDomain
+
+    appCheck.token(forcingRefresh: false, completion: { result in
       if let error = result.error {
         switch error {
         case AppCheckCoreErrorCode.unknown:
@@ -173,7 +200,7 @@ final class AppCheckAPITests {
         }
       }
       // ...
-    }
+    })
 
     // MARK: - AppCheckProvider
 
@@ -186,34 +213,29 @@ final class AppCheckAPITests {
 
     // `DeviceCheckProvider` initializer
     #if !os(watchOS)
-      if #available(iOS 11.0, macOS 10.15, macCatalyst 13.0, tvOS 11.0, *) {
-        // TODO(andrewheard): Add `requestHooks` in API tests.
-        let deviceCheckProvider = AppCheckCoreDeviceCheckProvider(
-          serviceName: serviceName,
-          resourceName: resourceName,
-          apiKey: apiKey,
-          requestHooks: nil
-        )
-        // Get token
-        deviceCheckProvider.getToken { token, error in
-          if let _ /* error */ = error {
-            // ...
-          } else if let _ /* token */ = token {
-            // ...
-          }
+      // TODO(andrewheard): Add `requestHooks` in API tests.
+      let deviceCheckProvider = AppCheckCoreDeviceCheckProvider(
+        serviceName: serviceName,
+        resourceName: resourceName,
+        apiKey: apiKey,
+        requestHooks: nil as [AppCheckCoreAPIRequestHook]?
+      )
+      // Get token
+      deviceCheckProvider.getToken { token, error in
+        if let _ /* error */ = error {
+          // ...
+        } else if let _ /* token */ = token {
+          // ...
         }
-        // Get token (async/await)
-        if #available(iOS 13.0, tvOS 13.0, *) {
-          // async/await is only available on iOS 13+
-          Task {
-            do {
-              _ = try await deviceCheckProvider.getToken()
-            } catch AppCheckCoreErrorCode.unsupported {
-              // ...
-            } catch {
-              // ...
-            }
-          }
+      }
+      // Get token (async/await)
+      Task {
+        do {
+          _ = try await deviceCheckProvider.getToken()
+        } catch AppCheckCoreErrorCode.unsupported {
+          // ...
+        } catch {
+          // ...
         }
       }
     #endif // !os(watchOS)
@@ -223,21 +245,21 @@ final class AppCheckAPITests {
     // Set the log level for App Check Core
     AppCheckCoreLogger.logLevel = .debug
 
-    // MARK: - GACAppCheckErrors
+    // MARK: - AppCheckCoreErrors
 
     let code: AppCheckCoreMessageCode! = nil
     switch code! {
-    case .loggerAppCheckMessageCodeUnknown: break
-    case .loggerAppCheckMessageCodeProviderIsMissing: break
-    case .loggerAppCheckMessageCodeStagingModeEnabled: break
-    case .loggerAppCheckMessageCodeUnexpectedHTTPCode: break
-    case .loggerAppCheckMessageLocalDebugToken: break
-    case .loggerAppCheckMessageEnvironmentVariableDebugToken: break
-    case .loggerAppCheckMessageDebugProviderFirebaseEnvironmentVariable: break
-    case .loggerAppCheckMessageDebugProviderFailedExchange: break
-    case .loggerAppCheckMessageCodeAppAttestNotSupported: break
-    case .loggerAppCheckMessageCodeAttestationRejected: break
-    case .loggerAppCheckMessageCodeAssertionRejected: break
+    case .unknown: break
+    case .providerIsMissing: break
+    case .stagingModeEnabled: break
+    case .unexpectedHTTPCode: break
+    case .localDebugToken: break
+    case .environmentVariableDebugToken: break
+    case .debugProviderFirebaseEnvironmentVariable: break
+    case .debugProviderFailedExchange: break
+    case .appAttestNotSupported: break
+    case .attestationRejected: break
+    case .assertionRejected: break
     @unknown default: break
     }
   }
@@ -260,6 +282,8 @@ class DummyAppCheckProvider: NSObject, AppCheckCoreProvider {
 class DummyAppCheckSettings: NSObject, AppCheckCoreSettingsProtocol {
   var isTokenAutoRefreshEnabled: Bool = true
 }
+
+class CustomSubclassSettings: AppCheckCoreSettings {}
 
 class DummyAppCheckTokenDelegate: NSObject, AppCheckCoreTokenDelegate {
   func tokenDidUpdate(_ token: AppCheckCoreToken, serviceName: String) {}

@@ -16,7 +16,6 @@ import XCTest
 
 @testable import AppCheckCore
 @testable import AppCheckRecaptchaProvider
-import Promises
 
 @available(iOS 15.0, visionOS 1.0, *)
 @available(macOS, unavailable)
@@ -50,49 +49,37 @@ final class AppCheckRecaptchaProviderTests: XCTestCase {
     XCTAssertFalse(AppCheckRecaptchaProvider.isSupported())
   }
 
-  func testGetTokenWithoutRecaptchaSDK() {
+  func testGetTokenWithoutRecaptchaSDK() async {
     // When the Recaptcha SDK is not linked, the tokenGenerator will be nil.
     // We should expect an unsupported attestation provider error.
 
-    let expectation = self.expectation(description: "Get token fails without SDK")
-
-    provider.getToken { token, error in
-      XCTAssertNil(token)
-      XCTAssertNotNil(error)
-
-      let nsError = error as NSError?
-      XCTAssertEqual(nsError?.domain, AppCheckCoreErrorDomain)
-      XCTAssertEqual(nsError?.code, AppCheckCoreErrorCode.unsupported.rawValue)
+    do {
+      let _ = try await provider.getToken()
+      XCTFail("Expected getToken to fail without SDK")
+    } catch {
+      let nsError = error as NSError
+      XCTAssertEqual(nsError.domain, AppCheckCoreErrorDomain)
+      XCTAssertEqual(nsError.code, AppCheckCoreErrorCode.unsupported.rawValue)
       XCTAssertEqual(
-        nsError?.localizedFailureReason,
+        nsError.localizedFailureReason,
         "The reCAPTCHA Enterprise SDK is not linked. See https://firebase.google.com/docs/app-check/ios/recaptcha-enterprise-provider#prepare-environment"
       )
-
-      expectation.fulfill()
     }
-
-    waitForExpectations(timeout: 1.0)
   }
 
-  func testGetLimitedUseTokenWithoutRecaptchaSDK() {
-    let expectation = self.expectation(description: "Get limited use token fails without SDK")
-
-    provider.getLimitedUseToken { token, error in
-      XCTAssertNil(token)
-      XCTAssertNotNil(error)
-
-      let nsError = error as NSError?
-      XCTAssertEqual(nsError?.domain, AppCheckCoreErrorDomain)
-      XCTAssertEqual(nsError?.code, AppCheckCoreErrorCode.unsupported.rawValue)
+  func testGetLimitedUseTokenWithoutRecaptchaSDK() async {
+    do {
+      let _ = try await provider.getLimitedUseToken()
+      XCTFail("Expected getLimitedUseToken to fail without SDK")
+    } catch {
+      let nsError = error as NSError
+      XCTAssertEqual(nsError.domain, AppCheckCoreErrorDomain)
+      XCTAssertEqual(nsError.code, AppCheckCoreErrorCode.unsupported.rawValue)
       XCTAssertEqual(
-        nsError?.localizedFailureReason,
+        nsError.localizedFailureReason,
         "The reCAPTCHA Enterprise SDK is not linked. See https://firebase.google.com/docs/app-check/ios/recaptcha-enterprise-provider#prepare-environment"
       )
-
-      expectation.fulfill()
     }
-
-    waitForExpectations(timeout: 1.0)
   }
 
   func testInitReturnsNilWithoutRecaptchaSDK() {
@@ -144,7 +131,7 @@ final class AppCheckRecaptchaProviderTests: XCTestCase {
     )
   }
 
-  func testGetTokenSuccess() {
+  func testGetTokenSuccess() async throws {
     // Arrange
     let expectedAppCheckToken = AppCheckCoreToken(
       token: "app-check-token-456",
@@ -152,21 +139,15 @@ final class AppCheckRecaptchaProviderTests: XCTestCase {
     )
     let providerWithMocks = createProviderWithMocks(expectedToken: expectedAppCheckToken)
 
-    let expectation = self.expectation(description: "Get token succeeds")
-
     // Act
-    providerWithMocks.getToken { token, error in
-      // Assert
-      XCTAssertNotNil(token)
-      XCTAssertNil(error)
-      XCTAssertEqual(token?.token, expectedAppCheckToken.token)
-      expectation.fulfill()
-    }
+    let token = try await providerWithMocks.getToken()
 
-    waitForExpectations(timeout: 1.0)
+    // Assert
+    XCTAssertNotNil(token)
+    XCTAssertEqual(token.token, expectedAppCheckToken.token)
   }
 
-  func testGetLimitedUseTokenSuccess() {
+  func testGetLimitedUseTokenSuccess() async throws {
     // Arrange
     let expectedAppCheckToken = AppCheckCoreToken(
       token: "app-check-token-456",
@@ -174,17 +155,11 @@ final class AppCheckRecaptchaProviderTests: XCTestCase {
     )
     let providerWithMocks = createProviderWithMocks(expectedToken: expectedAppCheckToken)
 
-    let expectation = self.expectation(description: "Get limited use token succeeds")
-
     // Act
-    providerWithMocks.getLimitedUseToken { token, error in
-      // Assert
-      XCTAssertNotNil(token)
-      XCTAssertNil(error)
-      XCTAssertEqual(token?.token, expectedAppCheckToken.token)
-      expectation.fulfill()
-    }
+    let token = try await providerWithMocks.getLimitedUseToken()
 
-    waitForExpectations(timeout: 1.0)
+    // Assert
+    XCTAssertNotNil(token)
+    XCTAssertEqual(token.token, expectedAppCheckToken.token)
   }
 }

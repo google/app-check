@@ -1,4 +1,4 @@
-// swift-tools-version:5.5
+// swift-tools-version:6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 // Copyright 2023 Google LLC
@@ -19,7 +19,7 @@ import PackageDescription
 
 let package = Package(
   name: "AppCheck",
-  platforms: [.iOS(.v12), .macCatalyst(.v13), .macOS(.v10_15), .tvOS(.v13), .watchOS(.v7)],
+  platforms: [.iOS(.v15), .macCatalyst(.v15), .macOS(.v11), .tvOS(.v15), .watchOS(.v8)],
   products: [
     .library(
       name: "AppCheckCore",
@@ -34,12 +34,8 @@ let package = Package(
   ],
   dependencies: [
     .package(
-      url: "https://github.com/google/promises.git",
-      "2.4.0" ..< "3.0.0"
-    ),
-    .package(
       url: "https://github.com/google/GoogleUtilities.git",
-      "8.0.0" ..< "9.0.0"
+      "8.1.0" ..< "9.0.0"
     ),
     .package(
       url: "https://github.com/google/interop-ios-for-google-sdks.git",
@@ -49,7 +45,6 @@ let package = Package(
   targets: [
     .target(name: "AppCheckCore",
             dependencies: [
-              .product(name: "FBLPromises", package: "Promises"),
               .product(name: "GULEnvironment", package: "GoogleUtilities"),
               .product(name: "GULUserDefaults", package: "GoogleUtilities"),
             ],
@@ -61,14 +56,13 @@ let package = Package(
             linkerSettings: [
               .linkedFramework(
                 "DeviceCheck",
-                .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .appCheckVisionOS])
+                .when(platforms: [.iOS, .macCatalyst, .macOS, .tvOS, .visionOS])
               ),
             ]),
     .target(name: "AppCheckRecaptchaProvider",
             dependencies: [
               "AppCheckCore",
               .product(name: "RecaptchaInterop", package: "interop-ios-for-google-sdks"),
-              .product(name: "Promises", package: "Promises"),
             ],
             path: "AppCheckRecaptchaProvider/Sources"),
     .testTarget(
@@ -78,9 +72,10 @@ let package = Package(
       ],
       path: "AppCheckCore/Tests",
       exclude: [
-        // Swift tests are in the target `AppCheckCoreUnitSwift` since mixed language targets are
-        // not supported (as of Xcode 14.3).
+        // Swift tests and ObjC tests are separated since mixed language targets are
+        // not supported.
         "Unit/Swift",
+        "Unit/ObjC",
       ],
       resources: [
         .process("Fixture"),
@@ -98,27 +93,21 @@ let package = Package(
       ]
     ),
     .testTarget(
+      name: "AppCheckCoreUnitObjC",
+      dependencies: ["AppCheckCore"],
+      path: "AppCheckCore/Tests/Unit/ObjC",
+      cSettings: [
+        .headerSearchPath("../.."),
+        .headerSearchPath("../../../Sources/Public"),
+      ]
+    ),
+    .testTarget(
       name: "AppCheckRecaptchaProviderUnit",
       dependencies: [
         "AppCheckRecaptchaProvider",
       ],
       path: "AppCheckRecaptchaProvider/Tests"
     ),
-  ]
+  ],
+  swiftLanguageModes: [.v5]
 )
-
-extension Platform {
-  // Xcode dependent value for the visionOS platform. Namespaced with an "appCheck" prefix to
-  // prevent any API collisions (such issues should not arise as the manifest APIs should be
-  // confined to the `Package.swift`).
-  static var appCheckVisionOS: Self {
-    #if swift(>=5.9)
-      // For Xcode 15, return the available `visionOS` platform.
-      return .visionOS
-    #else
-      // For Xcode 14, return `iOS` as `visionOS` is unavailable. Since all targets support iOS,
-      // this acts as a no-op.
-      return .iOS
-    #endif // swift(>=5.9)
-  }
-}

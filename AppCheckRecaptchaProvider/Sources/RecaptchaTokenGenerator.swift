@@ -15,9 +15,7 @@
 #if SWIFT_PACKAGE
   import AppCheckCore
 #endif
-import FBLPromises
 import Foundation
-import Promises
 import RecaptchaInterop
 
 @available(iOS 15.0, visionOS 1.0, *)
@@ -26,94 +24,83 @@ import RecaptchaInterop
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
 final class RecaptchaTokenGenerator {
-  // Corresponds to RecaptchaErrorNetworkError. These codes are not in the interop.
-  // See https://docs.cloud.google.com/recaptcha/docs/reference/ios/client/api/Enums/RecaptchaErrorCode.html#recaptchaerrornetworkerror
   static let networkErrorCode = 1
-  // Corresponds to RecaptchaErrorCodeInternalError. These codes are not in the interop.
-  // See https://docs.cloud.google.com/recaptcha/docs/reference/ios/client/api/Enums/RecaptchaErrorCode.html#recaptchaerrorcodeinternalerror
   static let internalErrorCode = 100
 
   private let recaptchaAction: RCAActionProtocol
 
-  private let recaptchaClient: Promise<RCARecaptchaClientProtocol>
+  private let recaptchaClientTask: Task<RCARecaptchaClientProtocol, Error>
 
-  private let backoffWrapper: _GACAppCheckBackoffWrapperProtocol
+  private let backoffWrapper: AppCheckBackoffWrapperProtocol
 
   init(siteKey: String, recaptchaAction: RCAActionProtocol,
        recaptchaClass: RCARecaptchaProtocol.Type,
-       backoffWrapper: _GACAppCheckBackoffWrapperProtocol) {
+       backoffWrapper: AppCheckBackoffWrapperProtocol) {
     self.recaptchaAction = recaptchaAction
     self.backoffWrapper = backoffWrapper
-    // Note: `fetchClient` is called only once and its result (including
-    // failure) is cached. reCAPTCHA engineers have confirmed that
-    // `fetchClient` handles transient errors internally and only fails on
-    // permanent integration errors (e.g., invalid site key). Therefore,
-    // retrying `fetchClient` on failure is unnecessary and not recommended.
-    recaptchaClient = Promise<RCARecaptchaClientProtocol> { fulfill, reject in
-      recaptchaClass.fetchClient(withSiteKey: siteKey) { client, error in
-        if let client {
-          fulfill(client)
-        } else {
-          reject(error ?? _GACAppCheckErrorUtil
-            .error(withFailureReason: "Failed to fetch Recaptcha client"))
-        }
-      }
-    }
-  }
 
-  func getRecaptchaToken() -> Promise<String> {
-    return recaptchaClient.then { client in
-      let operationProvider: GACAppCheckBackoffOperationProvider = {
-        let swiftPromise = Promise<AnyObject> { fulfill, reject in
-          client.execute(withAction: self.recaptchaAction) { token, error in
-            if let token {
-              fulfill(token as AnyObject)
-            } else {
-              reject(self.mapRecaptchaError(error))
-            }
+    recaptchaClientTask = Task {
+      try await withCheckedThrowingContinuation { continuation in
+        recaptchaClass.fetchClient(withSiteKey: siteKey) { client, error in
+          if let client {
+            continuation.resume(returning: client)
+          } else {
+            continuation.resume(throwing: error ?? AppCheckCoreErrorUtil
+              .error(withFailureReason: "Failed to fetch Recaptcha client"))
           }
         }
-        return swiftPromise.asObjCPromise()
-      }
-
-      let errorHandler: GACAppCheckBackoffErrorHandler = { error in
-        let nsError = error as NSError
-        if nsError.domain == AppCheckCoreErrorDomain && nsError.code == AppCheckCoreErrorCode
-          .serverUnreachable.rawValue {
-          return .typeExponential
-        }
-        return .typeNone
-      }
-
-      let fblPromise = self.backoffWrapper.applyBackoff(
-        toOperation: operationProvider,
-        errorHandler: errorHandler
-      )
-
-      return Promise<AnyObject>(fblPromise).then { result in
-        guard let token = result as? String else {
-          throw _GACAppCheckErrorUtil
-            .error(
-              withFailureReason: "Unexpected result type from reCAPTCHA token exchange: \(type(of: result)). Expected String."
-            )
-        }
-        return token
       }
     }
   }
 
-  private func mapRecaptchaError(_ error: Error?) -> Error {
+  func getRecaptchaToken() async throws -> String {
+    let client = try await recaptchaClientTask.value
+
+    let operationProvider: () async throws -> Any = {
+      try await withCheckedThrowingContinuation { continuation in
+        let recaptchaAction = self.recaptchaAction
+        client.execute(withAction: recaptchaAction) { token, error in
+          if let token {
+            continuation.resume(returning: token as Any)
+          } else {
+            continuation.resume(throwing: Self.mapRecaptchaError(error))
+          }
+        }
+      }
+    }
+
+    let errorHandler: (Error) -> AppCheckBackoffType = { error in
+      let nsError = error as NSError
+      if nsError.domain == AppCheckCoreErrorDomain && nsError.code == AppCheckCoreErrorCode
+        .serverUnreachable.rawValue {
+        return .exponential
+      }
+      return .none
+    }
+
+    let result = try await backoffWrapper.applyBackoffToOperation(
+      operationProvider,
+      errorHandler: errorHandler
+    )
+
+    guard let token = result as? String else {
+      throw AppCheckCoreErrorUtil
+        .error(
+          withFailureReason: "Unexpected result type from reCAPTCHA token exchange: \(type(of: result)). Expected String."
+        )
+    }
+    return token
+  }
+
+  private static func mapRecaptchaError(_ error: Error?) -> Error {
     guard let error = error as NSError? else {
-      return _GACAppCheckErrorUtil.error(withFailureReason: "Failed to execute Recaptcha action")
+      return AppCheckCoreErrorUtil.error(withFailureReason: "Failed to execute Recaptcha action")
     }
 
-    // Map RecaptchaErrorNetworkError and RecaptchaErrorCodeInternalError.
-    // See https://docs.cloud.google.com/recaptcha/docs/reference/ios/client/api/Enums/RecaptchaErrorCode.html
     if error.code == Self.networkErrorCode || error.code == Self.internalErrorCode {
-      return _GACAppCheckErrorUtil.apiError(withNetworkError: error)
+      return AppCheckCoreErrorUtil.apiError(withNetworkError: error)
     }
 
-    // Preserve underlying error for others
     var userInfo: [String: Any] = [NSUnderlyingErrorKey: error]
     if let reason = error.userInfo[NSLocalizedFailureReasonErrorKey] {
       userInfo[NSLocalizedFailureReasonErrorKey] = reason
