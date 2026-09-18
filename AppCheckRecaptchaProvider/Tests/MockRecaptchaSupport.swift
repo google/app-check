@@ -107,7 +107,8 @@ class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
     } else {
       let response = expectedResponse ?? AppCheckCoreURLSessionDataResponse(
         response: HTTPURLResponse(),
-        httpBody: Data()
+        httpBody: Data(),
+        requestDate: Date()
       )
       return response
     }
