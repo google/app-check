@@ -17,6 +17,27 @@ import Foundation
 /// Firebase app check error domain.
 public let AppCheckCoreErrorDomain = "com.google.app_check_core"
 
+/// Objective-C accessor for the App Check error domain.
+///
+/// Swift global constants are not bridged to Objective-C, so the v11
+/// `GACAppCheckErrorDomain` global is no longer visible there. Objective-C
+/// callers should use `GACAppCheckErrors.errorDomain` instead:
+///
+/// ```objc
+/// if ([error.domain isEqualToString:GACAppCheckErrors.errorDomain]) { ... }
+/// ```
+@objc(GACAppCheckErrors)
+public final class AppCheckCoreErrorsObjC: NSObject {
+  /// The App Check error domain. Equivalent to the Swift
+  /// `AppCheckCoreErrorDomain` global.
+  @objc public static var errorDomain: String { return AppCheckCoreErrorDomain }
+
+  @available(*, unavailable)
+  override private init() {
+    super.init()
+  }
+}
+
 @objc(GACAppCheckErrorCode)
 public enum AppCheckCoreErrorCode: Int, Error {
   /// An unknown or non-actionable error.

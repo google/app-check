@@ -61,13 +61,40 @@ class MockAppCheckCoreAppAttestService: NSObject, AppCheckCoreAppAttestService {
   }
 }
 
+/// Lets a test hold an in-flight operation open until it chooses to release
+/// it, so coalescing behavior can be exercised deterministically.
+actor AsyncGate {
+  private var isOpen = false
+  private var waiters: [CheckedContinuation<Void, Never>] = []
+
+  func wait() async {
+    if isOpen { return }
+    await withCheckedContinuation { continuation in
+      waiters.append(continuation)
+    }
+  }
+
+  func open() {
+    isOpen = true
+    let resumable = waiters
+    waiters = []
+    for continuation in resumable {
+      continuation.resume()
+    }
+  }
+}
+
 @available(iOS 14.0, macOS 11.0, tvOS 15.0, watchOS 9.0, *)
 class MockAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPIServiceProtocol {
+  /// When set, `getRandomChallenge()` blocks until the gate is opened.
+  var getRandomChallengeGate: AsyncGate?
+
   var getRandomChallengeResults: [Result<Data, Error>] = []
   var getRandomChallengeCallCount = 0
   func getRandomChallenge() async throws -> Data {
     let result = getRandomChallengeResults[getRandomChallengeCallCount]
     getRandomChallengeCallCount += 1
+    await getRandomChallengeGate?.wait()
     return try result.get()
   }
 
@@ -813,5 +840,121 @@ class AppCheckCoreAppAttestProviderTests: XCTestCase {
 
     // Assert that attestation is tried successfully.
     try await assertGetToken_WhenNoExistingKey_Success()
+  }
+
+  // MARK: - Concurrent request handling (coalescing)
+
+  /// Documented contract (docs/providers/app-attest.md, "Concurrent Request
+  /// Handling"): a limited-use request chains behind an in-flight operation.
+  /// If that in-flight operation fails, the chaining caller must fail with the
+  /// same error. Objective-C got this from `.thenOn`, which only runs on
+  /// success, so the rejection propagated to the chained caller.
+  func testGetToken_WhenChainedBehindFailingOperation_ThenFailsWithSameError() async throws {
+    let gate = AsyncGate()
+    mockAPIService.getRandomChallengeGate = gate
+
+    let networkError = NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut, userInfo: nil)
+
+    // First (standard) sequence: fresh install -> generate key -> challenge fails.
+    mockAppCheckCoreAppAttestService.isSupportedResult = true
+    mockStorage.getAppAttestKeyIDResults
+      .append(.failure(AppCheckCoreErrorUtil.appAttestKeyIDNotFound()))
+    mockAppCheckCoreAppAttestService.generateKeyResults.append(.success("key_id"))
+    mockStorage.setAppAttestKeyIDResults.append(.success("key_id"))
+    mockAPIService.getRandomChallengeResults.append(.failure(networkError))
+
+    // Deliberately script a *second*, fully successful sequence. If the
+    // chaining caller incorrectly swallows the first error and starts over, it
+    // would consume these and succeed - which is exactly what we assert
+    // against.
+    mockStorage.getAppAttestKeyIDResults
+      .append(.failure(AppCheckCoreErrorUtil.appAttestKeyIDNotFound()))
+    mockAppCheckCoreAppAttestService.generateKeyResults.append(.success("key_id_2"))
+    mockStorage.setAppAttestKeyIDResults.append(.success("key_id_2"))
+    mockAPIService.getRandomChallengeResults.append(.success(randomChallenge))
+
+    // Start the standard request and wait until it is genuinely in flight.
+    async let standardResult: AppCheckCoreToken = provider.getToken()
+    while mockAPIService.getRandomChallengeCallCount < 1 {
+      await Task.yield()
+    }
+
+    // Now issue a limited-use request, which must chain behind it.
+    async let limitedResult: AppCheckCoreToken = provider.getLimitedUseToken()
+
+    // Give the limited-use request a moment to reach the chaining branch,
+    // then let the in-flight operation fail.
+    try await Task.sleep(nanoseconds: 50_000_000)
+    await gate.open()
+
+    var standardError: NSError?
+    do {
+      _ = try await standardResult
+      XCTFail("Expected the standard request to fail")
+    } catch {
+      standardError = error as NSError
+    }
+
+    var limitedError: NSError?
+    do {
+      _ = try await limitedResult
+      XCTFail("Expected the chained limited-use request to fail with the same error")
+    } catch {
+      limitedError = error as NSError
+    }
+
+    XCTAssertEqual(standardError?.domain, NSURLErrorDomain)
+    XCTAssertEqual(standardError?.code, NSURLErrorTimedOut)
+
+    // The chained caller must surface the in-flight failure, not start over.
+    XCTAssertEqual(limitedError?.domain, NSURLErrorDomain)
+    XCTAssertEqual(limitedError?.code, NSURLErrorTimedOut)
+
+    // And no second attestation sequence should have been attempted.
+    XCTAssertEqual(mockAPIService.getRandomChallengeCallCount, 1)
+  }
+
+  /// Two concurrent *standard* requests must be coalesced into a single fetch
+  /// and both receive the same token.
+  func testGetToken_WhenTwoConcurrentStandardRequests_ThenOperationIsCoalesced() async throws {
+    let gate = AsyncGate()
+    mockAPIService.getRandomChallengeGate = gate
+
+    let keyID = "key_id"
+    let attestationData = "attestation".data(using: .utf8)!
+    let artifact = "artifact".data(using: .utf8)!
+    let expectedToken = AppCheckCoreToken(token: "coalesced_token",
+                                          expirationDate: .distantFuture)
+
+    mockAppCheckCoreAppAttestService.isSupportedResult = true
+    mockStorage.getAppAttestKeyIDResults
+      .append(.failure(AppCheckCoreErrorUtil.appAttestKeyIDNotFound()))
+    mockAppCheckCoreAppAttestService.generateKeyResults.append(.success(keyID))
+    mockStorage.setAppAttestKeyIDResults.append(.success(keyID))
+    mockAPIService.getRandomChallengeResults.append(.success(randomChallenge))
+    mockAppCheckCoreAppAttestService.attestKeyResults.append(.success(attestationData))
+    mockAPIService.attestKeyResults.append(.success(
+      AppCheckCoreAppAttestAttestationResponse(artifact: artifact, token: expectedToken)
+    ))
+    mockArtifactStorage.setArtifactResults.append(.success(artifact))
+
+    async let firstResult: AppCheckCoreToken = provider.getToken()
+    while mockAPIService.getRandomChallengeCallCount < 1 {
+      await Task.yield()
+    }
+
+    async let secondResult: AppCheckCoreToken = provider.getToken()
+    try await Task.sleep(nanoseconds: 50_000_000)
+    await gate.open()
+
+    let firstToken = try await firstResult
+    let secondToken = try await secondResult
+
+    XCTAssertEqual(firstToken.token, expectedToken.token)
+    XCTAssertEqual(secondToken.token, expectedToken.token)
+
+    // Exactly one underlying attestation sequence should have run.
+    XCTAssertEqual(mockAPIService.getRandomChallengeCallCount, 1)
+    XCTAssertEqual(mockAppCheckCoreAppAttestService.generateKeyCallCount, 1)
   }
 }
