@@ -430,13 +430,26 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
       return AppCheckCoreAppAttestProviderState(unsupportedWithError: error)
     }
 
-    let appAttestKeyID = try await keyIDStorage.getAppAttestKeyID()
-    guard let keyID = appAttestKeyID else {
+    // 2. Check for stored key ID of the generated App Attest key pair.
+    //
+    // A missing key ID is reported by the storage as a thrown
+    // `appAttestKeyIDNotFound` error rather than as `nil`. Treat any failure to
+    // read the key ID as "no key yet" and fall back to the initial state so a
+    // new key pair is generated, matching the behavior of the Objective-C
+    // implementation (`FBLPromiseAwait` returned `nil` and the error was
+    // deliberately ignored).
+    let appAttestKeyID = try? await keyIDStorage.getAppAttestKeyID()
+    guard let keyID = appAttestKeyID ?? nil else {
       return AppCheckCoreAppAttestProviderState(supportedInitialState: ())
     }
 
-    let attestationArtifact = try await artifactStorage.getArtifact(forKey: keyID)
-    guard let artifact = attestationArtifact else {
+    // 3. Check for a stored attestation artifact received from the backend.
+    //
+    // As above, a failure to read the artifact (e.g. a transient Keychain
+    // error) degrades to re-attesting the existing key rather than failing the
+    // whole token fetch.
+    let attestationArtifact = try? await artifactStorage.getArtifact(forKey: keyID)
+    guard let artifact = attestationArtifact ?? nil else {
       return AppCheckCoreAppAttestProviderState(generatedKeyID: keyID)
     }
 

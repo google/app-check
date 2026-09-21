@@ -237,7 +237,11 @@ class AppCheckCoreAppAttestProviderTests: XCTestCase {
 
   func expectAppAttestAvailabilityToBeCheckedAndNotExistingStoredKeyRequested() {
     mockAppCheckCoreAppAttestService.isSupportedResult = true
-    mockStorage.getAppAttestKeyIDResults.append(.success(nil))
+    // The real `AppCheckCoreAppAttestKeyIDStorage` signals "no key stored" by
+    // throwing `appAttestKeyIDNotFound`, never by returning `nil`. Mirror that
+    // here so the suite exercises the actual storage contract.
+    mockStorage.getAppAttestKeyIDResults
+      .append(.failure(AppCheckCoreErrorUtil.appAttestKeyIDNotFound()))
   }
 
   func expectAppAttestKeyGeneratedAndAttested(withKeyID keyID: String, attestationData: Data) {
