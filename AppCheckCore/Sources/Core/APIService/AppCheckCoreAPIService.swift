@@ -14,11 +14,6 @@
 
 import Foundation
 
-// Assuming AppCheckCoreAPIRequestHook is a typealias.
-// It was defined somewhere else as a block taking an NSMutableURLRequest.
-// We'll define it locally if it's missing, but it should be available.
-// typealias AppCheckCoreAPIRequestHook = (NSMutableURLRequest) -> Void
-
 private let kAPIKeyHeaderKey = "X-Goog-Api-Key"
 private let kBundleIdKey = "X-Ios-Bundle-Identifier"
 private let kProdBaseURL = "https://firebaseappcheck.googleapis.com/v1"
@@ -81,7 +76,6 @@ package class AppCheckCoreAPIService: NSObject,
           resolvedBaseURL = kStagingBaseURL
           let logMessage =
             "App Check staging environment enabled. API calls will be routed to \(kStagingBaseURL)."
-          // Assuming AppCheckCoreLogger is available
           AppCheckCoreLogger.log(code: .stagingModeEnabled, logLevel: .info, message: logMessage)
         }
       }

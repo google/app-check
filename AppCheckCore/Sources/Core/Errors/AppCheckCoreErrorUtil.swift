@@ -188,23 +188,21 @@ public class AppCheckCoreErrorUtil: NSObject {
   @objc
   public static func errorDescription(withDeviceCheckError error: NSError) -> String {
     #if canImport(DeviceCheck) && !os(watchOS)
-      if #available(macOS 10.15, iOS 11.0, tvOS 11.0, watchOS 9.0, *) {
-        if error.domain == DCErrorDomain {
-          let errorCode = DCError.Code(rawValue: error.code)
-          switch errorCode {
-          case .featureUnsupported:
-            return "DCErrorFeatureUnsupported - DeviceCheck is unavailable on this device"
-          case .invalidInput:
-            return "DCErrorInvalidInput - An error code that indicates when your app provides data that isn’t formatted correctly"
-          case .invalidKey:
-            return "DCErrorInvalidKey - An error caused by a failed attempt to use the App Attest key"
-          case .serverUnavailable:
-            return "DCErrorServerUnavailable - An error that indicates a failed attempt to contact the App Attest service during an attestation"
-          case .unknownSystemFailure:
-            return "DCErrorUnknownSystemFailure - A failure has occurred, such as the failure to generate a token"
-          default:
-            return "Unknown DCError(\(error.code)) - \(error.localizedDescription)"
-          }
+      if error.domain == DCErrorDomain {
+        let errorCode = DCError.Code(rawValue: error.code)
+        switch errorCode {
+        case .featureUnsupported:
+          return "DCErrorFeatureUnsupported - DeviceCheck is unavailable on this device"
+        case .invalidInput:
+          return "DCErrorInvalidInput - An error code that indicates when your app provides data that isn’t formatted correctly"
+        case .invalidKey:
+          return "DCErrorInvalidKey - An error caused by a failed attempt to use the App Attest key"
+        case .serverUnavailable:
+          return "DCErrorServerUnavailable - An error that indicates a failed attempt to contact the App Attest service during an attestation"
+        case .unknownSystemFailure:
+          return "DCErrorUnknownSystemFailure - A failure has occurred, such as the failure to generate a token"
+        default:
+          return "Unknown DCError(\(error.code)) - \(error.localizedDescription)"
         }
       }
     #endif

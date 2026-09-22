@@ -14,9 +14,6 @@
 
 import Foundation
 
-#if canImport(GoogleUtilities)
-  import GoogleUtilities
-#endif
 #if COCOAPODS
   import GoogleUtilities
 #else
