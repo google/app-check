@@ -14,35 +14,35 @@
 
 import Foundation
 
-@objc(GACAppCheckBackoffType)
-public enum AppCheckBackoffType: UInt {
+@objc(GACAppCheckCoreBackoffType)
+public enum AppCheckCoreBackoffType: UInt {
   case none
   case oneDay
   case exponential
 }
 
-public typealias AppCheckCoreBackoffErrorHandler = (Error) -> AppCheckBackoffType
-public typealias AppCheckDateProvider = () -> Date
+public typealias AppCheckCoreBackoffErrorHandler = (Error) -> AppCheckCoreBackoffType
+public typealias AppCheckCoreDateProvider = () -> Date
 
-public protocol AppCheckBackoffWrapperProtocol: NSObjectProtocol {
-  func applyBackoffToOperation(_ operationProvider: @escaping () async throws -> Any,
-                               errorHandler: @escaping (Error) -> AppCheckBackoffType) async throws
-    -> Any
+public protocol AppCheckCoreBackoffWrapperProtocol: NSObjectProtocol {
+  func applyBackoffToOperation<T>(_ operationProvider: @escaping () async throws -> T,
+                                  errorHandler: @escaping (Error)
+                                    -> AppCheckCoreBackoffType) async throws -> T
 
-  func defaultAppCheckProviderErrorHandler() -> (Error) -> AppCheckBackoffType
+  func defaultAppCheckProviderErrorHandler() -> (Error) -> AppCheckCoreBackoffType
 }
 
 private let k24Hours: TimeInterval = 24 * 60 * 60
 private let kMaxJitterCoefficient = 0.5
 private let kMaxExponentialBackoffInterval: TimeInterval = 4 * 60 * 60
 
-private class AppCheckBackoffOperationFailure: NSObject {
+private class AppCheckCoreBackoffOperationFailure: NSObject {
   let finishDate: Date
   let error: Error
-  let backoffType: AppCheckBackoffType
+  let backoffType: AppCheckCoreBackoffType
   let retryCount: Int
 
-  init(finishDate: Date, error: Error, backoffType: AppCheckBackoffType, retryCount: Int) {
+  init(finishDate: Date, error: Error, backoffType: AppCheckCoreBackoffType, retryCount: Int) {
     self.finishDate = finishDate
     self.error = error
     self.backoffType = backoffType
@@ -50,11 +50,11 @@ private class AppCheckBackoffOperationFailure: NSObject {
     super.init()
   }
 
-  static func nextRetryFailure(with previousFailure: AppCheckBackoffOperationFailure?,
+  static func nextRetryFailure(with previousFailure: AppCheckCoreBackoffOperationFailure?,
                                finishDate: Date, error: Error,
-                               backoffType: AppCheckBackoffType)
-    -> AppCheckBackoffOperationFailure {
-    return AppCheckBackoffOperationFailure(
+                               backoffType: AppCheckCoreBackoffType)
+    -> AppCheckCoreBackoffOperationFailure {
+    return AppCheckCoreBackoffOperationFailure(
       finishDate: finishDate,
       error: error,
       backoffType: backoffType,
@@ -63,9 +63,9 @@ private class AppCheckBackoffOperationFailure: NSObject {
   }
 }
 
-public class AppCheckCoreBackoffWrapper: NSObject, AppCheckBackoffWrapperProtocol {
-  private let dateProvider: AppCheckDateProvider
-  private var lastFailure: AppCheckBackoffOperationFailure?
+public class AppCheckCoreBackoffWrapper: NSObject, AppCheckCoreBackoffWrapperProtocol {
+  private let dateProvider: AppCheckCoreDateProvider
+  private var lastFailure: AppCheckCoreBackoffOperationFailure?
   private let lock = NSLock()
 
   @objc
@@ -74,19 +74,19 @@ public class AppCheckCoreBackoffWrapper: NSObject, AppCheckBackoffWrapperProtoco
   }
 
   @objc(initWithDateProvider:)
-  public init(dateProvider: @escaping AppCheckDateProvider) {
+  public init(dateProvider: @escaping AppCheckCoreDateProvider) {
     self.dateProvider = dateProvider
     super.init()
   }
 
   @objc
-  public static func currentDateProvider() -> AppCheckDateProvider {
+  public static func currentDateProvider() -> AppCheckCoreDateProvider {
     return { Date() }
   }
 
-  public func applyBackoffToOperation(_ operationProvider: @escaping () async throws -> Any,
-                                      errorHandler: @escaping (Error)
-                                        -> AppCheckBackoffType) async throws -> Any {
+  public func applyBackoffToOperation<T>(_ operationProvider: @escaping () async throws -> T,
+                                         errorHandler: @escaping (Error)
+                                           -> AppCheckCoreBackoffType) async throws -> T {
     if !isNextOperationAllowed() {
       guard let failure = lastFailure else {
         throw AppCheckCoreErrorUtil.error(withFailureReason: "Too many attempts.")
@@ -105,7 +105,7 @@ public class AppCheckCoreBackoffWrapper: NSObject, AppCheckBackoffWrapperProtoco
     } catch {
       let backoffType = errorHandler(error)
       lock.withLock {
-        lastFailure = AppCheckBackoffOperationFailure.nextRetryFailure(
+        lastFailure = AppCheckCoreBackoffOperationFailure.nextRetryFailure(
           with: lastFailure,
           finishDate: dateProvider(),
           error: error,
@@ -140,7 +140,7 @@ public class AppCheckCoreBackoffWrapper: NSObject, AppCheckBackoffWrapperProtoco
     return timeSinceFailure >= timeInterval
   }
 
-  private func exponentialBackoffInterval(for failure: AppCheckBackoffOperationFailure)
+  private func exponentialBackoffInterval(for failure: AppCheckCoreBackoffOperationFailure)
     -> TimeInterval {
     let baseBackoff = pow(2.0, Double(failure.retryCount - 1))
     let maxRandom = 1000.0
@@ -151,7 +151,7 @@ public class AppCheckCoreBackoffWrapper: NSObject, AppCheckBackoffWrapperProtoco
   }
 
   @objc
-  public func defaultAppCheckProviderErrorHandler() -> (Error) -> AppCheckBackoffType {
+  public func defaultAppCheckProviderErrorHandler() -> (Error) -> AppCheckCoreBackoffType {
     return { error in
       guard let httpError = error as? AppCheckCoreHTTPError else {
         return .none

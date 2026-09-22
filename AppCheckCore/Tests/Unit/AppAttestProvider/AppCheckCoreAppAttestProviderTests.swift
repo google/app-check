@@ -171,18 +171,18 @@ class MockAppAttestArtifactStorage: NSObject, AppCheckCoreAppAttestArtifactStora
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 15.0, watchOS 9.0, *)
-class FakeAppCheckBackoffWrapper: NSObject, AppCheckBackoffWrapperProtocol {
+class FakeAppCheckBackoffWrapper: NSObject, AppCheckCoreBackoffWrapperProtocol {
   var isNextOperationAllowed: Bool = true
   var backoffCalledCount = 0
-  var defaultErrorHandler: ((Error) -> AppCheckBackoffType)?
+  var defaultErrorHandler: ((Error) -> AppCheckCoreBackoffType)?
 
-  func defaultAppCheckProviderErrorHandler() -> (Error) -> AppCheckBackoffType {
+  func defaultAppCheckProviderErrorHandler() -> (Error) -> AppCheckCoreBackoffType {
     return { error in .none }
   }
 
-  func applyBackoffToOperation(_ operation: @escaping () async throws -> Any,
-                               errorHandler: @escaping (Error) -> AppCheckBackoffType) async throws
-    -> Any {
+  func applyBackoffToOperation<T>(_ operation: @escaping () async throws -> T,
+                                  errorHandler: @escaping (Error)
+                                    -> AppCheckCoreBackoffType) async throws -> T {
     backoffCalledCount += 1
     guard isNextOperationAllowed else {
       throw NSError(domain: "FakeBackoff", code: -1, userInfo: nil)

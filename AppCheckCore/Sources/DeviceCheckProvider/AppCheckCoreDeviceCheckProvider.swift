@@ -22,7 +22,7 @@ import Foundation
 public class AppCheckCoreDeviceCheckProvider: NSObject, AppCheckCoreProvider {
   private let apiService: AppCheckCoreDeviceCheckAPIServiceProtocol
   private let deviceTokenGenerator: AppCheckCoreDeviceCheckTokenGenerator
-  private let backoffWrapper: AppCheckBackoffWrapperProtocol
+  private let backoffWrapper: AppCheckCoreBackoffWrapperProtocol
 
   @objc(initWithServiceName:resourceName:APIKey:requestHooks:)
   public init(serviceName: String, resourceName: String, apiKey: String,
@@ -46,7 +46,7 @@ public class AppCheckCoreDeviceCheckProvider: NSObject, AppCheckCoreProvider {
 
   init(apiService: AppCheckCoreDeviceCheckAPIServiceProtocol,
        deviceTokenGenerator: AppCheckCoreDeviceCheckTokenGenerator,
-       backoffWrapper: AppCheckBackoffWrapperProtocol) {
+       backoffWrapper: AppCheckCoreBackoffWrapperProtocol) {
     self.apiService = apiService
     self.deviceTokenGenerator = deviceTokenGenerator
     self.backoffWrapper = backoffWrapper
@@ -90,18 +90,12 @@ public class AppCheckCoreDeviceCheckProvider: NSObject, AppCheckCoreProvider {
   // MARK: - Internal
 
   private func getToken(limitedUse: Bool) async throws -> AppCheckCoreToken {
-    let result = try await backoffWrapper.applyBackoffToOperation({ [weak self] () -> Any in
+    return try await backoffWrapper.applyBackoffToOperation({ [weak self] in
       guard let self = self else {
         throw AppCheckCoreErrorUtil.error(withFailureReason: "Self is nil")
       }
       return try await self.getTokenPromise(limitedUse: limitedUse)
     }, errorHandler: backoffWrapper.defaultAppCheckProviderErrorHandler())
-
-    guard let token = result as? AppCheckCoreToken else {
-      throw AppCheckCoreErrorUtil
-        .error(withFailureReason: "Internal error: promise resolved with invalid type")
-    }
-    return token
   }
 
   private func getTokenPromise(limitedUse: Bool) async throws -> AppCheckCoreToken {

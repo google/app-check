@@ -24,7 +24,7 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
   private let appAttestService: AppCheckCoreAppAttestService
   private let keyIDStorage: AppCheckCoreAppAttestKeyIDStorageProtocol
   private let artifactStorage: AppCheckCoreAppAttestArtifactStorageProtocol
-  private let backoffWrapper: AppCheckBackoffWrapperProtocol
+  private let backoffWrapper: AppCheckCoreBackoffWrapperProtocol
 
   private var ongoingGetTokenOperationTask: Task<AppCheckCoreToken, Error>?
   private var ongoingGetTokenOperationLimitedUse: Bool = false
@@ -41,7 +41,7 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
        apiService: AppCheckCoreAppAttestAPIServiceProtocol,
        keyIDStorage: AppCheckCoreAppAttestKeyIDStorageProtocol,
        artifactStorage: AppCheckCoreAppAttestArtifactStorageProtocol,
-       backoffWrapper: AppCheckBackoffWrapperProtocol) {
+       backoffWrapper: AppCheckCoreBackoffWrapperProtocol) {
     self.appAttestService = appAttestService
     self.apiService = apiService
     self.keyIDStorage = keyIDStorage
@@ -178,10 +178,9 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
 
   private func createGetTokenSequenceWithBackoff(limitedUse: Bool) async throws
     -> AppCheckCoreToken {
-    let result = try await backoffWrapper.applyBackoffToOperation({
+    return try await backoffWrapper.applyBackoffToOperation({
       try await self.createGetTokenSequence(limitedUse: limitedUse)
     }, errorHandler: backoffWrapper.defaultAppCheckProviderErrorHandler())
-    return result as! AppCheckCoreToken
   }
 
   private func createGetTokenSequence(limitedUse: Bool) async throws -> AppCheckCoreToken {

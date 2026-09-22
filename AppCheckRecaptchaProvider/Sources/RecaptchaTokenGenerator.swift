@@ -31,11 +31,11 @@ final class RecaptchaTokenGenerator {
 
   private let recaptchaClientTask: Task<RCARecaptchaClientProtocol, Error>
 
-  private let backoffWrapper: AppCheckBackoffWrapperProtocol
+  private let backoffWrapper: AppCheckCoreBackoffWrapperProtocol
 
   init(siteKey: String, recaptchaAction: RCAActionProtocol,
        recaptchaClass: RCARecaptchaProtocol.Type,
-       backoffWrapper: AppCheckBackoffWrapperProtocol) {
+       backoffWrapper: AppCheckCoreBackoffWrapperProtocol) {
     self.recaptchaAction = recaptchaAction
     self.backoffWrapper = backoffWrapper
 
@@ -56,12 +56,12 @@ final class RecaptchaTokenGenerator {
   func getRecaptchaToken() async throws -> String {
     let client = try await recaptchaClientTask.value
 
-    let operationProvider: () async throws -> Any = {
+    let operationProvider: () async throws -> String = {
       try await withCheckedThrowingContinuation { continuation in
         let recaptchaAction = self.recaptchaAction
         client.execute(withAction: recaptchaAction) { token, error in
           if let token {
-            continuation.resume(returning: token as Any)
+            continuation.resume(returning: token)
           } else {
             continuation.resume(throwing: Self.mapRecaptchaError(error))
           }
@@ -69,7 +69,7 @@ final class RecaptchaTokenGenerator {
       }
     }
 
-    let errorHandler: (Error) -> AppCheckBackoffType = { error in
+    let errorHandler: (Error) -> AppCheckCoreBackoffType = { error in
       let nsError = error as NSError
       if nsError.domain == AppCheckCoreErrorDomain && nsError.code == AppCheckCoreErrorCode
         .serverUnreachable.rawValue {
@@ -78,18 +78,10 @@ final class RecaptchaTokenGenerator {
       return .none
     }
 
-    let result = try await backoffWrapper.applyBackoffToOperation(
+    return try await backoffWrapper.applyBackoffToOperation(
       operationProvider,
       errorHandler: errorHandler
     )
-
-    guard let token = result as? String else {
-      throw AppCheckCoreErrorUtil
-        .error(
-          withFailureReason: "Unexpected result type from reCAPTCHA token exchange: \(type(of: result)). Expected String."
-        )
-    }
-    return token
   }
 
   private static func mapRecaptchaError(_ error: Error?) -> Error {

@@ -54,20 +54,20 @@ class AppCheckCoreDeviceCheckTokenGeneratorFake: NSObject, AppCheckCoreDeviceChe
   }
 }
 
-class AppCheckCoreBackoffWrapperFake: NSObject, AppCheckBackoffWrapperProtocol {
+class AppCheckCoreBackoffWrapperFake: NSObject, AppCheckCoreBackoffWrapperProtocol {
   var isNextOperationAllowed: Bool = true
   var backoffError: Error = NSError(domain: "BackoffError", code: -1, userInfo: nil)
 
   var backoffExpectation: XCTestExpectation?
   var defaultErrorHandlerCalled = false
-  var defaultErrorHandler: ((Error) -> AppCheckBackoffType)?
+  var defaultErrorHandler: ((Error) -> AppCheckCoreBackoffType)?
 
   var operationResult: Any?
   var operationError: Error?
 
-  func applyBackoffToOperation(_ operationProvider: @escaping () async throws -> Any,
-                               errorHandler: @escaping (Error) -> AppCheckBackoffType) async throws
-    -> Any {
+  func applyBackoffToOperation<T>(_ operationProvider: @escaping () async throws -> T,
+                                  errorHandler: @escaping (Error)
+                                    -> AppCheckCoreBackoffType) async throws -> T {
     backoffExpectation?.fulfill()
     if isNextOperationAllowed {
       do {
@@ -84,7 +84,7 @@ class AppCheckCoreBackoffWrapperFake: NSObject, AppCheckBackoffWrapperProtocol {
     }
   }
 
-  func defaultAppCheckProviderErrorHandler() -> (Error) -> AppCheckBackoffType {
+  func defaultAppCheckProviderErrorHandler() -> (Error) -> AppCheckCoreBackoffType {
     return { error in
       self.defaultErrorHandlerCalled = true
       if let handler = self.defaultErrorHandler {

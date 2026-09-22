@@ -106,7 +106,12 @@ class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
       throw expectedError
     } else {
       let response = expectedResponse ?? AppCheckCoreURLSessionDataResponse(
-        response: HTTPURLResponse(url: URL(string: "https://test.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+        response: HTTPURLResponse(
+          url: URL(string: "https://test.com")!,
+          statusCode: 200,
+          httpVersion: nil,
+          headerFields: nil
+        )!,
         httpBody: Data(),
         requestDate: Date()
       )
@@ -128,29 +133,29 @@ class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
   }
 }
 
-class MockBackoffWrapper: NSObject, AppCheckBackoffWrapperProtocol {
+class MockBackoffWrapper: NSObject, AppCheckCoreBackoffWrapperProtocol {
   var applyBackoffCalled = false
   var shouldReturnError = false
   var mockError: NSError?
   var mockResult: Any?
-  var capturedErrorHandler: ((Error) -> AppCheckBackoffType)?
+  var capturedErrorHandler: ((Error) -> AppCheckCoreBackoffType)?
 
-  func applyBackoffToOperation(_ operationProvider: @escaping () async throws -> Any,
-                               errorHandler: @escaping (Error) -> AppCheckBackoffType) async throws
-    -> Any {
+  func applyBackoffToOperation<T>(_ operationProvider: @escaping () async throws -> T,
+                                  errorHandler: @escaping (Error)
+                                    -> AppCheckCoreBackoffType) async throws -> T {
     applyBackoffCalled = true
     capturedErrorHandler = errorHandler
     if shouldReturnError {
       let error = mockError ?? NSError(domain: "MockBackoffWrapper", code: -1, userInfo: nil)
       throw error
     }
-    if let mockResult {
+    if let mockResult = mockResult as? T {
       return mockResult
     }
     return try await operationProvider()
   }
 
-  func defaultAppCheckProviderErrorHandler() -> (Error) -> AppCheckBackoffType {
+  func defaultAppCheckProviderErrorHandler() -> (Error) -> AppCheckCoreBackoffType {
     return { error in .exponential }
   }
 }

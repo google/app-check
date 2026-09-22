@@ -214,7 +214,7 @@ class AppCheckCoreBackoffWrapperTests: XCTestCase {
 
   // MARK: - Helpers
 
-  private func setUpErrorHandler(with backoffType: AppCheckBackoffType) {
+  private func setUpErrorHandler(with backoffType: AppCheckCoreBackoffType) {
     errorHandlerExpectation = expectation(description: "Error handler")
     errorHandler = { [weak self] error in
       self?.errorHandlerExpectation.fulfill()
