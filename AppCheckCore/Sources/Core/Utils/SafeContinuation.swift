@@ -17,7 +17,7 @@ import Foundation
 /// A wrapper around `CheckedContinuation` that ensures it is resumed exactly once.
 /// If the underlying completion block is invoked multiple times (e.g. by a misbehaving
 /// third-party provider), subsequent resumes are safely ignored instead of trapping.
-class SafeContinuation<T, E: Error> {
+class SafeContinuation<T, E: Error>: @unchecked Sendable {
   private var continuation: CheckedContinuation<T, E>?
   private let lock = NSLock()
 

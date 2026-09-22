@@ -234,7 +234,6 @@ class AppCheckCoreTests: XCTestCase {
     let expectedToken = validToken()
     fakeAppCheckProvider.tokenToReturn = expectedToken
 
-
     let continuationSetExpectation = expectation(description: "continuation set")
     var storeTokenContinuation: CheckedContinuation<AppCheckCoreToken?, Error>?
     fakeStorage.setTokenHandler = { token in
@@ -251,7 +250,6 @@ class AppCheckCoreTests: XCTestCase {
       await fulfillment(of: [continuationSetExpectation], timeout: 5.0)
       storeTokenContinuation?.resume(returning: expectedToken)
     }
-
 
     await withTaskGroup(of: Void.self) { group in
       for _ in 0 ..< getTokenCallsCount {
@@ -279,7 +277,6 @@ class AppCheckCoreTests: XCTestCase {
     let expectedToken = validToken()
     fakeAppCheckProvider.tokenToReturn = expectedToken
 
-
     let continuationSetExpectation = expectation(description: "continuation set")
     var storeTokenContinuation: CheckedContinuation<AppCheckCoreToken?, Error>?
     fakeStorage.setTokenHandler = { token in
@@ -296,7 +293,6 @@ class AppCheckCoreTests: XCTestCase {
       await fulfillment(of: [continuationSetExpectation], timeout: 5.0)
       storeTokenContinuation?.resume(throwing: storageError)
     }
-
 
     await withTaskGroup(of: Void.self) { group in
       for _ in 0 ..< getTokenCallsCount {

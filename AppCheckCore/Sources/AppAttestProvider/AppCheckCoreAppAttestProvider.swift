@@ -260,7 +260,6 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
       let attestation =
         try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
           Data,
-          Error,
           Error
         >) in
           appAttestService.attestKey(keyID, clientDataHash: challengeHash) { data, error in
@@ -392,7 +391,6 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
       let assertion =
         try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
           Data,
-          Error,
           Error
         >) in
           appAttestService.generateAssertion(keyID, clientDataHash: statementHash) { data, error in
@@ -493,7 +491,6 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
     do {
       let keyID = try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
         String,
-        Error,
         Error
       >) in
         appAttestService.generateKey { key, error in
