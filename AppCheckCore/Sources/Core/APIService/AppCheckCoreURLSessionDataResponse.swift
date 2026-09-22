@@ -15,12 +15,12 @@
 import Foundation
 
 /// The class represents HTTP response received from `URLSession`.
-@_spi(FirebaseInternal) public class AppCheckCoreURLSessionDataResponse: NSObject {
-  public let httpResponse: HTTPURLResponse
+package class AppCheckCoreURLSessionDataResponse: NSObject {
+  package let httpResponse: HTTPURLResponse
   public let httpBody: Data?
   public let requestDate: Date
 
-  public init(response: HTTPURLResponse, httpBody: Data?, requestDate: Date) {
+  package init(response: HTTPURLResponse, httpBody: Data?, requestDate: Date) {
     httpResponse = response
     self.httpBody = httpBody
     self.requestDate = requestDate

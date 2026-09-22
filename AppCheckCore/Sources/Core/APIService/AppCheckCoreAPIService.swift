@@ -28,7 +28,7 @@ private let kProdBaseURL = "https://firebaseappcheck.googleapis.com/v1"
   private let kAppCheckUseStagingEnvKey = "_AppCheckUseStaging"
 #endif
 
-@_spi(FirebaseInternal) public protocol AppCheckCoreAPIServiceProtocol: NSObjectProtocol {
+package protocol AppCheckCoreAPIServiceProtocol: NSObjectProtocol {
   var baseURL: String { get }
 
   func sendRequest(withURL requestURL: URL,
@@ -41,15 +41,15 @@ private let kProdBaseURL = "https://firebaseappcheck.googleapis.com/v1"
     -> AppCheckCoreToken
 }
 
-@_spi(FirebaseInternal) public class AppCheckCoreAPIService: NSObject,
+package class AppCheckCoreAPIService: NSObject,
   AppCheckCoreAPIServiceProtocol {
-  public let baseURL: String
+  package let baseURL: String
   private let urlSession: URLSession
   private let apiKey: String?
   // Using Any for hook as it's typically `@convention(block) (NSMutableURLRequest) -> Void`
   private let requestHooks: [AppCheckCoreAPIRequestHook]
 
-  public convenience init(urlSession: URLSession,
+  package convenience init(urlSession: URLSession,
                           baseURL: String?,
                           apiKey: String?,
                           requestHooks: [Any]?) {
@@ -63,7 +63,7 @@ private let kProdBaseURL = "https://firebaseappcheck.googleapis.com/v1"
   }
 
   // Internal designated initializer
-  public init(urlSession: URLSession,
+  package init(urlSession: URLSession,
               baseURL: String?,
               apiKey: String?,
               requestHooks: [Any]?,

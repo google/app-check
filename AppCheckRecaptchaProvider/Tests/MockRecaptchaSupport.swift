@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-@_spi(FirebaseInternal) @testable @_spi(FirebaseInternal) import AppCheckCore
+@testable import AppCheckCore
 @testable import AppCheckRecaptchaProvider
 import Foundation
 import RecaptchaInterop

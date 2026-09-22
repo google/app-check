@@ -14,7 +14,7 @@
 
 import XCTest
 
-@_spi(FirebaseInternal) @testable @_spi(FirebaseInternal) import AppCheckCore
+@testable import AppCheckCore
 @testable import AppCheckRecaptchaProvider
 
 @available(iOS 15.0, visionOS 1.0, *)

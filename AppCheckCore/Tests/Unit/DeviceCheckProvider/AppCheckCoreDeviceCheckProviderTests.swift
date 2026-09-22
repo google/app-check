@@ -14,7 +14,7 @@
 
 import XCTest
 
-@_spi(FirebaseInternal) @testable import AppCheckCore
+@testable import AppCheckCore
 
 class AppCheckCoreDeviceCheckAPIServiceFake: NSObject, AppCheckCoreDeviceCheckAPIServiceProtocol {
   var passedDeviceToken: Data?

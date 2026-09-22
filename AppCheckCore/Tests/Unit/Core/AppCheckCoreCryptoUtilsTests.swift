@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-@_spi(FirebaseInternal) @testable import AppCheckCore
+@testable import AppCheckCore
 import XCTest
 
 class AppCheckCoreCryptoUtilsTests: XCTestCase {
