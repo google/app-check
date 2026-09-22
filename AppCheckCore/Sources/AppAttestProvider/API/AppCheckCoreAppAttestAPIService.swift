@@ -51,7 +51,7 @@ class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPIService
   // MARK: - API Calls
 
   func getRandomChallenge() async throws -> Data {
-    let url = urlForEndpoint(kGenerateAppAttestChallengeEndpoint)
+    let url = try urlForEndpoint(kGenerateAppAttestChallengeEndpoint)
     let response = try await apiService.sendRequest(
       withURL: url,
       httpMethod: kHTTPMethodPost,
@@ -63,7 +63,7 @@ class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPIService
 
   func attestKey(withAttestation attestation: Data, keyID: String, challenge: Data,
                  limitedUse: Bool) async throws -> AppCheckCoreAppAttestAttestationResponse {
-    let url = urlForEndpoint(kExchangeAppAttestAttestationEndpoint)
+    let url = try urlForEndpoint(kExchangeAppAttestAttestationEndpoint)
     let body = try httpBody(
       withAttestation: attestation,
       keyID: keyID,
@@ -91,7 +91,7 @@ class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPIService
 
   func getAppCheckToken(withArtifact artifact: Data, challenge: Data, assertion: Data,
                         limitedUse: Bool) async throws -> AppCheckCoreToken {
-    let url = urlForEndpoint(kExchangeAppAttestAssertionEndpoint)
+    let url = try urlForEndpoint(kExchangeAppAttestAssertionEndpoint)
     let body = try httpBody(
       withArtifact: artifact,
       challenge: challenge,
@@ -186,8 +186,11 @@ class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPIService
 
   // MARK: - URL Helpers
 
-  private func urlForEndpoint(_ endpoint: String) -> URL {
+  private func urlForEndpoint(_ endpoint: String) throws -> URL {
     let urlString = "\(apiService.baseURL)/\(resourceName):\(endpoint)"
-    return URL(string: urlString)!
+    guard let url = URL(string: urlString) else {
+      throw AppCheckCoreErrorUtil.error(withFailureReason: "Invalid URL.")
+    }
+    return url
   }
 }
