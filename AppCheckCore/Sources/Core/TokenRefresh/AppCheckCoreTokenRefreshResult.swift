@@ -15,19 +15,19 @@
 import Foundation
 
 @objc(GACAppCheckTokenRefreshStatus)
-public enum AppCheckCoreTokenRefreshStatus: Int {
+package enum AppCheckCoreTokenRefreshStatus: Int {
   case never = 0
   case success = 1
   case failure = 2
 }
 
 @objc(GACAppCheckTokenRefreshResult)
-public class AppCheckCoreTokenRefreshResult: NSObject {
-  @objc public let status: AppCheckCoreTokenRefreshStatus
-  @objc public let tokenExpirationDate: Date?
-  @objc public let tokenReceivedAtDate: Date?
+package class AppCheckCoreTokenRefreshResult: NSObject {
+  @objc package let status: AppCheckCoreTokenRefreshStatus
+  @objc package let tokenExpirationDate: Date?
+  @objc package let tokenReceivedAtDate: Date?
 
-  public init(status: AppCheckCoreTokenRefreshStatus,
+  package init(status: AppCheckCoreTokenRefreshStatus,
               expirationDate tokenExpirationDate: Date?,
               receivedAtDate tokenReceivedAtDate: Date?) {
     self.status = status
@@ -36,15 +36,15 @@ public class AppCheckCoreTokenRefreshResult: NSObject {
     super.init()
   }
 
-  public convenience init(statusNever: ()) {
+  package convenience init(statusNever: ()) {
     self.init(status: .never, expirationDate: nil, receivedAtDate: nil)
   }
 
-  public convenience init(statusFailure: ()) {
+  package convenience init(statusFailure: ()) {
     self.init(status: .failure, expirationDate: nil, receivedAtDate: nil)
   }
 
-  public convenience init(statusSuccessAndExpirationDate tokenExpirationDate: Date,
+  package convenience init(statusSuccessAndExpirationDate tokenExpirationDate: Date,
                           receivedAtDate tokenReceivedAtDate: Date) {
     self.init(
       status: .success,

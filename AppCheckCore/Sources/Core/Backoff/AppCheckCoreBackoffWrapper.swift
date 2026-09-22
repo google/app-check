@@ -15,16 +15,16 @@
 import Foundation
 
 @objc(GACAppCheckCoreBackoffType)
-public enum AppCheckCoreBackoffType: UInt {
+package enum AppCheckCoreBackoffType: UInt {
   case none
   case oneDay
   case exponential
 }
 
-public typealias AppCheckCoreBackoffErrorHandler = (Error) -> AppCheckCoreBackoffType
-public typealias AppCheckCoreDateProvider = () -> Date
+package typealias AppCheckCoreBackoffErrorHandler = (Error) -> AppCheckCoreBackoffType
+package typealias AppCheckCoreDateProvider = () -> Date
 
-public protocol AppCheckCoreBackoffWrapperProtocol: NSObjectProtocol {
+package protocol AppCheckCoreBackoffWrapperProtocol: NSObjectProtocol {
   func applyBackoffToOperation<T>(_ operationProvider: @escaping () async throws -> T,
                                   errorHandler: @escaping (Error)
                                     -> AppCheckCoreBackoffType) async throws -> T
@@ -63,28 +63,28 @@ private class AppCheckCoreBackoffOperationFailure: NSObject {
   }
 }
 
-public class AppCheckCoreBackoffWrapper: NSObject, AppCheckCoreBackoffWrapperProtocol {
+package class AppCheckCoreBackoffWrapper: NSObject, AppCheckCoreBackoffWrapperProtocol {
   private let dateProvider: AppCheckCoreDateProvider
   private var lastFailure: AppCheckCoreBackoffOperationFailure?
   private let lock = NSLock()
 
   @objc
-  override public convenience init() {
+  override package convenience init() {
     self.init(dateProvider: AppCheckCoreBackoffWrapper.currentDateProvider())
   }
 
   @objc(initWithDateProvider:)
-  public init(dateProvider: @escaping AppCheckCoreDateProvider) {
+  package init(dateProvider: @escaping AppCheckCoreDateProvider) {
     self.dateProvider = dateProvider
     super.init()
   }
 
   @objc
-  public static func currentDateProvider() -> AppCheckCoreDateProvider {
+  package static func currentDateProvider() -> AppCheckCoreDateProvider {
     return { Date() }
   }
 
-  public func applyBackoffToOperation<T>(_ operationProvider: @escaping () async throws -> T,
+  package func applyBackoffToOperation<T>(_ operationProvider: @escaping () async throws -> T,
                                          errorHandler: @escaping (Error)
                                            -> AppCheckCoreBackoffType) async throws -> T {
     if !isNextOperationAllowed() {
@@ -151,7 +151,7 @@ public class AppCheckCoreBackoffWrapper: NSObject, AppCheckCoreBackoffWrapperPro
   }
 
   @objc
-  public func defaultAppCheckProviderErrorHandler() -> (Error) -> AppCheckCoreBackoffType {
+  package func defaultAppCheckProviderErrorHandler() -> (Error) -> AppCheckCoreBackoffType {
     return { error in
       guard let httpError = error as? AppCheckCoreHTTPError else {
         return .none
