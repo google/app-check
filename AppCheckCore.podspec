@@ -50,7 +50,6 @@ Pod::Spec.new do |s|
   s.ios.dependency 'RecaptchaInterop', '~> 101.0'
 
   s.pod_target_xcconfig = {
-    'SWIFT_PACKAGE_NAME' => 'AppCheck',
     'GCC_C_LANGUAGE_STANDARD' => 'c99',
     'HEADER_SEARCH_PATHS' => '"${PODS_TARGET_SRCROOT}"'
   }

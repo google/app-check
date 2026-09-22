@@ -23,7 +23,7 @@ private let kProdBaseURL = "https://firebaseappcheck.googleapis.com/v1"
   private let kAppCheckUseStagingEnvKey = "_AppCheckUseStaging"
 #endif
 
-package protocol AppCheckCoreAPIServiceProtocol: NSObjectProtocol {
+public protocol AppCheckCoreAPIServiceProtocol: NSObjectProtocol {
   var baseURL: String { get }
 
   func sendRequest(withURL requestURL: URL,
@@ -36,18 +36,18 @@ package protocol AppCheckCoreAPIServiceProtocol: NSObjectProtocol {
     -> AppCheckCoreToken
 }
 
-package class AppCheckCoreAPIService: NSObject,
+public class AppCheckCoreAPIService: NSObject,
   AppCheckCoreAPIServiceProtocol {
-  package let baseURL: String
+  public let baseURL: String
   private let urlSession: URLSession
   private let apiKey: String?
   // Using Any for hook as it's typically `@convention(block) (NSMutableURLRequest) -> Void`
   private let requestHooks: [AppCheckCoreAPIRequestHook]
 
-  package convenience init(urlSession: URLSession,
-                           baseURL: String?,
-                           apiKey: String?,
-                           requestHooks: [AppCheckCoreAPIRequestHook]?) {
+  public convenience init(urlSession: URLSession,
+                          baseURL: String?,
+                          apiKey: String?,
+                          requestHooks: [AppCheckCoreAPIRequestHook]?) {
     self.init(
       urlSession: urlSession,
       baseURL: baseURL,
@@ -58,11 +58,11 @@ package class AppCheckCoreAPIService: NSObject,
   }
 
   // Internal designated initializer
-  package init(urlSession: URLSession,
-               baseURL: String?,
-               apiKey: String?,
-               requestHooks: [AppCheckCoreAPIRequestHook]?,
-               environment: [String: String]) {
+  public init(urlSession: URLSession,
+              baseURL: String?,
+              apiKey: String?,
+              requestHooks: [AppCheckCoreAPIRequestHook]?,
+              environment: [String: String]) {
     self.urlSession = urlSession
     self.apiKey = apiKey
     self.requestHooks = requestHooks ?? []
