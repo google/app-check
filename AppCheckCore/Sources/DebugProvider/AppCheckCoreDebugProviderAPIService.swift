@@ -47,7 +47,7 @@ class AppCheckCoreDebugProviderAPIService: NSObject, AppCheckCoreDebugProviderAP
                                                     additionalHeaders: [Self.contentTypeKey: Self
                                                       .jsonContentType])
 
-    return try await apiService.appCheckToken(withAPIResponse: response)
+    return try apiService.appCheckToken(withAPIResponse: response)
   }
 
   private func httpBody(debugToken: String, limitedUse: Bool) throws -> Data {

@@ -106,7 +106,7 @@ class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPIService
       additionalHeaders: [kContentTypeKey: kJSONContentType]
     )
 
-    let token = try await apiService.appCheckToken(withAPIResponse: urlResponse)
+    let token = try apiService.appCheckToken(withAPIResponse: urlResponse)
     return token
   }
 

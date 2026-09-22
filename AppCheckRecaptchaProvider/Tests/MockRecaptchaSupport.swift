@@ -119,7 +119,7 @@ class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
     }
   }
 
-  func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) async throws
+  func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) throws
     -> AppCheckCoreToken {
     if let expectedError {
       throw expectedError

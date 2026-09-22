@@ -32,7 +32,7 @@ package protocol AppCheckCoreAPIServiceProtocol: NSObjectProtocol {
                    additionalHeaders: [String: String]?) async throws
     -> AppCheckCoreURLSessionDataResponse
 
-  func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) async throws
+  func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) throws
     -> AppCheckCoreToken
 }
 
@@ -178,7 +178,7 @@ package class AppCheckCoreAPIService: NSObject,
     return response
   }
 
-  public func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) async throws
+  public func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) throws
     -> AppCheckCoreToken {
     return try AppCheckCoreToken(
       tokenExchangeResponse: response.httpBody ?? Data(),

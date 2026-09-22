@@ -58,6 +58,6 @@ class AppCheckCoreDeviceCheckAPIService: NSObject, AppCheckCoreDeviceCheckAPISer
       additionalHeaders: ["Content-Type": "application/json"]
     )
 
-    return try await apiService.appCheckToken(withAPIResponse: response)
+    return try apiService.appCheckToken(withAPIResponse: response)
   }
 }

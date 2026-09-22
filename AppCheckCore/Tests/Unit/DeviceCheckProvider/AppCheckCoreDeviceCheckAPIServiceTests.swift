@@ -45,7 +45,7 @@ private class MockAppCheckAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
     throw NSError(domain: "MockAppCheckAPIService", code: -1, userInfo: nil)
   }
 
-  func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) async throws
+  func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) throws
     -> AppCheckCoreToken {
     passedAPIResponse = response
     if let result = appCheckTokenResult {

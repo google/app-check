@@ -22,7 +22,7 @@ Pod::Spec.new do |s|
   tvos_deployment_target = '15.0'
   watchos_deployment_target = '8.0'
 
-  s.swift_version = '5.9'
+  s.swift_version = '6.0'
 
   s.ios.deployment_target = ios_deployment_target
   s.osx.deployment_target = osx_deployment_target
@@ -50,6 +50,7 @@ Pod::Spec.new do |s|
   s.ios.dependency 'RecaptchaInterop', '~> 101.0'
 
   s.pod_target_xcconfig = {
+    'SWIFT_PACKAGE_NAME' => 'AppCheck',
     'GCC_C_LANGUAGE_STANDARD' => 'c99',
     'HEADER_SEARCH_PATHS' => '"${PODS_TARGET_SRCROOT}"'
   }
