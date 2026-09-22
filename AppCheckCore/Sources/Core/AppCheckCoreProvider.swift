@@ -27,7 +27,7 @@ public protocol AppCheckCoreProvider: NSObjectProtocol {
 
 public extension AppCheckCoreProvider {
   func getToken() async throws -> AppCheckCoreToken {
-    return try await withCheckedThrowingContinuation { continuation in
+    return try await withSafeCheckedThrowingContinuation { continuation in
       self.getToken { token, error in
         if let error = error {
           continuation.resume(throwing: error)
@@ -45,7 +45,7 @@ public extension AppCheckCoreProvider {
   }
 
   func getLimitedUseToken() async throws -> AppCheckCoreToken {
-    return try await withCheckedThrowingContinuation { continuation in
+    return try await withSafeCheckedThrowingContinuation { continuation in
       self.getLimitedUseToken { token, error in
         if let error = error {
           continuation.resume(throwing: error)

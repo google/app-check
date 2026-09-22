@@ -55,10 +55,10 @@ public final class AppCheckCoreAppAttestArtifactStorage: NSObject,
   public func getArtifact(forKey keyID: String) async throws -> Data? {
     do {
       let storedArtifact =
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<
+        try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
           NSSecureCoding?,
           Error
-        >) in
+        , Error>) in
           keychainStorage.getObjectForKey(
             artifactKey,
             objectClass: AppCheckCoreAppAttestStoredArtifact.self,
@@ -89,10 +89,10 @@ public final class AppCheckCoreAppAttestArtifactStorage: NSObject,
       return try await storeArtifact(artifact, forKey: keyID)
     } else {
       do {
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<
+        try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
           Void,
           Error
-        >) in
+        , Error>) in
           keychainStorage.removeObject(forKey: artifactKey, accessGroup: accessGroup) { error in
             if let error = error {
               continuation.resume(throwing: error)
@@ -112,10 +112,10 @@ public final class AppCheckCoreAppAttestArtifactStorage: NSObject,
     let storedArtifact = AppCheckCoreAppAttestStoredArtifact(keyID: keyID, artifact: artifact)
 
     do {
-      try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<
+      try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
         Void,
         Error
-      >) in
+      , Error>) in
         keychainStorage
           .setObject(storedArtifact, forKey: artifactKey,
                      accessGroup: accessGroup) { result, error in

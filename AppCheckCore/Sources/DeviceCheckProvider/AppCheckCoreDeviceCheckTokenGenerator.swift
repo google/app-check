@@ -24,7 +24,7 @@ public protocol AppCheckCoreDeviceCheckTokenGenerator: NSObjectProtocol {
 
 extension AppCheckCoreDeviceCheckTokenGenerator {
   func generateTokenAsync() async throws -> Data {
-    try await withCheckedThrowingContinuation { continuation in
+    try await withSafeCheckedThrowingContinuation { continuation in
       self.generateToken { token, error in
         if let error = error {
           continuation.resume(throwing: error)

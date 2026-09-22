@@ -258,10 +258,10 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
     let challengeHash = AppCheckCoreCryptoUtils.sha256Hash(from: challenge)
     do {
       let attestation =
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<
+        try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
           Data,
           Error
-        >) in
+        , Error>) in
           appAttestService.attestKey(keyID, clientDataHash: challengeHash) { data, error in
             if let error = error {
               continuation.resume(throwing: error)
@@ -389,10 +389,10 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
 
     do {
       let assertion =
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<
+        try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
           Data,
           Error
-        >) in
+        , Error>) in
           appAttestService.generateAssertion(keyID, clientDataHash: statementHash) { data, error in
             if let error = error {
               continuation.resume(throwing: error)
@@ -489,10 +489,10 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
 
   private func generateAppAttestKey() async throws -> String {
     do {
-      let keyID = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<
+      let keyID = try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
         String,
         Error
-      >) in
+      , Error>) in
         appAttestService.generateKey { key, error in
           if let error = error {
             continuation.resume(throwing: error)

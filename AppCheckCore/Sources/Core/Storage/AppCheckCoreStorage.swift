@@ -51,7 +51,7 @@ public final class AppCheckCoreStorage: NSObject, AppCheckCoreStorageProtocol {
   }
 
   public func getToken() async throws -> AppCheckCoreToken? {
-    return try await withCheckedThrowingContinuation { continuation in
+    return try await withSafeCheckedThrowingContinuation { continuation in
       keychainStorage.getObjectForKey(
         tokenKey,
         objectClass: AppCheckCoreStoredToken.self,
@@ -71,7 +71,7 @@ public final class AppCheckCoreStorage: NSObject, AppCheckCoreStorageProtocol {
   }
 
   public func setToken(_ token: AppCheckCoreToken?) async throws -> AppCheckCoreToken? {
-    return try await withCheckedThrowingContinuation { continuation in
+    return try await withSafeCheckedThrowingContinuation { continuation in
       if let token = token {
         let storedToken = AppCheckCoreStoredToken()
         storedToken.update(with: token)
