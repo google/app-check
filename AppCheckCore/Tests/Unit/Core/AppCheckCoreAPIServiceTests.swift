@@ -321,7 +321,7 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
 
     let expectedFACToken = "valid_app_check_token"
 
-    let token = try await apiService.appCheckToken(withAPIResponse: apiResponse)
+    let token = try apiService.appCheckToken(withAPIResponse: apiResponse)
 
     XCTAssertEqual(token.token, expectedFACToken)
     XCTAssertEqual(token.expirationDate.timeIntervalSinceNow, 1800, accuracy: 10)
@@ -343,7 +343,7 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
     let expectedFACToken = "valid_app_check_token"
 
     // 3. Parse API response.
-    let token = try await apiService.appCheckToken(withAPIResponse: apiResponse)
+    let token = try apiService.appCheckToken(withAPIResponse: apiResponse)
 
     // 4. Verify.
     XCTAssertEqual(token.token, expectedFACToken)
@@ -409,7 +409,7 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
     )
     let responseReceiptDate = Date()
 
-    let token = try await apiService.appCheckToken(withAPIResponse: apiResponse)
+    let token = try apiService.appCheckToken(withAPIResponse: apiResponse)
 
     // Verify token expiration is calculated from pre-dispatch requestDate,
     // distinct from post-response receipt time.
@@ -432,7 +432,7 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
     )
 
     do {
-      _ = try await apiService.appCheckToken(withAPIResponse: apiResponse)
+      _ = try apiService.appCheckToken(withAPIResponse: apiResponse)
       XCTFail("Expected error to be thrown")
     } catch {
       let nsError = error as NSError
@@ -465,7 +465,7 @@ class AppCheckCoreAPIServiceTests: XCTestCase {
     )
 
     do {
-      _ = try await apiService.appCheckToken(withAPIResponse: apiResponse)
+      _ = try apiService.appCheckToken(withAPIResponse: apiResponse)
       XCTFail("Expected error to be thrown")
     } catch {
       let nsError = error as NSError
