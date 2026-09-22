@@ -247,24 +247,21 @@ public class AppCheckCore: NSObject, AppCheckCoreProtocol {
   /// resume on the cooperative pool as normal; `async` callers are expected to
   /// hop to the main actor themselves, and forcing a hop would be a new
   /// divergence rather than parity.
-  static func deliverOnMainQueue<T>(_ result: T,
-                                    to completion: @escaping (T) -> Void) {
-    // See the note in `notifyTokenUpdateOnMainQueue` — the caller's handler and
-    // the result object cross the same queue boundary v11 crossed, and the
-    // handler is arbitrary caller-supplied code that cannot be declared
-    // `Sendable` on their behalf.
-    nonisolated(unsafe) let result = result
+  static func deliverOnMainQueue<T: Sendable>(_ result: T,
+                                              to completion: @escaping (T) -> Void) {
+    // See the note in `notifyTokenUpdateOnMainQueue` — the caller's handler crosses
+    // the same queue boundary v11 crossed, and the handler is arbitrary
+    // caller-supplied code that cannot be declared `Sendable` on their behalf.
     nonisolated(unsafe) let completion = completion
     DispatchQueue.main.async {
       completion(result)
     }
   }
 
-  static func deliverOnMainQueue<T, E>(_ result: T,
-                                       error: E?,
-                                       to completion: @escaping (T, E?) -> Void) {
-    nonisolated(unsafe) let result = result
-    nonisolated(unsafe) let error = error
+  static func deliverOnMainQueue<T: Sendable, E: Sendable>(_ result: T,
+                                                           error: E?,
+                                                           to completion: @escaping (T, E?)
+                                                             -> Void) {
     nonisolated(unsafe) let completion = completion
     DispatchQueue.main.async {
       completion(result, error)

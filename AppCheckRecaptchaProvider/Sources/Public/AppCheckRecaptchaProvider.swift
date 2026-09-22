@@ -142,11 +142,10 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
     )
   }
 
-  private static func deliverOnMainQueue<T, E>(_ result: T,
-                                               error: E?,
-                                               to completion: @escaping (T, E?) -> Void) {
-    nonisolated(unsafe) let result = result
-    nonisolated(unsafe) let error = error
+  private static func deliverOnMainQueue<T: Sendable, E: Sendable>(_ result: T,
+                                                                   error: E?,
+                                                                   to completion: @escaping (T, E?)
+                                                                     -> Void) {
     nonisolated(unsafe) let completion = completion
     DispatchQueue.main.async {
       completion(result, error)

@@ -17,7 +17,7 @@ import Foundation
 private let kPlaceholderTokenValue = "eyJlcnJvciI6IlVOS05PV05fRVJST1IifQ=="
 
 @objc(GACAppCheckTokenResult)
-public class AppCheckCoreTokenResult: NSObject {
+public final class AppCheckCoreTokenResult: NSObject, @unchecked Sendable {
   @objc public let token: AppCheckCoreToken
   @objc public let error: Error?
 
