@@ -10,6 +10,9 @@
       | tvOS  | **15.0**  |
       | watchOS  | **8.0**  |
       | Mac Catalyst  | **15.0**  |
+- [changed] **Breaking change**: The `GACAppCheckErrorDomain` global constant is no longer visible to Objective-C consumers due to the Swift migration. Use `GACAppCheckErrors.errorDomain` instead.
+  - Before: `if ([error.domain isEqualToString:GACAppCheckErrorDomain]) { ... }`
+  - After: `if ([error.domain isEqualToString:GACAppCheckErrors.errorDomain]) { ... }`
 
 # 11.3.2
 - [fixed] Fixed an issue where the time-to-live (TTL) for a cached token was

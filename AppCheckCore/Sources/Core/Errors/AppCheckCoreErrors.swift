@@ -57,6 +57,10 @@ public enum AppCheckCoreErrorCode: Int, Error {
   case unsupported = 4
 }
 
+extension AppCheckCoreErrorCode: CustomNSError {
+  public static var errorDomain: String { AppCheckCoreErrorDomain }
+}
+
 @objc(GACAppCheckMessageCode)
 public enum AppCheckCoreMessageCode: Int {
   case unknown = 1001
