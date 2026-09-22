@@ -50,13 +50,15 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
     super.init()
   }
 
+  /// - Parameter requestHooks: Array of `AppCheckCoreAPIRequestHook` closures. Typed as `[Any]?` to
+  /// avoid an ObjC bridging crash from `[() -> Void]` arrays.
   @objc(initWithServiceName:resourceName:baseURL:APIKey:keychainAccessGroup:requestHooks:)
   public convenience init(serviceName: String,
                           resourceName: String,
                           baseURL: String?,
                           apiKey: String?,
                           keychainAccessGroup accessGroup: String?,
-                          requestHooks: [AppCheckCoreAPIRequestHook]?) {
+                          requestHooks: [Any]?) {
     let urlSession = URLSession(configuration: .ephemeral)
     let storageKeySuffix = AppCheckCoreAppAttestProvider.storageKeySuffix(
       serviceName: serviceName,

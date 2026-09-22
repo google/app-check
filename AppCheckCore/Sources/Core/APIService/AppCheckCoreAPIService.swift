@@ -47,7 +47,7 @@ public class AppCheckCoreAPIService: NSObject,
   public convenience init(urlSession: URLSession,
                           baseURL: String?,
                           apiKey: String?,
-                          requestHooks: [AppCheckCoreAPIRequestHook]?) {
+                          requestHooks: [Any]? /* Typed as [Any]? to avoid an ObjC bridging crash (see fc4a7a0e) */ ) {
     self.init(
       urlSession: urlSession,
       baseURL: baseURL,
@@ -61,11 +61,19 @@ public class AppCheckCoreAPIService: NSObject,
   public init(urlSession: URLSession,
               baseURL: String?,
               apiKey: String?,
-              requestHooks: [AppCheckCoreAPIRequestHook]?,
+              requestHooks: [Any]? /* Typed as [Any]? to avoid an ObjC bridging crash (see fc4a7a0e) */,
               environment: [String: String]) {
     self.urlSession = urlSession
     self.apiKey = apiKey
-    self.requestHooks = requestHooks ?? []
+    self.requestHooks = requestHooks?.compactMap { obj in
+      if let hook = obj as? AppCheckCoreAPIRequestHook {
+        return hook
+      } else if String(describing: type(of: obj)).contains("Block") {
+        // Recover Objective-C blocks that fail the dynamic cast bridging
+        return unsafeBitCast(obj as AnyObject, to: AppCheckCoreAPIRequestHook.self)
+      }
+      return nil
+    } ?? []
 
     var resolvedBaseURL = baseURL
 

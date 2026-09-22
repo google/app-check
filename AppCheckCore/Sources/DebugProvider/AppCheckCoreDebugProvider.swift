@@ -58,12 +58,14 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
     super.init()
   }
 
+  /// - Parameter requestHooks: Array of `AppCheckCoreAPIRequestHook` closures. Typed as `[Any]?` to
+  /// avoid an ObjC bridging crash from `[() -> Void]` arrays.
   @objc(initWithServiceName:resourceName:baseURL:APIKey:requestHooks:)
   public convenience init(serviceName: String,
                           resourceName: String,
                           baseURL: String?,
                           apiKey: String,
-                          requestHooks: [AppCheckCoreAPIRequestHook]?) {
+                          requestHooks: [Any]?) {
     self.init(serviceName: serviceName,
               resourceName: resourceName,
               baseURL: baseURL,
@@ -77,7 +79,7 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
                    resourceName: String,
                    baseURL: String?,
                    apiKey: String,
-                   requestHooks: [AppCheckCoreAPIRequestHook]?,
+                   requestHooks: [Any]?,
                    environment: [String: String]) {
     let urlSession = URLSession(configuration: .ephemeral)
     let coreAPIService = AppCheckCoreAPIService(urlSession: urlSession,

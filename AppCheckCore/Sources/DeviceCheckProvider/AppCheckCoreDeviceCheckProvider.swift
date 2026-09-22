@@ -24,9 +24,11 @@ public class AppCheckCoreDeviceCheckProvider: NSObject, AppCheckCoreProvider {
   private let deviceTokenGenerator: AppCheckCoreDeviceCheckTokenGenerator
   private let backoffWrapper: AppCheckCoreBackoffWrapperProtocol
 
+  /// - Parameter requestHooks: Array of `AppCheckCoreAPIRequestHook` closures. Typed as `[Any]?` to
+  /// avoid an ObjC bridging crash from `[() -> Void]` arrays.
   @objc(initWithServiceName:resourceName:APIKey:requestHooks:)
   public init(serviceName: String, resourceName: String, apiKey: String,
-              requestHooks: [AppCheckCoreAPIRequestHook]?) {
+              requestHooks: [Any]?) {
     let session = URLSession(configuration: .ephemeral)
     let coreAPIService = AppCheckCoreAPIService(
       urlSession: session,

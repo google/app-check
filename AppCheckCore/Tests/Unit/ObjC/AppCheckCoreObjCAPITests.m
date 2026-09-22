@@ -229,4 +229,24 @@
   XCTAssertEqualObjects(GACAppCheckErrors.errorDomain, @"com.google.app_check_core");
 }
 
+- (void)testRequestHooksBridging {
+  XCTestExpectation *hookExpectation = [self expectationWithDescription:@"request hook called"];
+
+  void (^hook)(NSMutableURLRequest *) = ^(NSMutableURLRequest *request) {
+    [hookExpectation fulfill];
+  };
+
+  GACAppCheckDebugProvider *debugProvider =
+      [[GACAppCheckDebugProvider alloc] initWithServiceName:@"test"
+                                               resourceName:@"test"
+                                                    baseURL:nil
+                                                     APIKey:@"key"
+                                               requestHooks:@[ hook ]];
+
+  [debugProvider getTokenWithCompletion:^(GACAppCheckToken *debugToken, NSError *error){
+  }];
+
+  [self waitForExpectations:@[ hookExpectation ] timeout:2.0];
+}
+
 @end
