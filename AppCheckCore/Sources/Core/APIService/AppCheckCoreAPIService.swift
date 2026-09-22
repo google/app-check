@@ -144,7 +144,26 @@ public class AppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
     -> AppCheckCoreURLSessionDataResponse {
     do {
       let requestDate = Date()
-      let (data, response) = try await urlSession.data(for: request)
+      let data: Data
+      let response: URLResponse
+
+      if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
+        (data, response) = try await urlSession.data(for: request)
+      } else {
+        (data, response) = try await withCheckedThrowingContinuation { continuation in
+          let task = urlSession.dataTask(with: request) { data, response, error in
+            if let error = error {
+              continuation.resume(throwing: error)
+            } else if let data = data, let response = response {
+              continuation.resume(returning: (data, response))
+            } else {
+              continuation.resume(throwing: URLError(.badServerResponse))
+            }
+          }
+          task.resume()
+        }
+      }
+
       guard let httpResponse = response as? HTTPURLResponse else {
         throw AppCheckCoreErrorUtil.apiError(withNetworkError: URLError(.badServerResponse))
       }
