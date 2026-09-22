@@ -28,8 +28,8 @@ package class AppCheckCoreTokenRefreshResult: NSObject {
   @objc package let tokenReceivedAtDate: Date?
 
   package init(status: AppCheckCoreTokenRefreshStatus,
-              expirationDate tokenExpirationDate: Date?,
-              receivedAtDate tokenReceivedAtDate: Date?) {
+               expirationDate tokenExpirationDate: Date?,
+               receivedAtDate tokenReceivedAtDate: Date?) {
     self.status = status
     self.tokenExpirationDate = tokenExpirationDate
     self.tokenReceivedAtDate = tokenReceivedAtDate
@@ -45,7 +45,7 @@ package class AppCheckCoreTokenRefreshResult: NSObject {
   }
 
   package convenience init(statusSuccessAndExpirationDate tokenExpirationDate: Date,
-                          receivedAtDate tokenReceivedAtDate: Date) {
+                           receivedAtDate tokenReceivedAtDate: Date) {
     self.init(
       status: .success,
       expirationDate: tokenExpirationDate,

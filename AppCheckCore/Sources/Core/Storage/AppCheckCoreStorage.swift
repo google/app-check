@@ -37,8 +37,8 @@ package final class AppCheckCoreStorage: NSObject, AppCheckCoreStorageProtocol {
   package let accessGroup: String?
 
   package init(tokenKey: String,
-              keychainStorage: GULKeychainStorage,
-              accessGroup: String?) {
+               keychainStorage: GULKeychainStorage,
+               accessGroup: String?) {
     self.tokenKey = tokenKey
     self.keychainStorage = keychainStorage
     self.accessGroup = accessGroup

@@ -56,7 +56,7 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
                           baseURL: String?,
                           apiKey: String?,
                           keychainAccessGroup accessGroup: String?,
-                          requestHooks: [Any]?) {
+                          requestHooks: [AppCheckCoreAPIRequestHook]?) {
     let urlSession = URLSession(configuration: .ephemeral)
     let storageKeySuffix = AppCheckCoreAppAttestProvider.storageKeySuffix(
       serviceName: serviceName,

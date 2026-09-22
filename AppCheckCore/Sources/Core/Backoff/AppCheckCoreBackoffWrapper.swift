@@ -85,8 +85,8 @@ package class AppCheckCoreBackoffWrapper: NSObject, AppCheckCoreBackoffWrapperPr
   }
 
   package func applyBackoffToOperation<T>(_ operationProvider: @escaping () async throws -> T,
-                                         errorHandler: @escaping (Error)
-                                           -> AppCheckCoreBackoffType) async throws -> T {
+                                          errorHandler: @escaping (Error)
+                                            -> AppCheckCoreBackoffType) async throws -> T {
     if !isNextOperationAllowed() {
       guard let failure = lastFailure else {
         throw AppCheckCoreErrorUtil.error(withFailureReason: "Too many attempts.")

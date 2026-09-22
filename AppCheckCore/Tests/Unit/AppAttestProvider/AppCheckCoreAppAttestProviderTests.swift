@@ -122,6 +122,7 @@ class MockAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPIServiceProtocol
     let result = getAppCheckCoreTokenResults[getAppCheckCoreTokenCallCount]
     getAppCheckCoreTokenCallCount += 1
     getAppCheckCoreTokenArgs.append((artifact, challenge, assertion, limitedUse))
+    try? await Task.sleep(nanoseconds: 20_000_000)
     return try result.get()
   }
 }

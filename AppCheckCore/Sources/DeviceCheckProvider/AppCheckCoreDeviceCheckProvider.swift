@@ -26,7 +26,7 @@ public class AppCheckCoreDeviceCheckProvider: NSObject, AppCheckCoreProvider {
 
   @objc(initWithServiceName:resourceName:APIKey:requestHooks:)
   public init(serviceName: String, resourceName: String, apiKey: String,
-              requestHooks: [Any]?) {
+              requestHooks: [AppCheckCoreAPIRequestHook]?) {
     let session = URLSession(configuration: .ephemeral)
     let coreAPIService = AppCheckCoreAPIService(
       urlSession: session,
@@ -74,7 +74,6 @@ public class AppCheckCoreDeviceCheckProvider: NSObject, AppCheckCoreProvider {
     }
   }
 
-  @objc
   public func getLimitedUseToken(completion handler: @escaping (AppCheckCoreToken?, Error?)
     -> Void) {
     Task {
