@@ -205,6 +205,68 @@ final class AppCheckCoreMainThreadDeliveryTests: XCTestCase {
       domain: "TestDomain", code: 1, userInfo: nil
     )
   }
+
+  // MARK: - Providers Delivery Tests
+
+  func testDebugProvider_DeliversOnMainThread() {
+    let provider = AppCheckCoreDebugProvider(
+      serviceName: "test",
+      resourceName: "test",
+      baseURL: nil,
+      apiKey: "test",
+      requestHooks: nil
+    )
+    let expect = expectation(description: "completion called")
+    var wasMainThread = false
+    DispatchQueue.global(qos: .userInitiated).async {
+      provider.getToken { _, _ in
+        wasMainThread = Thread.isMainThread
+        expect.fulfill()
+      }
+    }
+    wait(for: [expect], timeout: 5.0)
+    XCTAssertTrue(wasMainThread, "AppCheckCoreDebugProvider must deliver on the main thread")
+  }
+
+  func testDeviceCheckProvider_DeliversOnMainThread() {
+    let provider = AppCheckCoreDeviceCheckProvider(
+      serviceName: "test",
+      resourceName: "test",
+      apiKey: "test",
+      requestHooks: nil
+    )
+    let expect = expectation(description: "completion called")
+    var wasMainThread = false
+    DispatchQueue.global(qos: .userInitiated).async {
+      provider.getToken { _, _ in
+        wasMainThread = Thread.isMainThread
+        expect.fulfill()
+      }
+    }
+    wait(for: [expect], timeout: 5.0)
+    XCTAssertTrue(wasMainThread, "AppCheckCoreDeviceCheckProvider must deliver on the main thread")
+  }
+
+  func testAppAttestProvider_DeliversOnMainThread() {
+    let provider = AppCheckCoreAppAttestProvider(
+      serviceName: "test",
+      resourceName: "test",
+      baseURL: nil,
+      apiKey: "test",
+      keychainAccessGroup: nil,
+      requestHooks: nil
+    )
+    let expect = expectation(description: "completion called")
+    var wasMainThread = false
+    DispatchQueue.global(qos: .userInitiated).async {
+      provider.getToken { _, _ in
+        wasMainThread = Thread.isMainThread
+        expect.fulfill()
+      }
+    }
+    wait(for: [expect], timeout: 5.0)
+    XCTAssertTrue(wasMainThread, "AppCheckCoreAppAttestProvider must deliver on the main thread")
+  }
 }
 
 // MARK: - Fakes

@@ -117,9 +117,9 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
     Task {
       do {
         let token = try await getToken(limitedUse: limitedUse)
-        handler(token, nil)
+        AppCheckCore.deliverOnMainQueue(token, error: nil as Error?, to: handler)
       } catch {
-        handler(nil, error)
+        AppCheckCore.deliverOnMainQueue(nil, error: error, to: handler)
       }
     }
   }

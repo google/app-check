@@ -67,9 +67,9 @@ public class AppCheckCoreDeviceCheckProvider: NSObject, AppCheckCoreProvider {
     Task {
       do {
         let token = try await getToken(limitedUse: false)
-        handler(token, nil)
+        AppCheckCore.deliverOnMainQueue(token, error: nil as Error?, to: handler)
       } catch {
-        handler(nil, error)
+        AppCheckCore.deliverOnMainQueue(nil, error: error, to: handler)
       }
     }
   }
@@ -80,9 +80,9 @@ public class AppCheckCoreDeviceCheckProvider: NSObject, AppCheckCoreProvider {
     Task {
       do {
         let token = try await getToken(limitedUse: true)
-        handler(token, nil)
+        AppCheckCore.deliverOnMainQueue(token, error: nil as Error?, to: handler)
       } catch {
-        handler(nil, error)
+        AppCheckCore.deliverOnMainQueue(nil, error: error, to: handler)
       }
     }
   }

@@ -111,9 +111,9 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
     Task {
       do {
         let token = try await getToken(limitedUse: false)
-        handler(token, nil)
+        Self.deliverOnMainQueue(token, error: nil as Error?, to: handler)
       } catch {
-        handler(nil, error)
+        Self.deliverOnMainQueue(nil, error: error, to: handler)
       }
     }
   }
@@ -124,9 +124,9 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
     Task {
       do {
         let token = try await getToken(limitedUse: true)
-        handler(token, nil)
+        Self.deliverOnMainQueue(token, error: nil as Error?, to: handler)
       } catch {
-        handler(nil, error)
+        Self.deliverOnMainQueue(nil, error: error, to: handler)
       }
     }
   }
@@ -140,6 +140,17 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
       with: recaptchaToken,
       limitedUse: limitedUse
     )
+  }
+
+  private static func deliverOnMainQueue<T, E>(_ result: T,
+                                               error: E?,
+                                               to completion: @escaping (T, E?) -> Void) {
+    nonisolated(unsafe) let result = result
+    nonisolated(unsafe) let error = error
+    nonisolated(unsafe) let completion = completion
+    DispatchQueue.main.async {
+      completion(result, error)
+    }
   }
 }
 
