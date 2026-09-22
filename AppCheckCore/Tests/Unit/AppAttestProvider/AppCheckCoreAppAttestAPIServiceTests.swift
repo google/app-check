@@ -279,7 +279,7 @@ class AppCheckCoreAppAttestAPIServiceTests: XCTestCase {
   }
 
   // MARK: - Malformed server responses
-  //
+
   // Backfilled from the v11 Objective-C suite (`GACAppAttestAPIServiceTests.m`),
   // which covered these paths but had no Swift equivalent. These are all
   // "server returned 200 but the body is wrong" cases — the ones most likely to
@@ -488,7 +488,6 @@ class AppCheckCoreAppAttestAPIServiceTests: XCTestCase {
   }
 
   // MARK: - Helpers
-
 
   private func APIResponse(code: Int, responseBody: Data) -> AppCheckCoreURLSessionDataResponse {
     let httpResponse = HTTPURLResponse(
