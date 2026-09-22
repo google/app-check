@@ -34,11 +34,9 @@ public extension AppCheckCoreProvider {
         } else if let token = token {
           continuation.resume(returning: token)
         } else {
-          continuation.resume(throwing: NSError(
-            domain: "AppCheckCoreProvider",
-            code: -1,
-            userInfo: [NSLocalizedDescriptionKey: "No token and no error returned."]
-          ))
+          continuation
+            .resume(throwing: AppCheckCoreErrorUtil
+              .error(withFailureReason: "No token and no error returned."))
         }
       }
     }
@@ -52,11 +50,9 @@ public extension AppCheckCoreProvider {
         } else if let token = token {
           continuation.resume(returning: token)
         } else {
-          continuation.resume(throwing: NSError(
-            domain: "AppCheckCoreProvider",
-            code: -1,
-            userInfo: [NSLocalizedDescriptionKey: "No token and no error returned."]
-          ))
+          continuation
+            .resume(throwing: AppCheckCoreErrorUtil
+              .error(withFailureReason: "No token and no error returned."))
         }
       }
     }

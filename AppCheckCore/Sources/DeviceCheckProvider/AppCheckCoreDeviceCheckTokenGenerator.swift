@@ -31,12 +31,9 @@ extension AppCheckCoreDeviceCheckTokenGenerator {
         } else if let token = token {
           continuation.resume(returning: token)
         } else {
-          let err = NSError(
-            domain: "AppCheckCoreDeviceCheckTokenGenerator",
-            code: 0,
-            userInfo: [NSLocalizedDescriptionKey: "No token and no error."]
-          )
-          continuation.resume(throwing: err)
+          continuation
+            .resume(throwing: AppCheckCoreErrorUtil
+              .error(withFailureReason: "No token and no error."))
         }
       }
     }

@@ -93,14 +93,6 @@ final class RecaptchaTokenGenerator {
       return AppCheckCoreErrorUtil.apiError(withNetworkError: error)
     }
 
-    var userInfo: [String: Any] = [NSUnderlyingErrorKey: error]
-    if let reason = error.userInfo[NSLocalizedFailureReasonErrorKey] {
-      userInfo[NSLocalizedFailureReasonErrorKey] = reason
-    }
-    return NSError(
-      domain: AppCheckCoreErrorDomain,
-      code: AppCheckCoreErrorCode.unknown.rawValue,
-      userInfo: userInfo
-    )
+    return AppCheckCoreErrorUtil.unknownError(with: error)
   }
 }

@@ -267,8 +267,8 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
             } else if let data = data {
               continuation.resume(returning: data)
             } else {
-              let unknownError = NSError(domain: "AppCheckCore", code: 0, userInfo: nil)
-              continuation.resume(throwing: unknownError)
+              continuation
+                .resume(throwing: AppCheckCoreErrorUtil.error(withFailureReason: "Unknown error."))
             }
           }
         }
@@ -398,8 +398,8 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
             } else if let data = data {
               continuation.resume(returning: data)
             } else {
-              let unknownError = NSError(domain: "AppCheckCore", code: 0, userInfo: nil)
-              continuation.resume(throwing: unknownError)
+              continuation
+                .resume(throwing: AppCheckCoreErrorUtil.error(withFailureReason: "Unknown error."))
             }
           }
         }
@@ -498,8 +498,8 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
           } else if let key = key {
             continuation.resume(returning: key)
           } else {
-            let unknownError = NSError(domain: "AppCheckCore", code: 0, userInfo: nil)
-            continuation.resume(throwing: unknownError)
+            continuation
+              .resume(throwing: AppCheckCoreErrorUtil.error(withFailureReason: "Unknown error."))
           }
         }
       }
