@@ -42,9 +42,8 @@ class SafeContinuation<T, E: Error> {
   }
 }
 
-func withSafeCheckedThrowingContinuation<T>(
-  _ body: (SafeContinuation<T, Error>) -> Void
-) async throws -> T {
+func withSafeCheckedThrowingContinuation<T>(_ body: (SafeContinuation<T, Error>)
+  -> Void) async throws -> T {
   return try await withCheckedThrowingContinuation { continuation in
     let safeContinuation = SafeContinuation(continuation)
     body(safeContinuation)

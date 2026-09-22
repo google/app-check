@@ -57,8 +57,9 @@ public final class AppCheckCoreAppAttestArtifactStorage: NSObject,
       let storedArtifact =
         try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
           NSSecureCoding?,
+          Error,
           Error
-        , Error>) in
+        >) in
           keychainStorage.getObjectForKey(
             artifactKey,
             objectClass: AppCheckCoreAppAttestStoredArtifact.self,
@@ -91,8 +92,9 @@ public final class AppCheckCoreAppAttestArtifactStorage: NSObject,
       do {
         try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
           Void,
+          Error,
           Error
-        , Error>) in
+        >) in
           keychainStorage.removeObject(forKey: artifactKey, accessGroup: accessGroup) { error in
             if let error = error {
               continuation.resume(throwing: error)
@@ -114,8 +116,9 @@ public final class AppCheckCoreAppAttestArtifactStorage: NSObject,
     do {
       try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
         Void,
+        Error,
         Error
-      , Error>) in
+      >) in
         keychainStorage
           .setObject(storedArtifact, forKey: artifactKey,
                      accessGroup: accessGroup) { result, error in
