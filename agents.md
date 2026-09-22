@@ -167,18 +167,26 @@ you may encounter the following blockers. Use these workarounds:
   > Running with no override succeeds.
 - **Quality Gates**: Do not skip `style.sh` and `pod_lib_lint.rb`. They are
   critical for verification.
-- **`swift test` Does Not Cover `pod_lib_lint`**: `Package.swift` sets
-  `swiftLanguageModes: [.v5]`, so SwiftPM suppresses Swift concurrency
-  diagnostics. CocoaPods builds via `xcodebuild` against the podspec, which
-  does **not** inherit that setting, and `pod lib lint` treats warnings as
-  **fatal**. A fully green `swift test` can therefore still fail the lint with
-  `Sendable` / `non-Sendable capture` warnings.
-  - Reproduce those locally in seconds instead of a ~5 minute lint round-trip:
-    `swift build --disable-sandbox -Xswiftc -strict-concurrency=complete`
-  - Note this flag is *stricter* than the lint: it also reports
-    `sending` / `#SendingRisksDataRace` diagnostics that `pod lib lint` does
-    not enforce. Fix the `capture of … non-Sendable` warnings; do not chase the
-    rest unless you are deliberately adopting Swift 6 language mode.
+- **`swift test` Does Not Cover `pod_lib_lint`**: A fully green `swift test`
+  can still fail `pod lib lint` with `Sendable` / `non-Sendable capture`
+  errors. The difference is **warning escalation, not warning visibility**.
+  - `swift build` / `swift test` *do* emit these diagnostics — verified: all
+    four `#SendableClosureCaptures` warnings appear on a plain
+    `swift build --disable-sandbox`, at the same lines the lint reported.
+    SwiftPM just exits **0**, so they scroll past in the build noise, and
+    `swift test` output buries them under the test summary.
+  - `pod lib lint` passes `--warnings-as-errors` semantics by default, so the
+    same warnings become a hard validation failure.
+  - Both toolchains are in Swift 5 language mode (`swiftLanguageModes: [.v5]`
+    in `Package.swift`; `s.swift_version = '5.5'` → `SWIFT_VERSION` →
+    `-swift-version 5` in the podspec), so this is **not** a language-mode
+    divergence. Do not "fix" it by changing either setting.
+  - Reproduce in seconds instead of a ~5 minute lint round-trip — just grep
+    your own build output, no extra flags needed:
+    `swift build --disable-sandbox 2>&1 | grep -E "warning:.*(Sendable|non-Sendable)"`
+  - Avoid `-Xswiftc -strict-concurrency=complete` as the repro: it is
+    *stricter* than the lint and adds `sending` / `#SendingRisksDataRace`
+    diagnostics the lint does not enforce, which sends you chasing phantoms.
   - For a main-queue hop of caller-supplied objects (delegates, completion
     handlers), prefer a `nonisolated(unsafe) let` rebinding over declaring the
     types `Sendable` — the library cannot promise thread-safety on a caller's
