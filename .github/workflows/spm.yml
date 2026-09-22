@@ -36,3 +36,17 @@ jobs:
       run: xcodebuild -list
     - name: iOS Unit Tests
       run: scripts/third_party/travis/retry.sh scripts/build.sh AppCheck-Package ${{ matrix.platform }} spm
+
+  # SwiftPM emits Swift diagnostics but still exits 0, so warnings scroll past
+  # unnoticed in the job above. `pod lib lint` escalates the same warnings to
+  # fatal, which previously made CocoaPods the only gate able to reject them --
+  # a ~5 minute round-trip, and an accidental dependency rather than a designed
+  # one. This job makes the cheap gate as strict as the expensive one.
+  warnings-as-errors:
+    runs-on: macos-15
+    steps:
+    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+    - name: Xcode
+      run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+    - name: Build sources and tests with warnings as errors
+      run: swift build --build-tests -Xswiftc -warnings-as-errors
