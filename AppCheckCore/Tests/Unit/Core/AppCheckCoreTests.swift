@@ -234,11 +234,13 @@ class AppCheckCoreTests: XCTestCase {
     let expectedToken = validToken()
     fakeAppCheckProvider.tokenToReturn = expectedToken
 
-    // Create a continuation we can resume later
+
+    let continuationSetExpectation = expectation(description: "continuation set")
     var storeTokenContinuation: CheckedContinuation<AppCheckCoreToken?, Error>?
     fakeStorage.setTokenHandler = { token in
       try await withCheckedThrowingContinuation { continuation in
         storeTokenContinuation = continuation
+        continuationSetExpectation.fulfill()
       }
     }
 
@@ -246,10 +248,10 @@ class AppCheckCoreTests: XCTestCase {
 
     // Request token several times concurrently
     Task {
-      // Delay so the task group launches before we resume the continuation
-      try? await Task.sleep(nanoseconds: 100_000_000)
+      await fulfillment(of: [continuationSetExpectation], timeout: 5.0)
       storeTokenContinuation?.resume(returning: expectedToken)
     }
+
 
     await withTaskGroup(of: Void.self) { group in
       for _ in 0 ..< getTokenCallsCount {
@@ -277,10 +279,13 @@ class AppCheckCoreTests: XCTestCase {
     let expectedToken = validToken()
     fakeAppCheckProvider.tokenToReturn = expectedToken
 
+
+    let continuationSetExpectation = expectation(description: "continuation set")
     var storeTokenContinuation: CheckedContinuation<AppCheckCoreToken?, Error>?
     fakeStorage.setTokenHandler = { token in
       try await withCheckedThrowingContinuation { continuation in
         storeTokenContinuation = continuation
+        continuationSetExpectation.fulfill()
       }
     }
 
@@ -288,9 +293,10 @@ class AppCheckCoreTests: XCTestCase {
     let getTokenCallsCount = 10
 
     Task {
-      try? await Task.sleep(nanoseconds: 100_000_000)
+      await fulfillment(of: [continuationSetExpectation], timeout: 5.0)
       storeTokenContinuation?.resume(throwing: storageError)
     }
+
 
     await withTaskGroup(of: Void.self) { group in
       for _ in 0 ..< getTokenCallsCount {
