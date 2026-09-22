@@ -25,16 +25,36 @@ public enum AppCheckCoreLogLevel: Int {
 
 @objc(GACAppCheckLogger)
 public class AppCheckCoreLogger: NSObject {
+  private static let logLevelLock = NSLock()
   private static var _logLevel: AppCheckCoreLogLevel = .warning
 
+  /// The current log level.
+  ///
+  /// Access is serialized by a lock to match the `atomic` semantics of the
+  /// Objective-C `GACAppCheckLogger.logLevel` class property, which was backed
+  /// by a `volatile` static.
   @objc public static var logLevel: AppCheckCoreLogLevel {
-    get { return _logLevel }
-    set { _logLevel = newValue }
+    get {
+      logLevelLock.lock()
+      defer { logLevelLock.unlock() }
+      return _logLevel
+    }
+    set {
+      logLevelLock.lock()
+      defer { logLevelLock.unlock() }
+      _logLevel = newValue
+    }
   }
 
   public static func log(code: AppCheckCoreMessageCode, logLevel: AppCheckCoreLogLevel,
                          message: String) {
-    #if !NDEBUG
+    // Don't log anything in non-debug builds.
+    //
+    // Note: this must be `DEBUG`, not `!NDEBUG`. `NDEBUG` is a C preprocessor
+    // macro and is never defined as a Swift compilation condition, so
+    // `#if !NDEBUG` is unconditionally true in Swift and would leak logging
+    // (including the App Check debug token) into Release builds.
+    #if DEBUG
       if logLevel.rawValue >= self.logLevel.rawValue {
         let levelString: String
         switch logLevel {
@@ -46,7 +66,10 @@ public class AppCheckCoreLogger: NSObject {
         @unknown default: levelString = "Unknown"
         }
         let codeString = String(format: "I-GAC%06ld", code.rawValue)
-        print("<\(levelString)> [AppCheckCore][\(codeString)] \(message)")
+        // `NSLog` (rather than `print`) so output reaches the system log and is
+        // visible in Console.app without a debugger attached, matching the
+        // Objective-C implementation.
+        NSLog("<%@> [AppCheckCore][%@] %@", levelString, codeString, message)
       }
     #endif
   }

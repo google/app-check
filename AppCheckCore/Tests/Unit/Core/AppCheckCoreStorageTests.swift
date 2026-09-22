@@ -34,12 +34,26 @@ private let kGoogleAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
       override func setUp() {
         super.setUp()
 
+        // Scope the key to this specific test instance. Tests in different
+        // classes can execute concurrently and share one keychain, so a fixed
+        // key lets them collide on the same item and surface as
+        // errSecDuplicateItem (-25299) write failures.
         tokenKey = tokenKey(withGoogleAppID: kGoogleAppID)
         storage = AppCheckCoreStorage(tokenKey: tokenKey, accessGroup: nil)
       }
 
       override func tearDown() {
+        // Don't leave the item behind for the next run.
+        let storageToClean = storage
+        let cleanupExpectation = expectation(description: "keychain cleanup")
+        Task {
+          _ = try? await storageToClean?.setToken(nil as AppCheckCoreToken?)
+          cleanupExpectation.fulfill()
+        }
+        wait(for: [cleanupExpectation], timeout: 5.0)
+
         storage = nil
+        tokenKey = nil
         super.tearDown()
       }
 
@@ -189,8 +203,13 @@ private let kGoogleAppID = "1:100000000000:ios:aaaaaaaaaaaaaaaaaaaaaaaa"
 
       // MARK: - Private Helpers
 
+      /// Unique per test instance so that concurrently executing tests, and
+      /// items left over from earlier runs, cannot collide on the same
+      /// keychain entry.
+      private lazy var uniqueRunID = UUID().uuidString
+
       private func tokenKey(withGoogleAppID googleAppID: String) -> String {
-        return "app_check_token.\(kAppName).\(googleAppID)"
+        return "app_check_token.\(kAppName).\(googleAppID).\(uniqueRunID)"
       }
     }
 

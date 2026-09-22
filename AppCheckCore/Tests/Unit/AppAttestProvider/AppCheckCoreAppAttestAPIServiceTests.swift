@@ -278,6 +278,215 @@ class AppCheckCoreAppAttestAPIServiceTests: XCTestCase {
     XCTAssertEqual(response.token.expirationDate, expectedExpiration)
   }
 
+  // MARK: - Malformed server responses
+
+  // Backfilled from the v11 Objective-C suite (`GACAppAttestAPIServiceTests.m`),
+  // which covered these paths but had no Swift equivalent. These are all
+  // "server returned 200 but the body is wrong" cases — the ones most likely to
+  // regress silently, since the happy path and the HTTP-error path both still
+  // pass without them.
+
+  func testGetRandomChallengeWhenAPIResponseEmpty() async {
+    // 1. Prepare an empty 200 response.
+    let emptyAPIResponse = APIResponse(code: 200, responseBody: Data())
+
+    // 2. Stub API Service Request.
+    fakeAPIService.sendRequestResult = .success(emptyAPIResponse)
+
+    // 3. Request the random challenge and verify results.
+    do {
+      _ = try await appAttestAPIService.getRandomChallenge()
+      XCTFail("Expected error to be thrown")
+    } catch let error as NSError {
+      let failureReason = error.userInfo[NSLocalizedFailureReasonErrorKey] as? String
+      XCTAssertEqual(failureReason, "Empty server response body.")
+    }
+
+    let expectedRequestURL = "\(fakeAPIService.baseURL)/\(kResourceName):generateAppAttestChallenge"
+    XCTAssertEqual(fakeAPIService.passedRequestURL?.absoluteString, expectedRequestURL)
+    XCTAssertEqual(fakeAPIService.passedHTTPMethod, "POST")
+  }
+
+  func testGetRandomChallengeWhenAPIResponseInvalidFormat() async {
+    // 1. Prepare a 200 response whose body is not JSON.
+    let responseBodyString = "Generate challenge failed with invalid format."
+    let responseBody = responseBodyString.data(using: .utf8)!
+    let invalidAPIResponse = APIResponse(code: 200, responseBody: responseBody)
+
+    // 2. Stub API Service Request.
+    fakeAPIService.sendRequestResult = .success(invalidAPIResponse)
+
+    // 3. Request the random challenge and verify results.
+    do {
+      _ = try await appAttestAPIService.getRandomChallenge()
+      XCTFail("Expected error to be thrown")
+    } catch let error as NSError {
+      let failureReason = error.userInfo[NSLocalizedFailureReasonErrorKey] as? String
+      XCTAssertEqual(failureReason, "JSON serialization error.")
+    }
+
+    let expectedRequestURL = "\(fakeAPIService.baseURL)/\(kResourceName):generateAppAttestChallenge"
+    XCTAssertEqual(fakeAPIService.passedRequestURL?.absoluteString, expectedRequestURL)
+    XCTAssertEqual(fakeAPIService.passedHTTPMethod, "POST")
+  }
+
+  func testGetRandomChallengeWhenResponseMissingField() async throws {
+    // 1. Prepare a well-formed JSON 200 response that omits `challenge`.
+    let missingFieldBody = try AppCheckCoreFixtureLoader
+      .loadFixture(named: "AppAttestResponseMissingChallenge.json")
+    let incompleteAPIResponse = APIResponse(code: 200, responseBody: missingFieldBody)
+
+    // 2. Stub API Service Request.
+    fakeAPIService.sendRequestResult = .success(incompleteAPIResponse)
+
+    // 3. Request the random challenge and verify results.
+    do {
+      _ = try await appAttestAPIService.getRandomChallenge()
+      XCTFail("Expected error to be thrown")
+    } catch let error as NSError {
+      XCTAssertEqual(error.domain, AppCheckCoreErrorDomain)
+      XCTAssertEqual(error.code, AppCheckCoreErrorCode.unknown.rawValue)
+
+      // The missing field name must be named in the error, otherwise the error
+      // is not actionable.
+      let failureReason = error.userInfo[NSLocalizedFailureReasonErrorKey] as? String
+      XCTAssertTrue(
+        failureReason?.contains("`challenge`") ?? false,
+        "Expected the missing field `challenge` to be named in the failure "
+          + "reason, got: \(failureReason ?? "nil")"
+      )
+    }
+  }
+
+  func testGetAppCheckTokenNetworkError() async {
+    let artifact = generateRandomData()
+    let challenge = generateRandomData()
+    let assertion = generateRandomData()
+
+    // 1. Stub the API service to fail with a network error.
+    let networkError = NSError(domain: "AppCheckCoreAppAttestAPIServiceTests",
+                               code: 0, userInfo: nil)
+    fakeAPIService.sendRequestResult = .failure(networkError)
+
+    // 2. Send request and verify the error propagates unchanged — v11 did not
+    //    wrap or translate transport errors here.
+    do {
+      _ = try await appAttestAPIService.getAppCheckToken(
+        withArtifact: artifact,
+        challenge: challenge,
+        assertion: assertion,
+        limitedUse: false
+      )
+      XCTFail("Expected error to be thrown")
+    } catch let error as NSError {
+      XCTAssertEqual(error.domain, networkError.domain)
+      XCTAssertEqual(error.code, networkError.code)
+    }
+
+    let expectedRequestURL =
+      "\(fakeAPIService.baseURL)/\(kResourceName):exchangeAppAttestAssertion"
+    XCTAssertEqual(fakeAPIService.passedRequestURL?.absoluteString, expectedRequestURL)
+    XCTAssertEqual(fakeAPIService.passedHTTPMethod, "POST")
+    XCTAssertEqual(fakeAPIService.passedAdditionalHeaders?["Content-Type"], "application/json")
+  }
+
+  func testGetAppCheckTokenUnexpectedResponse() async throws {
+    let artifact = generateRandomData()
+    let challenge = generateRandomData()
+    let assertion = generateRandomData()
+
+    // 1. Return a 200 whose body cannot be parsed into a token.
+    let responseBody = "Unexpected response.".data(using: .utf8)!
+    let unexpectedAPIResponse = APIResponse(code: 200, responseBody: responseBody)
+    fakeAPIService.sendRequestResult = .success(unexpectedAPIResponse)
+    fakeAPIService.appCheckTokenResult = .failure(
+      NSError(domain: AppCheckCoreErrorDomain,
+              code: AppCheckCoreErrorCode.unknown.rawValue,
+              userInfo: [NSLocalizedFailureReasonErrorKey: "JSON serialization error."])
+    )
+
+    // 2. Send request and verify an error surfaces.
+    do {
+      _ = try await appAttestAPIService.getAppCheckToken(
+        withArtifact: artifact,
+        challenge: challenge,
+        assertion: assertion,
+        limitedUse: false
+      )
+      XCTFail("Expected error to be thrown")
+    } catch {
+      // Expected.
+    }
+
+    let expectedRequestURL =
+      "\(fakeAPIService.baseURL)/\(kResourceName):exchangeAppAttestAssertion"
+    XCTAssertEqual(fakeAPIService.passedRequestURL?.absoluteString, expectedRequestURL)
+    XCTAssertEqual(fakeAPIService.passedHTTPMethod, "POST")
+    XCTAssertEqual(fakeAPIService.passedAdditionalHeaders?["Content-Type"], "application/json")
+  }
+
+  func testAttestKeyNetworkError() async {
+    let attestation = generateRandomData()
+    let challenge = generateRandomData()
+    let keyID = "test_key_id"
+
+    // 1. Stub the API service to fail with a network error.
+    let networkError = NSError(domain: "AppCheckCoreAppAttestAPIServiceTests",
+                               code: 0, userInfo: nil)
+    fakeAPIService.sendRequestResult = .failure(networkError)
+
+    // 2. Send request and verify the error propagates unchanged.
+    do {
+      _ = try await appAttestAPIService.attestKey(
+        withAttestation: attestation,
+        keyID: keyID,
+        challenge: challenge,
+        limitedUse: false
+      )
+      XCTFail("Expected error to be thrown")
+    } catch let error as NSError {
+      XCTAssertEqual(error.domain, networkError.domain)
+      XCTAssertEqual(error.code, networkError.code)
+    }
+
+    let expectedRequestURL =
+      "\(fakeAPIService.baseURL)/\(kResourceName):exchangeAppAttestAttestation"
+    XCTAssertEqual(fakeAPIService.passedRequestURL?.absoluteString, expectedRequestURL)
+    XCTAssertEqual(fakeAPIService.passedHTTPMethod, "POST")
+    XCTAssertEqual(fakeAPIService.passedAdditionalHeaders?["Content-Type"], "application/json")
+  }
+
+  func testAttestKeyUnexpectedResponse() async {
+    let attestation = generateRandomData()
+    let challenge = generateRandomData()
+    let keyID = "test_key_id"
+
+    // 1. Return a 200 whose body is not the expected attestation response.
+    let responseBody = "Unexpected response.".data(using: .utf8)!
+    let unexpectedAPIResponse = APIResponse(code: 200, responseBody: responseBody)
+    fakeAPIService.sendRequestResult = .success(unexpectedAPIResponse)
+
+    // 2. Send request and verify an error surfaces rather than a malformed
+    //    artifact being accepted.
+    do {
+      _ = try await appAttestAPIService.attestKey(
+        withAttestation: attestation,
+        keyID: keyID,
+        challenge: challenge,
+        limitedUse: false
+      )
+      XCTFail("Expected error to be thrown")
+    } catch {
+      // Expected.
+    }
+
+    let expectedRequestURL =
+      "\(fakeAPIService.baseURL)/\(kResourceName):exchangeAppAttestAttestation"
+    XCTAssertEqual(fakeAPIService.passedRequestURL?.absoluteString, expectedRequestURL)
+    XCTAssertEqual(fakeAPIService.passedHTTPMethod, "POST")
+    XCTAssertEqual(fakeAPIService.passedAdditionalHeaders?["Content-Type"], "application/json")
+  }
+
   // MARK: - Helpers
 
   private func APIResponse(code: Int, responseBody: Data) -> AppCheckCoreURLSessionDataResponse {

@@ -223,4 +223,10 @@
   XCTAssertEqual(msgAssertionRejected, 7003);
 }
 
+/// The error domain must remain reachable from Objective-C and must keep its
+/// v11 string value; shipped apps compare against it when handling errors.
+- (void)testErrorDomainIsAvailableToObjectiveCAndUnchanged {
+  XCTAssertEqualObjects(GACAppCheckErrors.errorDomain, @"com.google.app_check_core");
+}
+
 @end

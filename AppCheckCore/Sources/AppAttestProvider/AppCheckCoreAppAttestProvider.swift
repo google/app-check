@@ -140,8 +140,20 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
       }
 
       ongoingGetTokenOperationLimitedUse = limitedUse
-      let newTask = Task {
-        try await createGetTokenSequenceWithBackoff(limitedUse: limitedUse)
+      let newTask = Task { () throws -> AppCheckCoreToken in
+        // Release the ongoing operation from *within* the operation, so the
+        // slot is already cleared by the time any chained waiter resumes. The
+        // Objective-C implementation did this by chaining `.thenOn`/
+        // `.recoverOn` onto the operation itself. Clearing it in the
+        // originating caller instead lets a waiter observe the completed task
+        // still parked in the slot and spin through repeated `.retry`
+        // recursions until the originator happens to run.
+        defer {
+          self.lock.execute {
+            self.ongoingGetTokenOperationTask = nil
+          }
+        }
+        return try await self.createGetTokenSequenceWithBackoff(limitedUse: limitedUse)
       }
       ongoingGetTokenOperationTask = newTask
       return .run(newTask)
@@ -149,16 +161,17 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
 
     switch action {
     case let .retry(ongoingTask):
-      _ = try? await ongoingTask.value
+      // Wait for the in-flight operation, then start a fresh sequence.
+      //
+      // This must NOT swallow the in-flight error. Objective-C chained with
+      // `.thenOn`, which only runs on success, so when the ongoing operation
+      // failed the chaining caller was rejected with that same error instead
+      // of kicking off another full attestation sequence.
+      _ = try await ongoingTask.value
       return try await getToken(limitedUse: limitedUse)
     case let .wait(ongoingTask):
       return try await ongoingTask.value
     case let .run(newTask):
-      defer {
-        lock.execute {
-          ongoingGetTokenOperationTask = nil
-        }
-      }
       return try await newTask.value
     }
   }
@@ -430,13 +443,26 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
       return AppCheckCoreAppAttestProviderState(unsupportedWithError: error)
     }
 
-    let appAttestKeyID = try await keyIDStorage.getAppAttestKeyID()
-    guard let keyID = appAttestKeyID else {
+    // 2. Check for stored key ID of the generated App Attest key pair.
+    //
+    // A missing key ID is reported by the storage as a thrown
+    // `appAttestKeyIDNotFound` error rather than as `nil`. Treat any failure to
+    // read the key ID as "no key yet" and fall back to the initial state so a
+    // new key pair is generated, matching the behavior of the Objective-C
+    // implementation (`FBLPromiseAwait` returned `nil` and the error was
+    // deliberately ignored).
+    let appAttestKeyID = try? await keyIDStorage.getAppAttestKeyID()
+    guard let keyID = appAttestKeyID ?? nil else {
       return AppCheckCoreAppAttestProviderState(supportedInitialState: ())
     }
 
-    let attestationArtifact = try await artifactStorage.getArtifact(forKey: keyID)
-    guard let artifact = attestationArtifact else {
+    // 3. Check for a stored attestation artifact received from the backend.
+    //
+    // As above, a failure to read the artifact (e.g. a transient Keychain
+    // error) degrades to re-attesting the existing key rather than failing the
+    // whole token fetch.
+    let attestationArtifact = try? await artifactStorage.getArtifact(forKey: keyID)
+    guard let artifact = attestationArtifact ?? nil else {
       return AppCheckCoreAppAttestProviderState(generatedKeyID: keyID)
     }
 

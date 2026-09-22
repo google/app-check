@@ -514,4 +514,39 @@ class AppCheckCoreDebugProviderTests: XCTestCase {
     XCTAssertEqual(fakeAPIService.passedDebugToken, expectedDebugToken)
     XCTAssertEqual(fakeAPIService.passedLimitedUse, false)
   }
+
+  // MARK: - Registered UserDefaults key construction
+
+  /// Backfilled from the v11 suite
+  /// (`testRegisteredUserDefaultsKeyForServiceName_resourceName`). This key
+  /// namespaces the "debug token already registered" flag, so a change to its
+  /// construction would silently orphan the flag for every existing install and
+  /// cause a spurious re-registration.
+  func testRegisteredUserDefaultsKeyForServiceNameResourceName() {
+    // Slashes in the resource name must be sanitized to underscores.
+    XCTAssertEqual(
+      AppCheckCoreDebugProvider.registeredUserDefaultsKey(
+        forServiceName: "app1", resourceName: "projects/p1/apps/a1"
+      ),
+      "GACAppCheckDebugTokenRegistered_app1_projects_p1_apps_a1"
+    )
+    XCTAssertEqual(
+      AppCheckCoreDebugProvider.registeredUserDefaultsKey(
+        forServiceName: "app2", resourceName: "projects/p2/apps/a2"
+      ),
+      "GACAppCheckDebugTokenRegistered_app2_projects_p2_apps_a2"
+    )
+
+    // Empty components fall back to "default".
+    //
+    // Note: v11 also covered `nil` for both parameters. Swift's type system
+    // makes that unrepresentable here (both are non-optional `String`), so the
+    // empty-string case is the only reachable fallback.
+    XCTAssertEqual(
+      AppCheckCoreDebugProvider.registeredUserDefaultsKey(
+        forServiceName: "", resourceName: ""
+      ),
+      "GACAppCheckDebugTokenRegistered_default_default"
+    )
+  }
 }
