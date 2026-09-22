@@ -14,7 +14,7 @@
 
 import XCTest
 
-@testable import AppCheckCore
+@_spi(FirebaseInternal) @testable import AppCheckCore
 
 private class MockAppCheckAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
   var baseURL: String = "https://test.appcheck.url.com/alpha"

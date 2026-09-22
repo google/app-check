@@ -19,14 +19,12 @@ import Foundation
   import GoogleUtilities_Environment
 #endif
 
-@objc(GACAppAttestArtifactStorageProtocol)
-public protocol AppCheckCoreAppAttestArtifactStorageProtocol: NSObjectProtocol {
-  @objc func setArtifact(_ artifact: Data?, forKey keyID: String) async throws -> Data?
-  @objc func getArtifact(forKey keyID: String) async throws -> Data?
+protocol AppCheckCoreAppAttestArtifactStorageProtocol: NSObjectProtocol {
+  func setArtifact(_ artifact: Data?, forKey keyID: String) async throws -> Data?
+  func getArtifact(forKey keyID: String) async throws -> Data?
 }
 
-@objc(GACAppAttestArtifactStorage)
-public final class AppCheckCoreAppAttestArtifactStorage: NSObject,
+final class AppCheckCoreAppAttestArtifactStorage: NSObject,
   AppCheckCoreAppAttestArtifactStorageProtocol {
   /// Storage service name for Keychain.
   /// Internal scope exists for testing purposes.
@@ -37,22 +35,19 @@ public final class AppCheckCoreAppAttestArtifactStorage: NSObject,
   private let keychainStorage: GULKeychainStorage
   private let accessGroup: String?
 
-  @objc(initWithKeySuffix:keychainStorage:accessGroup:)
-  public init(keySuffix: String, keychainStorage: GULKeychainStorage, accessGroup: String?) {
+  init(keySuffix: String, keychainStorage: GULKeychainStorage, accessGroup: String?) {
     self.keySuffix = keySuffix
     self.keychainStorage = keychainStorage
     self.accessGroup = accessGroup
     super.init()
   }
 
-  @objc(initWithKeySuffix:accessGroup:)
-  public convenience init(keySuffix: String, accessGroup: String?) {
+  convenience init(keySuffix: String, accessGroup: String?) {
     let keychainStorage = GULKeychainStorage(service: Self.keychainService)
     self.init(keySuffix: keySuffix, keychainStorage: keychainStorage, accessGroup: accessGroup)
   }
 
-  @objc
-  public func getArtifact(forKey keyID: String) async throws -> Data? {
+  func getArtifact(forKey keyID: String) async throws -> Data? {
     do {
       let storedArtifact =
         try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
@@ -83,8 +78,7 @@ public final class AppCheckCoreAppAttestArtifactStorage: NSObject,
     }
   }
 
-  @objc
-  public func setArtifact(_ artifact: Data?, forKey keyID: String) async throws -> Data? {
+  func setArtifact(_ artifact: Data?, forKey keyID: String) async throws -> Data? {
     if let artifact = artifact {
       return try await storeArtifact(artifact, forKey: keyID)
     } else {

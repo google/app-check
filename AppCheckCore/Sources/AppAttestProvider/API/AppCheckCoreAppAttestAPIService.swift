@@ -28,26 +28,21 @@ private let kContentTypeKey = "Content-Type"
 private let kJSONContentType = "application/json"
 private let kHTTPMethodPost = "POST"
 
-@objc(GACAppAttestAPIServiceProtocol)
-public protocol AppCheckCoreAppAttestAPIServiceProtocol: NSObjectProtocol {
-  @objc func getRandomChallenge() async throws -> Data
+protocol AppCheckCoreAppAttestAPIServiceProtocol: NSObjectProtocol {
+  func getRandomChallenge() async throws -> Data
 
-  @objc
   func attestKey(withAttestation attestation: Data, keyID: String, challenge: Data,
                  limitedUse: Bool) async throws -> AppCheckCoreAppAttestAttestationResponse
 
-  @objc
   func getAppCheckToken(withArtifact artifact: Data, challenge: Data, assertion: Data,
                         limitedUse: Bool) async throws -> AppCheckCoreToken
 }
 
-@objc(GACAppAttestAPIService)
-public class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPIServiceProtocol {
+class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPIServiceProtocol {
   private let apiService: AppCheckCoreAPIServiceProtocol
   private let resourceName: String
 
-  @objc(initWithAPIService:resourceName:)
-  public init(apiService: AppCheckCoreAPIServiceProtocol, resourceName: String) {
+  init(apiService: AppCheckCoreAPIServiceProtocol, resourceName: String) {
     self.apiService = apiService
     self.resourceName = resourceName
     super.init()
@@ -55,8 +50,7 @@ public class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPI
 
   // MARK: - API Calls
 
-  @objc
-  public func getRandomChallenge() async throws -> Data {
+  func getRandomChallenge() async throws -> Data {
     let url = urlForEndpoint(kGenerateAppAttestChallengeEndpoint)
     let response = try await apiService.sendRequest(
       withURL: url,
@@ -67,9 +61,8 @@ public class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPI
     return try randomChallengeWithAPIResponse(response)
   }
 
-  @objc
-  public func attestKey(withAttestation attestation: Data, keyID: String, challenge: Data,
-                        limitedUse: Bool) async throws -> AppCheckCoreAppAttestAttestationResponse {
+  func attestKey(withAttestation attestation: Data, keyID: String, challenge: Data,
+                 limitedUse: Bool) async throws -> AppCheckCoreAppAttestAttestationResponse {
     let url = urlForEndpoint(kExchangeAppAttestAttestationEndpoint)
     let body = try httpBody(
       withAttestation: attestation,
@@ -96,9 +89,8 @@ public class AppCheckCoreAppAttestAPIService: NSObject, AppCheckCoreAppAttestAPI
     return response
   }
 
-  @objc
-  public func getAppCheckToken(withArtifact artifact: Data, challenge: Data, assertion: Data,
-                               limitedUse: Bool) async throws -> AppCheckCoreToken {
+  func getAppCheckToken(withArtifact artifact: Data, challenge: Data, assertion: Data,
+                        limitedUse: Bool) async throws -> AppCheckCoreToken {
     let url = urlForEndpoint(kExchangeAppAttestAssertionEndpoint)
     let body = try httpBody(
       withArtifact: artifact,

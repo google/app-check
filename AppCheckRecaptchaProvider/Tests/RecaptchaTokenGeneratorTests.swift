@@ -14,7 +14,7 @@
 
 import XCTest
 
-@testable import AppCheckCore
+@_spi(FirebaseInternal) @testable @_spi(FirebaseInternal) import AppCheckCore
 @testable import AppCheckRecaptchaProvider
 import RecaptchaInterop
 

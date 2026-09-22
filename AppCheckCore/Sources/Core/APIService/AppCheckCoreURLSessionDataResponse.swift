@@ -15,13 +15,11 @@
 import Foundation
 
 /// The class represents HTTP response received from `URLSession`.
-@objc(GACURLSessionDataResponse)
-public class AppCheckCoreURLSessionDataResponse: NSObject {
-  @objc public let httpResponse: HTTPURLResponse
-  @objc public let httpBody: Data?
-  @objc public let requestDate: Date
+@_spi(FirebaseInternal) public class AppCheckCoreURLSessionDataResponse: NSObject {
+  public let httpResponse: HTTPURLResponse
+  public let httpBody: Data?
+  public let requestDate: Date
 
-  @objc(initWithResponse:HTTPBody:requestDate:)
   public init(response: HTTPURLResponse, httpBody: Data?, requestDate: Date) {
     httpResponse = response
     self.httpBody = httpBody
@@ -29,7 +27,6 @@ public class AppCheckCoreURLSessionDataResponse: NSObject {
     super.init()
   }
 
-  @objc(initWithResponse:HTTPBody:)
   public convenience init(response: HTTPURLResponse, httpBody: Data?) {
     self.init(response: response, httpBody: httpBody, requestDate: Date())
   }

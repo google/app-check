@@ -14,24 +14,20 @@
 
 import Foundation
 
-@objc(GACDeviceCheckAPIServiceProtocol)
 protocol AppCheckCoreDeviceCheckAPIServiceProtocol: NSObjectProtocol {
-  @objc func appCheckToken(deviceToken: Data, limitedUse: Bool) async throws -> AppCheckCoreToken
+  func appCheckToken(deviceToken: Data, limitedUse: Bool) async throws -> AppCheckCoreToken
 }
 
-@objc(GACDeviceCheckAPIService)
 class AppCheckCoreDeviceCheckAPIService: NSObject, AppCheckCoreDeviceCheckAPIServiceProtocol {
   private let apiService: AppCheckCoreAPIServiceProtocol
   private let resourceName: String
 
-  @objc
   init(apiService: AppCheckCoreAPIServiceProtocol, resourceName: String) {
     self.apiService = apiService
     self.resourceName = resourceName
     super.init()
   }
 
-  @objc
   func appCheckToken(deviceToken: Data, limitedUse: Bool) async throws -> AppCheckCoreToken {
     guard !deviceToken.isEmpty else {
       throw AppCheckCoreErrorUtil.error(withFailureReason: "DeviceCheck token must not be empty.")

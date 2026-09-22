@@ -17,20 +17,17 @@ import Foundation
 private let kResponseFieldAppCheckTokenDict = "appCheckToken"
 private let kResponseFieldArtifact = "artifact"
 
-@objc(GACAppAttestAttestationResponse)
-public class AppCheckCoreAppAttestAttestationResponse: NSObject {
-  @objc public let artifact: Data
-  @objc public let token: AppCheckCoreToken
+class AppCheckCoreAppAttestAttestationResponse: NSObject {
+  let artifact: Data
+  let token: AppCheckCoreToken
 
-  @objc(initWithArtifact:token:)
-  public init(artifact: Data, token: AppCheckCoreToken) {
+  init(artifact: Data, token: AppCheckCoreToken) {
     self.artifact = artifact
     self.token = token
     super.init()
   }
 
-  @objc(initWithResponseData:requestDate:error:)
-  public init(responseData: Data, requestDate: Date) throws {
+  init(responseData: Data, requestDate: Date) throws {
     if responseData.isEmpty {
       throw AppCheckCoreErrorUtil
         .error(

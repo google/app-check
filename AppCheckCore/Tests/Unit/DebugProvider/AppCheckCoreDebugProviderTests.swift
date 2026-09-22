@@ -16,7 +16,7 @@ import XCTest
 #if canImport(GoogleUtilities)
   import GoogleUtilities
 #endif
-@testable import AppCheckCore
+@_spi(FirebaseInternal) @testable import AppCheckCore
 
 class MockAppCheckDebugProviderAPIService: NSObject, AppCheckCoreDebugProviderAPIServiceProtocol {
   var passedDebugToken: String?

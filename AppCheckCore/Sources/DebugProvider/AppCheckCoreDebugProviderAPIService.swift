@@ -14,12 +14,10 @@
 
 import Foundation
 
-@objc(GACAppCheckDebugProviderAPIServiceProtocol)
 protocol AppCheckCoreDebugProviderAPIServiceProtocol: NSObjectProtocol {
-  @objc func appCheckToken(debugToken: String, limitedUse: Bool) async throws -> AppCheckCoreToken
+  func appCheckToken(debugToken: String, limitedUse: Bool) async throws -> AppCheckCoreToken
 }
 
-@objc(GACAppCheckDebugProviderAPIService)
 class AppCheckCoreDebugProviderAPIService: NSObject, AppCheckCoreDebugProviderAPIServiceProtocol {
   private let apiService: AppCheckCoreAPIServiceProtocol
   private let resourceName: String
@@ -29,13 +27,13 @@ class AppCheckCoreDebugProviderAPIService: NSObject, AppCheckCoreDebugProviderAP
   private static let debugTokenField = "debug_token"
   private static let limitedUseField = "limited_use"
 
-  @objc init(apiService: AppCheckCoreAPIServiceProtocol, resourceName: String) {
+  init(apiService: AppCheckCoreAPIServiceProtocol, resourceName: String) {
     self.apiService = apiService
     self.resourceName = resourceName
     super.init()
   }
 
-  @objc func appCheckToken(debugToken: String, limitedUse: Bool) async throws -> AppCheckCoreToken {
+  func appCheckToken(debugToken: String, limitedUse: Bool) async throws -> AppCheckCoreToken {
     let urlString = "\(apiService.baseURL)/\(resourceName):exchangeDebugToken"
     guard let url = URL(string: urlString) else {
       throw AppCheckCoreErrorUtil.error(withFailureReason: "Invalid URL: \(urlString)")

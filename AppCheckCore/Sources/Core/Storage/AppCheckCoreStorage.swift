@@ -33,7 +33,7 @@ public final class AppCheckCoreStorage: NSObject, AppCheckCoreStorageProtocol {
   static let keychainService = "com.google.app_check_core.token_storage"
 
   public let tokenKey: String
-  public let keychainStorage: GULKeychainStorage
+  let keychainStorage: GULKeychainStorage
   public let accessGroup: String?
 
   public init(tokenKey: String,

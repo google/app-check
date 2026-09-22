@@ -27,12 +27,12 @@ public protocol AppCheckCoreProtocol: NSObjectProtocol {
 
 @objc(GACAppCheck)
 public class AppCheckCore: NSObject, AppCheckCoreProtocol {
-  public let serviceName: String
-  public let appCheckProvider: AppCheckCoreProvider
-  public let settings: AppCheckCoreSettingsProtocol
-  public weak var tokenDelegate: AppCheckCoreTokenDelegate?
-  public let storage: AppCheckCoreStorageProtocol
-  public let tokenRefresher: AppCheckCoreTokenRefresherProtocol
+  let serviceName: String
+  let appCheckProvider: AppCheckCoreProvider
+  let settings: AppCheckCoreSettingsProtocol
+  weak var tokenDelegate: AppCheckCoreTokenDelegate?
+  let storage: AppCheckCoreStorageProtocol
+  let tokenRefresher: AppCheckCoreTokenRefresherProtocol
 
   @objc(
     initWithServiceName:resourceName:appCheckProvider:settings:tokenDelegate:keychainAccessGroup:

@@ -28,31 +28,27 @@ private let kProdBaseURL = "https://firebaseappcheck.googleapis.com/v1"
   private let kAppCheckUseStagingEnvKey = "_AppCheckUseStaging"
 #endif
 
-@objc(GACAppCheckAPIServiceProtocol)
-public protocol AppCheckCoreAPIServiceProtocol: NSObjectProtocol {
-  @objc var baseURL: String { get }
+@_spi(FirebaseInternal) public protocol AppCheckCoreAPIServiceProtocol: NSObjectProtocol {
+  var baseURL: String { get }
 
-  @objc(sendRequestWithURL:HTTPMethod:body:additionalHeaders:completion:)
   func sendRequest(withURL requestURL: URL,
                    httpMethod: String,
                    body: Data?,
                    additionalHeaders: [String: String]?) async throws
     -> AppCheckCoreURLSessionDataResponse
 
-  @objc(appCheckTokenWithAPIResponse:completion:)
   func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) async throws
     -> AppCheckCoreToken
 }
 
-@objc(GACAppCheckAPIService)
-public class AppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
+@_spi(FirebaseInternal) public class AppCheckCoreAPIService: NSObject,
+  AppCheckCoreAPIServiceProtocol {
   public let baseURL: String
   private let urlSession: URLSession
   private let apiKey: String?
   // Using Any for hook as it's typically `@convention(block) (NSMutableURLRequest) -> Void`
   private let requestHooks: [AppCheckCoreAPIRequestHook]
 
-  @objc(initWithURLSession:baseURL:APIKey:requestHooks:)
   public convenience init(urlSession: URLSession,
                           baseURL: String?,
                           apiKey: String?,
@@ -67,11 +63,11 @@ public class AppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
   }
 
   // Internal designated initializer
-  init(urlSession: URLSession,
-       baseURL: String?,
-       apiKey: String?,
-       requestHooks: [Any]?,
-       environment: [String: String]) {
+  public init(urlSession: URLSession,
+              baseURL: String?,
+              apiKey: String?,
+              requestHooks: [Any]?,
+              environment: [String: String]) {
     self.urlSession = urlSession
     self.apiKey = apiKey
     self.requestHooks = requestHooks?.compactMap { $0 as? AppCheckCoreAPIRequestHook } ?? []
@@ -95,7 +91,6 @@ public class AppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
     super.init()
   }
 
-  @objc(sendRequestWithURL:HTTPMethod:body:additionalHeaders:completion:)
   public func sendRequest(withURL requestURL: URL,
                           httpMethod: String,
                           body: Data?,
@@ -189,7 +184,6 @@ public class AppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
     return response
   }
 
-  @objc(appCheckTokenWithAPIResponse:completion:)
   public func appCheckToken(withAPIResponse response: AppCheckCoreURLSessionDataResponse) async throws
     -> AppCheckCoreToken {
     return try AppCheckCoreToken(

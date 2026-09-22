@@ -24,32 +24,31 @@ private let kStorageVersion = 1
 /// Do not rename or remove: required to unarchive legacy data stored by Objective-C versions of the
 /// SDK.
 @objc(GACAppAttestStoredArtifact)
-public final class AppCheckCoreAppAttestStoredArtifact: NSObject, NSSecureCoding {
-  @objc public let keyID: String
-  @objc public let artifact: Data
+final class AppCheckCoreAppAttestStoredArtifact: NSObject, NSSecureCoding {
+  let keyID: String
+  let artifact: Data
 
-  @objc public var storageVersion: Int {
+  var storageVersion: Int {
     return kStorageVersion
   }
 
-  @objc(initWithKeyID:artifact:)
-  public init(keyID: String, artifact: Data) {
+  init(keyID: String, artifact: Data) {
     self.keyID = keyID
     self.artifact = artifact
     super.init()
   }
 
-  public static var supportsSecureCoding: Bool {
+  static var supportsSecureCoding: Bool {
     return true
   }
 
-  public func encode(with coder: NSCoder) {
+  func encode(with coder: NSCoder) {
     coder.encode(keyID, forKey: kKeyIDKey)
     coder.encode(artifact, forKey: kArtifactKey)
     coder.encode(storageVersion, forKey: kStorageVersionKey)
   }
 
-  public required init?(coder: NSCoder) {
+  required init?(coder: NSCoder) {
     let storageVersion = coder.decodeInteger(forKey: kStorageVersionKey)
 
     if storageVersion < kStorageVersion {

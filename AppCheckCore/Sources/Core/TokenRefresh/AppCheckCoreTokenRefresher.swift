@@ -14,18 +14,16 @@
 
 import Foundation
 
-public typealias AppCheckCoreTokenRefreshCompletion = (AppCheckCoreTokenRefreshResult) -> Void
-public typealias AppCheckCoreTokenRefreshBlock = (@escaping AppCheckCoreTokenRefreshCompletion)
+typealias AppCheckCoreTokenRefreshCompletion = (AppCheckCoreTokenRefreshResult) -> Void
+typealias AppCheckCoreTokenRefreshBlock = (@escaping AppCheckCoreTokenRefreshCompletion)
   -> Void
 
-@objc(GACAppCheckTokenRefresherProtocol)
-public protocol AppCheckCoreTokenRefresherProtocol: NSObjectProtocol {
-  @objc var tokenRefreshHandler: AppCheckCoreTokenRefreshBlock? { get set }
-  @objc func updateWithRefreshResult(_ refreshResult: AppCheckCoreTokenRefreshResult)
+protocol AppCheckCoreTokenRefresherProtocol: NSObjectProtocol {
+  var tokenRefreshHandler: AppCheckCoreTokenRefreshBlock? { get set }
+  func updateWithRefreshResult(_ refreshResult: AppCheckCoreTokenRefreshResult)
 }
 
-@objc(GACAppCheckTokenRefresher)
-public class AppCheckCoreTokenRefresher: NSObject, AppCheckCoreTokenRefresherProtocol {
+class AppCheckCoreTokenRefresher: NSObject, AppCheckCoreTokenRefresherProtocol {
   private static let kInitialBackoffTimeInterval: TimeInterval = 30
   private static let kMaximumBackoffTimeInterval: TimeInterval = 16 * 60
   private let kMinimumAutoRefreshTimeInterval: TimeInterval = 60 // 1 min.
@@ -42,17 +40,17 @@ public class AppCheckCoreTokenRefresher: NSObject, AppCheckCoreTokenRefresherPro
 
   private let lock = NSRecursiveLock()
 
-  public init(refreshResult: AppCheckCoreTokenRefreshResult,
-              timerProvider: @escaping AppCheckCoreTimerProvider,
-              settings: AppCheckCoreSettingsProtocol) {
+  init(refreshResult: AppCheckCoreTokenRefreshResult,
+       timerProvider: @escaping AppCheckCoreTimerProvider,
+       settings: AppCheckCoreSettingsProtocol) {
     initialRefreshResult = refreshResult
     self.timerProvider = timerProvider
     self.settings = settings
     super.init()
   }
 
-  public convenience init(refreshResult: AppCheckCoreTokenRefreshResult,
-                          settings: AppCheckCoreSettingsProtocol) {
+  convenience init(refreshResult: AppCheckCoreTokenRefreshResult,
+                   settings: AppCheckCoreSettingsProtocol) {
     self.init(refreshResult: refreshResult,
               timerProvider: AppCheckCoreTimer.timerProvider(),
               settings: settings)
@@ -62,7 +60,7 @@ public class AppCheckCoreTokenRefresher: NSObject, AppCheckCoreTokenRefresherPro
     cancelTimer()
   }
 
-  @objc public var tokenRefreshHandler: AppCheckCoreTokenRefreshBlock? {
+  var tokenRefreshHandler: AppCheckCoreTokenRefreshBlock? {
     get {
       lock.lock()
       defer { lock.unlock() }
@@ -80,8 +78,7 @@ public class AppCheckCoreTokenRefresher: NSObject, AppCheckCoreTokenRefresherPro
     }
   }
 
-  @objc(updateWithRefreshResult:)
-  public func updateWithRefreshResult(_ refreshResult: AppCheckCoreTokenRefreshResult) {
+  func updateWithRefreshResult(_ refreshResult: AppCheckCoreTokenRefreshResult) {
     lock.lock()
     defer { lock.unlock() }
 

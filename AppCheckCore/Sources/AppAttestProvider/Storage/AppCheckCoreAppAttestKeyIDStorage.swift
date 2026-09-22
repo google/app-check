@@ -19,14 +19,12 @@ import Foundation
   import GoogleUtilities_UserDefaults
 #endif
 
-@objc(GACAppAttestKeyIDStorageProtocol)
-public protocol AppCheckCoreAppAttestKeyIDStorageProtocol: NSObjectProtocol {
-  @objc func setAppAttestKeyID(_ keyID: String?) async throws -> String?
-  @objc func getAppAttestKeyID() async throws -> String?
+protocol AppCheckCoreAppAttestKeyIDStorageProtocol: NSObjectProtocol {
+  func setAppAttestKeyID(_ keyID: String?) async throws -> String?
+  func getAppAttestKeyID() async throws -> String?
 }
 
-@objc(GACAppAttestKeyIDStorage)
-public final class AppCheckCoreAppAttestKeyIDStorage: NSObject,
+final class AppCheckCoreAppAttestKeyIDStorage: NSObject,
   AppCheckCoreAppAttestKeyIDStorageProtocol {
   /// Suite name for the app attest key ID in UserDefaults.
   /// Internal scope exists for testing purposes.
@@ -37,15 +35,13 @@ public final class AppCheckCoreAppAttestKeyIDStorage: NSObject,
   private let keySuffix: String
   private let userDefaults: GULUserDefaults
 
-  @objc(initWithKeySuffix:)
-  public init(keySuffix: String) {
+  init(keySuffix: String) {
     self.keySuffix = keySuffix
     userDefaults = GULUserDefaults(suiteName: Self.keyIDStorageDefaultsSuiteName)
     super.init()
   }
 
-  @objc
-  public func setAppAttestKeyID(_ keyID: String?) async throws -> String? {
+  func setAppAttestKeyID(_ keyID: String?) async throws -> String? {
     if let keyID = keyID {
       userDefaults.setObject(keyID, forKey: keyIDStorageKey)
     } else {
@@ -54,8 +50,7 @@ public final class AppCheckCoreAppAttestKeyIDStorage: NSObject,
     return keyID
   }
 
-  @objc
-  public func getAppAttestKeyID() async throws -> String? {
+  func getAppAttestKeyID() async throws -> String? {
     if let appAttestKeyID = userDefaults.object(forKey: keyIDStorageKey) as? String {
       return appAttestKeyID
     } else {

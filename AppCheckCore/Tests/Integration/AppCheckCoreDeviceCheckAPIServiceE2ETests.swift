@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-@testable import AppCheckCore
+@_spi(FirebaseInternal) @testable import AppCheckCore
 import XCTest
 
 // TODO: Replace with real resource name to run on CI

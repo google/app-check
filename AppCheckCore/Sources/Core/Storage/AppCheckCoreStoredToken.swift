@@ -18,7 +18,7 @@ import Foundation
 /// Do not rename or remove: required to unarchive legacy data stored by Objective-C versions of the
 /// SDK.
 @objc(GACAppCheckStoredToken)
-public final class AppCheckCoreStoredToken: NSObject, NSSecureCoding {
+final class AppCheckCoreStoredToken: NSObject, NSSecureCoding {
   private static let kTokenKey = "token"
   private static let kExpirationDateKey = "expirationDate"
   private static let kReceivedAtDateKey = "receivedAtDate"
@@ -26,30 +26,30 @@ public final class AppCheckCoreStoredToken: NSObject, NSSecureCoding {
 
   private static let kStorageVersion: Int = 2
 
-  @objc public var token: String?
-  @objc public var expirationDate: Date?
-  @objc public var receivedAtDate: Date?
+  var token: String?
+  var expirationDate: Date?
+  var receivedAtDate: Date?
 
-  @objc public var storageVersion: Int {
+  var storageVersion: Int {
     return Self.kStorageVersion
   }
 
-  public static var supportsSecureCoding: Bool {
+  static var supportsSecureCoding: Bool {
     return true
   }
 
-  override public init() {
+  override init() {
     super.init()
   }
 
-  public func encode(with coder: NSCoder) {
+  func encode(with coder: NSCoder) {
     coder.encode(token, forKey: Self.kTokenKey)
     coder.encode(expirationDate, forKey: Self.kExpirationDateKey)
     coder.encode(receivedAtDate, forKey: Self.kReceivedAtDateKey)
     coder.encode(storageVersion, forKey: Self.kStorageVersionKey)
   }
 
-  public required init?(coder: NSCoder) {
+  required init?(coder: NSCoder) {
     super.init()
     let decodedStorageVersion = coder.decodeInteger(forKey: Self.kStorageVersionKey)
     if decodedStorageVersion > Self.kStorageVersion {
@@ -64,14 +64,14 @@ public final class AppCheckCoreStoredToken: NSObject, NSSecureCoding {
   }
 }
 
-public extension AppCheckCoreStoredToken {
-  @objc func update(with token: AppCheckCoreToken) {
+extension AppCheckCoreStoredToken {
+  func update(with token: AppCheckCoreToken) {
     self.token = token.token
     expirationDate = token.expirationDate
     receivedAtDate = token.receivedAtDate
   }
 
-  @objc func appCheckToken() -> AppCheckCoreToken? {
+  func appCheckToken() -> AppCheckCoreToken? {
     // Returns nil if any property is missing. A nil token represents an expired or corrupted
     // cache entry, prompting the SDK to acquire a fresh token from the backend.
     guard let token = token,

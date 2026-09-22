@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-@testable import AppCheckCore
+@_spi(FirebaseInternal) @testable import AppCheckCore
 import XCTest
 
 private class MockAppCheckAPIService: NSObject, AppCheckCoreAPIServiceProtocol {

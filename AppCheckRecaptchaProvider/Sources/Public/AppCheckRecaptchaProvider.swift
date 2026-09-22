@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #if SWIFT_PACKAGE
-  import AppCheckCore
+  @_spi(FirebaseInternal) import AppCheckCore
 #endif
 import Foundation
 import RecaptchaInterop

@@ -14,25 +14,23 @@
 
 import Foundation
 
-@objc(GACAppCheckTimerProtocol)
-public protocol AppCheckCoreTimerProtocol: NSObjectProtocol {
-  @objc func invalidate()
+protocol AppCheckCoreTimerProtocol: NSObjectProtocol {
+  func invalidate()
 }
 
-public typealias AppCheckCoreTimerProvider = (Date, DispatchQueue, @escaping () -> Void)
+typealias AppCheckCoreTimerProvider = (Date, DispatchQueue, @escaping () -> Void)
   -> AppCheckCoreTimerProtocol?
 
-@objc(GACAppCheckTimer)
-public class AppCheckCoreTimer: NSObject, AppCheckCoreTimerProtocol {
+class AppCheckCoreTimer: NSObject, AppCheckCoreTimerProtocol {
   private var timer: DispatchSourceTimer?
 
-  public static func timerProvider() -> AppCheckCoreTimerProvider {
+  static func timerProvider() -> AppCheckCoreTimerProvider {
     return { fireDate, queue, handler in
       AppCheckCoreTimer(fireDate: fireDate, dispatchQueue: queue, block: handler)
     }
   }
 
-  public init?(fireDate: Date, dispatchQueue: DispatchQueue, block: @escaping () -> Void) {
+  init?(fireDate: Date, dispatchQueue: DispatchQueue, block: @escaping () -> Void) {
     let timeInterval = fireDate.timeIntervalSinceNow
     // Negative or zero time interval should fire immediately, but this timer class
     // expects positive intervals or handles immediate via `dispatch_async` in the caller.
@@ -52,7 +50,7 @@ public class AppCheckCoreTimer: NSObject, AppCheckCoreTimerProtocol {
     super.init()
   }
 
-  @objc public func invalidate() {
+  func invalidate() {
     timer?.cancel()
     timer = nil
   }

@@ -14,23 +14,20 @@
 
 import Foundation
 
-@objc(GACAppAttestAttestationState)
-public enum AppCheckCoreAppAttestAttestationState: Int {
+enum AppCheckCoreAppAttestAttestationState: Int {
   case unsupported
   case supportedInitial
   case keyGenerated
   case keyRegistered
 }
 
-@objc(GACAppAttestProviderState)
-public class AppCheckCoreAppAttestProviderState: NSObject {
-  @objc public let state: AppCheckCoreAppAttestAttestationState
-  @objc public let appAttestUnsupportedError: Error?
-  @objc public let appAttestKeyID: String?
-  @objc public let attestationArtifact: Data?
+class AppCheckCoreAppAttestProviderState: NSObject {
+  let state: AppCheckCoreAppAttestAttestationState
+  let appAttestUnsupportedError: Error?
+  let appAttestKeyID: String?
+  let attestationArtifact: Data?
 
-  @objc(initUnsupportedWithError:)
-  public init(unsupportedWithError error: Error) {
+  init(unsupportedWithError error: Error) {
     state = .unsupported
     appAttestUnsupportedError = error
     appAttestKeyID = nil
@@ -38,8 +35,7 @@ public class AppCheckCoreAppAttestProviderState: NSObject {
     super.init()
   }
 
-  @objc(initWithSupportedInitialState)
-  public init(supportedInitialState: Void = ()) {
+  init(supportedInitialState: Void = ()) {
     state = .supportedInitial
     appAttestUnsupportedError = nil
     appAttestKeyID = nil
@@ -47,8 +43,7 @@ public class AppCheckCoreAppAttestProviderState: NSObject {
     super.init()
   }
 
-  @objc(initWithGeneratedKeyID:)
-  public init(generatedKeyID keyID: String) {
+  init(generatedKeyID keyID: String) {
     state = .keyGenerated
     appAttestKeyID = keyID
     appAttestUnsupportedError = nil
@@ -56,8 +51,7 @@ public class AppCheckCoreAppAttestProviderState: NSObject {
     super.init()
   }
 
-  @objc(initWithRegisteredKeyID:artifact:)
-  public init(registeredKeyID keyID: String, artifact: Data) {
+  init(registeredKeyID keyID: String, artifact: Data) {
     state = .keyRegistered
     appAttestKeyID = keyID
     attestationArtifact = artifact

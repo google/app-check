@@ -15,14 +15,14 @@
 import Foundation
 
 @objc(GACAppAttestRejectionError)
-public class AppCheckCoreAppAttestRejectionError: NSError, @unchecked Sendable {
+class AppCheckCoreAppAttestRejectionError: NSError, @unchecked Sendable {
   @objc
-  public var underlyingError: Error? {
+  var underlyingError: Error? {
     return userInfo[NSUnderlyingErrorKey] as? Error
   }
 
   @objc(initWithUnderlyingError:)
-  public init(underlyingError: Error) {
+  init(underlyingError: Error) {
     super.init(
       domain: AppCheckCoreErrorDomain,
       code: AppCheckCoreErrorCode.unknown.rawValue,
