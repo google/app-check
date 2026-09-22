@@ -23,7 +23,7 @@ private let kAPIKeyHeaderKey = "X-Goog-Api-Key"
 private let kBundleIdKey = "X-Ios-Bundle-Identifier"
 private let kProdBaseURL = "https://firebaseappcheck.googleapis.com/v1"
 
-#if !NDEBUG
+#if DEBUG
   private let kStagingBaseURL = "https://staging-firebaseappcheck.sandbox.googleapis.com/v1"
   private let kAppCheckUseStagingEnvKey = "_AppCheckUseStaging"
 #endif
@@ -78,7 +78,7 @@ public class AppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
 
     var resolvedBaseURL = baseURL
 
-    #if !NDEBUG
+    #if DEBUG
       if resolvedBaseURL == nil {
         let useStaging = (environment[kAppCheckUseStagingEnvKey] as NSString?)?.boolValue ?? false
         if useStaging {
