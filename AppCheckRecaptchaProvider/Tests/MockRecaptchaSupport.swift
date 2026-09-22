@@ -106,7 +106,7 @@ class MockAppCheckCoreAPIService: NSObject, AppCheckCoreAPIServiceProtocol {
       throw expectedError
     } else {
       let response = expectedResponse ?? AppCheckCoreURLSessionDataResponse(
-        response: HTTPURLResponse(),
+        response: HTTPURLResponse(url: URL(string: "https://test.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
         httpBody: Data(),
         requestDate: Date()
       )
