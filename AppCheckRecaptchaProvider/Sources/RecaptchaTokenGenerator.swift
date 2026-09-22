@@ -16,7 +16,7 @@
   import AppCheckCore
 #endif
 import Foundation
-import RecaptchaInterop
+@preconcurrency import RecaptchaInterop
 
 @available(iOS 15.0, visionOS 1.0, *)
 @available(macOS, unavailable)
@@ -40,7 +40,7 @@ final class RecaptchaTokenGenerator {
     self.backoffWrapper = backoffWrapper
 
     recaptchaClientTask = Task {
-      try await withCheckedThrowingContinuation { continuation in
+      try await withSafeCheckedThrowingContinuation { continuation in
         recaptchaClass.fetchClient(withSiteKey: siteKey) { client, error in
           if let client {
             continuation.resume(returning: client)
@@ -57,7 +57,7 @@ final class RecaptchaTokenGenerator {
     let client = try await recaptchaClientTask.value
 
     let operationProvider: () async throws -> String = {
-      try await withCheckedThrowingContinuation { continuation in
+      try await withSafeCheckedThrowingContinuation { continuation in
         let recaptchaAction = self.recaptchaAction
         client.execute(withAction: recaptchaAction) { token, error in
           if let token {

@@ -51,7 +51,7 @@ final class AppCheckCoreAppAttestArtifactStorage: NSObject,
     do {
       let storedArtifact =
         try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
-          NSSecureCoding?,
+          AppCheckCoreAppAttestStoredArtifact?,
           Error
         >) in
           keychainStorage.getObjectForKey(
@@ -62,12 +62,12 @@ final class AppCheckCoreAppAttestArtifactStorage: NSObject,
             if let error = error {
               continuation.resume(throwing: error)
             } else {
-              continuation.resume(returning: result)
+              continuation.resume(returning: result as? AppCheckCoreAppAttestStoredArtifact)
             }
           }
         }
 
-      if let artifact = storedArtifact as? AppCheckCoreAppAttestStoredArtifact,
+      if let artifact = storedArtifact,
          artifact.keyID == keyID {
         return artifact.artifact
       } else {

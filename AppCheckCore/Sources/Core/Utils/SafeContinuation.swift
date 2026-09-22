@@ -17,7 +17,9 @@ import Foundation
 /// A wrapper around `CheckedContinuation` that ensures it is resumed exactly once.
 /// If the underlying completion block is invoked multiple times (e.g. by a misbehaving
 /// third-party provider), subsequent resumes are safely ignored instead of trapping.
-class SafeContinuation<T, E: Error>: @unchecked Sendable {
+/// Note: Like `CheckedContinuation`, this does not enforce that a resume is ever
+/// called. If the underlying block never invokes the handler, the awaiting task will hang.
+package final class SafeContinuation<T: Sendable, E: Error>: @unchecked Sendable {
   private var continuation: CheckedContinuation<T, E>?
   private let lock = NSLock()
 
@@ -25,7 +27,7 @@ class SafeContinuation<T, E: Error>: @unchecked Sendable {
     self.continuation = continuation
   }
 
-  func resume(returning value: T) {
+  package func resume(returning value: T) {
     lock.lock()
     let cont = continuation
     continuation = nil
@@ -33,7 +35,7 @@ class SafeContinuation<T, E: Error>: @unchecked Sendable {
     cont?.resume(returning: value)
   }
 
-  func resume(throwing error: E) {
+  package func resume(throwing error: E) {
     lock.lock()
     let cont = continuation
     continuation = nil
@@ -42,7 +44,7 @@ class SafeContinuation<T, E: Error>: @unchecked Sendable {
   }
 }
 
-func withSafeCheckedThrowingContinuation<T>(_ body: (SafeContinuation<T, Error>)
+package func withSafeCheckedThrowingContinuation<T: Sendable>(_ body: (SafeContinuation<T, Error>)
   -> Void) async throws -> T {
   return try await withCheckedThrowingContinuation { continuation in
     let safeContinuation = SafeContinuation(continuation)

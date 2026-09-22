@@ -24,7 +24,7 @@ private let kStorageVersion = 1
 /// Do not rename or remove: required to unarchive legacy data stored by Objective-C versions of the
 /// SDK.
 @objc(GACAppAttestStoredArtifact)
-final class AppCheckCoreAppAttestStoredArtifact: NSObject, NSSecureCoding {
+final class AppCheckCoreAppAttestStoredArtifact: NSObject, NSSecureCoding, @unchecked Sendable {
   let keyID: String
   let artifact: Data
 
