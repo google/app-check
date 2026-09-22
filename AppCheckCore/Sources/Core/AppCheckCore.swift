@@ -96,8 +96,15 @@ public class AppCheckCore: NSObject, AppCheckCoreProtocol {
       }
       // Parity with v11: `-[GACAppCheck periodicTokenRefreshWithCompletion:]`
       // used bare `.then` / `.catch`, so this ran on the main queue.
+      //
+      // `nonisolated(unsafe)` is an explicit acknowledgement that the result
+      // crosses a queue boundary without compiler-checked isolation. That is
+      // the same boundary v11 crossed via `dispatch_async`, with the same
+      // absence of synchronization, and the value is an immutable holder.
+      nonisolated(unsafe) let result = refreshResult
+      nonisolated(unsafe) let completion = completion
       DispatchQueue.main.async {
-        completion(refreshResult)
+        completion(result)
       }
     }
   }
@@ -242,6 +249,12 @@ public class AppCheckCore: NSObject, AppCheckCoreProtocol {
   /// divergence rather than parity.
   private static func deliverOnMainQueue(_ result: AppCheckCoreTokenResult,
                                          to completion: @escaping AppCheckCoreTokenHandler) {
+    // See the note in `notifyTokenUpdateOnMainQueue` — the caller's handler and
+    // the result object cross the same queue boundary v11 crossed, and the
+    // handler is arbitrary caller-supplied code that cannot be declared
+    // `Sendable` on their behalf.
+    nonisolated(unsafe) let result = result
+    nonisolated(unsafe) let completion = completion
     DispatchQueue.main.async {
       completion(result)
     }
@@ -257,13 +270,20 @@ public class AppCheckCore: NSObject, AppCheckCoreProtocol {
     _ token: AppCheckCoreToken,
     refreshResult: AppCheckCoreTokenRefreshResult
   ) async {
-    let tokenRefresher = self.tokenRefresher
-    let tokenDelegate = self.tokenDelegate
+    // `nonisolated(unsafe)` is an explicit acknowledgement that these cross a
+    // queue boundary without compiler-checked isolation. The refresher and
+    // delegate are arbitrary caller-supplied objects, so neither can honestly
+    // be declared `Sendable` here. This is the same hand-off v11 performed via
+    // `dispatch_async` with no synchronization at all, so it is parity rather
+    // than a new hazard.
+    nonisolated(unsafe) let tokenRefresher = self.tokenRefresher
+    nonisolated(unsafe) let tokenDelegate = self.tokenDelegate
+    nonisolated(unsafe) let result = refreshResult
     let serviceName = self.serviceName
 
     await withCheckedContinuation { continuation in
       DispatchQueue.main.async {
-        tokenRefresher.updateWithRefreshResult(refreshResult)
+        tokenRefresher.updateWithRefreshResult(result)
         tokenDelegate?.tokenDidUpdate(token, serviceName: serviceName)
         continuation.resume()
       }
