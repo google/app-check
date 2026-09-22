@@ -61,6 +61,17 @@ extension AppCheckCoreErrorCode: CustomNSError {
   public static var errorDomain: String { AppCheckCoreErrorDomain }
 }
 
+extension AppCheckCoreErrorCode: _ObjectiveCBridgeableError {
+  public init?(_bridgedNSError error: NSError) {
+    if error.domain == AppCheckCoreErrorDomain,
+       let code = AppCheckCoreErrorCode(rawValue: error.code) {
+      self = code
+    } else {
+      return nil
+    }
+  }
+}
+
 @objc(GACAppCheckMessageCode)
 public enum AppCheckCoreMessageCode: Int {
   case unknown = 1001
