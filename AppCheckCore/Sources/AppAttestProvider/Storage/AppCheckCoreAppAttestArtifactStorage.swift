@@ -1,0 +1,132 @@
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import Foundation
+#if COCOAPODS
+  import GoogleUtilities
+#else
+  import GoogleUtilities_Environment
+#endif
+
+protocol AppCheckCoreAppAttestArtifactStorageProtocol: NSObjectProtocol {
+  func setArtifact(_ artifact: Data?, forKey keyID: String) async throws -> Data?
+  func getArtifact(forKey keyID: String) async throws -> Data?
+}
+
+final class AppCheckCoreAppAttestArtifactStorage: NSObject,
+  AppCheckCoreAppAttestArtifactStorageProtocol {
+  /// Storage service name for Keychain.
+  /// Internal scope exists for testing purposes.
+  /// Do not rename: retains value for compatibility with existing stored data from v11 or lower.
+  static let keychainService = "com.firebase.app_check.app_attest_artifact_storage"
+
+  private let keySuffix: String
+  private let keychainStorage: GULKeychainStorage
+  private let accessGroup: String?
+
+  init(keySuffix: String, keychainStorage: GULKeychainStorage, accessGroup: String?) {
+    self.keySuffix = keySuffix
+    self.keychainStorage = keychainStorage
+    self.accessGroup = accessGroup
+    super.init()
+  }
+
+  convenience init(keySuffix: String, accessGroup: String?) {
+    let keychainStorage = GULKeychainStorage(service: Self.keychainService)
+    self.init(keySuffix: keySuffix, keychainStorage: keychainStorage, accessGroup: accessGroup)
+  }
+
+  func getArtifact(forKey keyID: String) async throws -> Data? {
+    do {
+      let storedArtifact =
+        try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
+          AppCheckCoreAppAttestStoredArtifact?,
+          Error
+        >) in
+          keychainStorage.getObjectForKey(
+            artifactKey,
+            objectClass: AppCheckCoreAppAttestStoredArtifact.self,
+            accessGroup: accessGroup
+          ) { result, error in
+            if let error = error {
+              continuation.resume(throwing: error)
+            } else {
+              continuation.resume(returning: result as? AppCheckCoreAppAttestStoredArtifact)
+            }
+          }
+        }
+
+      if let artifact = storedArtifact,
+         artifact.keyID == keyID {
+        return artifact.artifact
+      } else {
+        return nil
+      }
+    } catch {
+      throw AppCheckCoreErrorUtil.keychainError(with: error)
+    }
+  }
+
+  func setArtifact(_ artifact: Data?, forKey keyID: String) async throws -> Data? {
+    if let artifact = artifact {
+      return try await storeArtifact(artifact, forKey: keyID)
+    } else {
+      do {
+        try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
+          Void,
+          Error
+        >) in
+          keychainStorage.removeObject(forKey: artifactKey, accessGroup: accessGroup) { error in
+            if let error = error {
+              continuation.resume(throwing: error)
+            } else {
+              continuation.resume(returning: ())
+            }
+          }
+        }
+        return nil
+      } catch {
+        throw AppCheckCoreErrorUtil.keychainError(with: error)
+      }
+    }
+  }
+
+  private func storeArtifact(_ artifact: Data, forKey keyID: String) async throws -> Data {
+    let storedArtifact = AppCheckCoreAppAttestStoredArtifact(keyID: keyID, artifact: artifact)
+
+    do {
+      try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
+        Void,
+        Error
+      >) in
+        keychainStorage
+          .setObject(storedArtifact, forKey: artifactKey,
+                     accessGroup: accessGroup) { result, error in
+            if let error = error {
+              continuation.resume(throwing: error)
+            } else {
+              continuation.resume(returning: ())
+            }
+          }
+      }
+      return artifact
+    } catch {
+      throw AppCheckCoreErrorUtil.keychainError(with: error)
+    }
+  }
+
+  private var artifactKey: String {
+    return "app_check_app_attest_artifact.\(keySuffix)"
+  }
+}

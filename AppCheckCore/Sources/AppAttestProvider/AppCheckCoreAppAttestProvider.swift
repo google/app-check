@@ -1,0 +1,559 @@
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import DeviceCheck
+import Foundation
+
+@available(iOS 14.0, macOS 11.0, tvOS 15.0, watchOS 9.0, *)
+@objc(GACAppAttestProvider)
+public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
+  // MARK: - Internal Properties
+
+  private let apiService: AppCheckCoreAppAttestAPIServiceProtocol
+  private let appAttestService: AppCheckCoreAppAttestService
+  private let keyIDStorage: AppCheckCoreAppAttestKeyIDStorageProtocol
+  private let artifactStorage: AppCheckCoreAppAttestArtifactStorageProtocol
+  private let backoffWrapper: AppCheckCoreBackoffWrapperProtocol
+
+  private var ongoingGetTokenOperationTask: Task<AppCheckCoreToken, Error>?
+  private var ongoingGetTokenOperationLimitedUse: Bool = false
+  private let lock = NSLock()
+
+  // MARK: - Initializers
+
+  @available(*, unavailable)
+  override public init() {
+    fatalError("init() is unavailable")
+  }
+
+  init(appAttestService: AppCheckCoreAppAttestService,
+       apiService: AppCheckCoreAppAttestAPIServiceProtocol,
+       keyIDStorage: AppCheckCoreAppAttestKeyIDStorageProtocol,
+       artifactStorage: AppCheckCoreAppAttestArtifactStorageProtocol,
+       backoffWrapper: AppCheckCoreBackoffWrapperProtocol) {
+    self.appAttestService = appAttestService
+    self.apiService = apiService
+    self.keyIDStorage = keyIDStorage
+    self.artifactStorage = artifactStorage
+    self.backoffWrapper = backoffWrapper
+    super.init()
+  }
+
+  /// - Parameter requestHooks: Hooks invoked on each outgoing request. From Swift, pass
+  ///   `[AppCheckCoreAPIRequestHook]`. From Objective-C, pass an `NSArray` of blocks with the
+  ///   signature `void (^)(NSMutableURLRequest *)`; the signature is not checked at compile
+  ///   time and a mismatch will crash when the hook is invoked.
+  ///
+  ///   Typed `[Any]?` rather than `[AppCheckCoreAPIRequestHook]?` deliberately: Swift cannot
+  ///   bridge an `NSArray` into a Swift `Array` whose element is a function type, so the typed
+  ///   signature traps at runtime for any non-nil array passed from Objective-C. Do not
+  ///   "simplify" this type — see PR #111.
+  @objc(initWithServiceName:resourceName:baseURL:APIKey:keychainAccessGroup:requestHooks:)
+  public convenience init(serviceName: String,
+                          resourceName: String,
+                          baseURL: String?,
+                          apiKey: String?,
+                          keychainAccessGroup accessGroup: String?,
+                          requestHooks: [Any]?) {
+    let urlSession = URLSession(configuration: .ephemeral)
+    let storageKeySuffix = AppCheckCoreAppAttestProvider.storageKeySuffix(
+      serviceName: serviceName,
+      resourceName: resourceName
+    )
+
+    let keyIDStorage = AppCheckCoreAppAttestKeyIDStorage(keySuffix: storageKeySuffix)
+    let coreAPIService = AppCheckCoreAPIService(
+      urlSession: urlSession,
+      baseURL: baseURL,
+      apiKey: apiKey,
+      requestHooks: requestHooks
+    )
+    let appAttestAPIService = AppCheckCoreAppAttestAPIService(
+      apiService: coreAPIService,
+      resourceName: resourceName
+    )
+    let artifactStorage = AppCheckCoreAppAttestArtifactStorage(
+      keySuffix: storageKeySuffix,
+      accessGroup: accessGroup
+    )
+    let backoffWrapper = AppCheckCoreBackoffWrapper()
+
+    self.init(
+      appAttestService: DCAppAttestService.shared,
+      apiService: appAttestAPIService,
+      keyIDStorage: keyIDStorage,
+      artifactStorage: artifactStorage,
+      backoffWrapper: backoffWrapper
+    )
+  }
+
+  // MARK: - AppCheckCoreProvider
+
+  @objc(getTokenWithCompletion:)
+  public func getToken(completion handler: @escaping (AppCheckCoreToken?, Error?) -> Void) {
+    getToken(limitedUse: false, completion: handler)
+  }
+
+  @objc(getLimitedUseTokenWithCompletion:)
+  public func getLimitedUseToken(completion handler: @escaping (AppCheckCoreToken?, Error?)
+    -> Void) {
+    getToken(limitedUse: true, completion: handler)
+  }
+
+  public func getToken() async throws -> AppCheckCoreToken {
+    return try await getToken(limitedUse: false)
+  }
+
+  public func getLimitedUseToken() async throws -> AppCheckCoreToken {
+    return try await getToken(limitedUse: true)
+  }
+
+  // MARK: - Internal
+
+  private func getToken(limitedUse: Bool,
+                        completion handler: @escaping (AppCheckCoreToken?, Error?) -> Void) {
+    Task {
+      do {
+        let token = try await getToken(limitedUse: limitedUse)
+        AppCheckCore.deliverOnMainQueue(token, error: nil as Error?, to: handler)
+      } catch {
+        AppCheckCore.deliverOnMainQueue(nil, error: error, to: handler)
+      }
+    }
+  }
+
+  private enum GetTokenAction {
+    case retry(Task<AppCheckCoreToken, Error>)
+    case wait(Task<AppCheckCoreToken, Error>)
+    case run(Task<AppCheckCoreToken, Error>)
+  }
+
+  private func getToken(limitedUse: Bool) async throws -> AppCheckCoreToken {
+    let action: GetTokenAction = lock.execute {
+      if let ongoingTask = ongoingGetTokenOperationTask {
+        if limitedUse || ongoingGetTokenOperationLimitedUse != limitedUse {
+          return .retry(ongoingTask)
+        }
+        return .wait(ongoingTask)
+      }
+
+      ongoingGetTokenOperationLimitedUse = limitedUse
+      let newTask = Task { () throws -> AppCheckCoreToken in
+        // Release the ongoing operation from *within* the operation, so the
+        // slot is already cleared by the time any chained waiter resumes. The
+        // Objective-C implementation did this by chaining `.thenOn`/
+        // `.recoverOn` onto the operation itself. Clearing it in the
+        // originating caller instead lets a waiter observe the completed task
+        // still parked in the slot and spin through repeated `.retry`
+        // recursions until the originator happens to run.
+        defer {
+          self.lock.execute {
+            self.ongoingGetTokenOperationTask = nil
+          }
+        }
+        return try await self.createGetTokenSequenceWithBackoff(limitedUse: limitedUse)
+      }
+      ongoingGetTokenOperationTask = newTask
+      return .run(newTask)
+    }
+
+    switch action {
+    case let .retry(ongoingTask):
+      // Wait for the in-flight operation, then start a fresh sequence.
+      //
+      // This must NOT swallow the in-flight error. Objective-C chained with
+      // `.thenOn`, which only runs on success, so when the ongoing operation
+      // failed the chaining caller was rejected with that same error instead
+      // of kicking off another full attestation sequence.
+      _ = try await ongoingTask.value
+      return try await getToken(limitedUse: limitedUse)
+    case let .wait(ongoingTask):
+      return try await ongoingTask.value
+    case let .run(newTask):
+      return try await newTask.value
+    }
+  }
+
+  private func createGetTokenSequenceWithBackoff(limitedUse: Bool) async throws
+    -> AppCheckCoreToken {
+    return try await backoffWrapper.applyBackoffToOperation({
+      try await self.createGetTokenSequence(limitedUse: limitedUse)
+    }, errorHandler: backoffWrapper.defaultAppCheckProviderErrorHandler())
+  }
+
+  private func createGetTokenSequence(limitedUse: Bool) async throws -> AppCheckCoreToken {
+    var attempts = 0
+    while attempts < 2 {
+      do {
+        let attestState = try await attestationState()
+
+        switch attestState.state {
+        case .unsupported:
+          AppCheckCoreLogger.log(
+            code: .appAttestNotSupported,
+            logLevel: .debug,
+            message: "App Attest is not supported."
+          )
+          if let error = attestState.appAttestUnsupportedError {
+            if let rejectionError = error as? AppCheckCoreAppAttestRejectionError {
+              throw rejectionError.underlyingError ?? rejectionError
+            }
+            throw error
+          }
+          throw AppCheckCoreErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
+        case .supportedInitial, .keyGenerated:
+          return try await initialHandshake(
+            keyID: attestState.appAttestKeyID,
+            limitedUse: limitedUse
+          )
+        case .keyRegistered:
+          guard let keyID = attestState.appAttestKeyID,
+                let artifact = attestState.attestationArtifact else {
+            throw AppCheckCoreErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
+          }
+          return try await refreshToken(keyID: keyID, artifact: artifact, limitedUse: limitedUse)
+        @unknown default:
+          throw AppCheckCoreErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
+        }
+      } catch {
+        if error is AppCheckCoreAppAttestRejectionError, attempts == 0 {
+          attempts += 1
+          continue
+        }
+        if let rejectionError = error as? AppCheckCoreAppAttestRejectionError {
+          throw rejectionError.underlyingError ?? rejectionError
+        }
+        throw error
+      }
+    }
+    throw AppCheckCoreErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
+  }
+
+  // MARK: - Initial handshake sequence (attestation)
+
+  private func initialHandshake(keyID: String?,
+                                limitedUse: Bool) async throws -> AppCheckCoreToken {
+    let (attestedKeyID, _, firebaseResponse) = try await attestKeyGenerateIfNeeded(
+      keyID: keyID,
+      limitedUse: limitedUse
+    )
+    return try await saveArtifactAndGetAppCheckToken(
+      response: firebaseResponse,
+      keyID: attestedKeyID
+    )
+  }
+
+  private func saveArtifactAndGetAppCheckToken(response: AppCheckCoreAppAttestAttestationResponse,
+                                               keyID: String) async throws -> AppCheckCoreToken {
+    _ = try await artifactStorage.setArtifact(response.artifact, forKey: keyID)
+    return response.token
+  }
+
+  private func attestKey(keyID: String,
+                         challenge: Data) async throws
+    -> AppCheckCoreAppAttestKeyAttestationResult {
+    let challengeHash = AppCheckCoreCryptoUtils.sha256Hash(from: challenge)
+    do {
+      let attestation =
+        try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
+          Data,
+          Error
+        >) in
+          appAttestService.attestKey(keyID, clientDataHash: challengeHash) { data, error in
+            if let error = error {
+              continuation.resume(throwing: error)
+            } else if let data = data {
+              continuation.resume(returning: data)
+            } else {
+              continuation
+                .resume(throwing: AppCheckCoreErrorUtil.error(withFailureReason: "Unknown error."))
+            }
+          }
+        }
+      return AppCheckCoreAppAttestKeyAttestationResult(
+        keyID: keyID,
+        challenge: challenge,
+        attestation: attestation
+      )
+    } catch {
+      throw AppCheckCoreErrorUtil.appAttestAttestKeyFailed(
+        with: error,
+        keyId: keyID,
+        clientDataHash: challengeHash
+      )
+    }
+  }
+
+  private func attestKeyGenerateIfNeeded(keyID: String?,
+                                         limitedUse: Bool) async throws -> (
+    String,
+    Data,
+    AppCheckCoreAppAttestAttestationResponse
+  ) {
+    let challenge: Data
+    let generatedKeyID: String
+
+    do {
+      async let fetchChallenge = apiService.getRandomChallenge()
+      async let fetchKeyID = generateAppAttestKeyIDIfNeeded(storedKeyID: keyID)
+      challenge = try await fetchChallenge
+      generatedKeyID = try await fetchKeyID
+    } catch {
+      if let rejectionError = error as? AppCheckCoreAppAttestRejectionError {
+        throw rejectionError.underlyingError ?? rejectionError
+      }
+      throw error
+    }
+
+    let attestationResult: AppCheckCoreAppAttestKeyAttestationResult
+    do {
+      attestationResult = try await attestKey(keyID: generatedKeyID, challenge: challenge)
+    } catch {
+      let nsError = error as NSError
+      if let underlyingError = nsError.userInfo[NSUnderlyingErrorKey] as? NSError,
+         underlyingError.domain == DCErrorDomain,
+         underlyingError.code == DCError.invalidKey.rawValue || underlyingError.code == DCError
+         .invalidInput.rawValue {
+        AppCheckCoreLogger.log(
+          code: .attestationRejected,
+          logLevel: .debug,
+          message: "App Attest invalid key/input; the existing attestation will be reset. DC Error Code: \(underlyingError.code)."
+        )
+        try await resetAttestation()
+        throw AppCheckCoreAppAttestRejectionError(underlyingError: error)
+      }
+      if let rejectionError = error as? AppCheckCoreAppAttestRejectionError {
+        throw rejectionError.underlyingError ?? rejectionError
+      }
+      throw error
+    }
+
+    do {
+      let response = try await apiService.attestKey(
+        withAttestation: attestationResult.attestation,
+        keyID: attestationResult.keyID,
+        challenge: attestationResult.challenge,
+        limitedUse: limitedUse
+      )
+      return (attestationResult.keyID, attestationResult.attestation, response)
+    } catch let httpError as AppCheckCoreHTTPError where httpError.httpResponse.statusCode == 403 {
+      AppCheckCoreLogger.log(
+        code: .attestationRejected,
+        logLevel: .debug,
+        message: "App Attest attestation was rejected by backend. The existing attestation will be reset."
+      )
+      try await resetAttestation()
+      throw AppCheckCoreAppAttestRejectionError(underlyingError: httpError)
+    } catch {
+      if let rejectionError = error as? AppCheckCoreAppAttestRejectionError {
+        throw rejectionError.underlyingError ?? rejectionError
+      }
+      throw error
+    }
+  }
+
+  private func resetAttestation() async throws {
+    _ = try await keyIDStorage.setAppAttestKeyID(nil)
+    _ = try await artifactStorage.setArtifact(nil, forKey: "")
+  }
+
+  // MARK: - Token refresh sequence (assertion)
+
+  private func refreshToken(keyID: String, artifact: Data,
+                            limitedUse: Bool) async throws -> AppCheckCoreToken {
+    let challenge = try await apiService.getRandomChallenge()
+    let assertion = try await generateAssertion(
+      keyID: keyID,
+      artifact: artifact,
+      challenge: challenge
+    )
+    let token = try await apiService.getAppCheckToken(
+      withArtifact: assertion.artifact,
+      challenge: assertion.challenge,
+      assertion: assertion.assertion,
+      limitedUse: limitedUse
+    )
+    return token
+  }
+
+  private func generateAssertion(keyID: String, artifact: Data,
+                                 challenge: Data) async throws
+    -> AppCheckCoreAppAttestAssertionData {
+    var statementForAssertion = artifact
+    statementForAssertion.append(challenge)
+
+    let statementHash = AppCheckCoreCryptoUtils.sha256Hash(from: statementForAssertion)
+
+    do {
+      let assertion =
+        try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
+          Data,
+          Error
+        >) in
+          appAttestService.generateAssertion(keyID, clientDataHash: statementHash) { data, error in
+            if let error = error {
+              continuation.resume(throwing: error)
+            } else if let data = data {
+              continuation.resume(returning: data)
+            } else {
+              continuation
+                .resume(throwing: AppCheckCoreErrorUtil.error(withFailureReason: "Unknown error."))
+            }
+          }
+        }
+      return AppCheckCoreAppAttestAssertionData(
+        challenge: challenge,
+        artifact: artifact,
+        assertion: assertion
+      )
+    } catch {
+      let wrappedError = AppCheckCoreErrorUtil.appAttestGenerateAssertionFailed(
+        with: error,
+        keyId: keyID,
+        clientDataHash: statementHash
+      )
+
+      let nsError = wrappedError as NSError
+      if let underlyingError = nsError.userInfo[NSUnderlyingErrorKey] as? NSError,
+         underlyingError.domain == DCErrorDomain,
+         underlyingError.code == DCError.invalidKey.rawValue ||
+         underlyingError.code == DCError.invalidInput.rawValue ||
+         underlyingError.code == DCError.unknownSystemFailure.rawValue {
+        AppCheckCoreLogger.log(
+          code: .assertionRejected,
+          logLevel: .debug,
+          message: "App Attest invalid key/input/system failure; the existing attestation will be reset. DC Error Code: \(underlyingError.code)."
+        )
+        try await resetAttestation()
+        throw AppCheckCoreAppAttestRejectionError(underlyingError: wrappedError)
+      }
+      throw wrappedError
+    }
+  }
+
+  // MARK: - State handling
+
+  private func attestationState() async throws -> AppCheckCoreAppAttestProviderState {
+    do {
+      try await isAppAttestSupported()
+    } catch {
+      return AppCheckCoreAppAttestProviderState(unsupportedWithError: error)
+    }
+
+    // 2. Check for stored key ID of the generated App Attest key pair.
+    //
+    // A missing key ID is reported by the storage as a thrown
+    // `appAttestKeyIDNotFound` error rather than as `nil`. Treat any failure to
+    // read the key ID as "no key yet" and fall back to the initial state so a
+    // new key pair is generated, matching the behavior of the Objective-C
+    // implementation (`FBLPromiseAwait` returned `nil` and the error was
+    // deliberately ignored).
+    let appAttestKeyID = try? await keyIDStorage.getAppAttestKeyID()
+    guard let keyID = appAttestKeyID ?? nil else {
+      return AppCheckCoreAppAttestProviderState(supportedInitialState: ())
+    }
+
+    // 3. Check for a stored attestation artifact received from the backend.
+    //
+    // As above, a failure to read the artifact (e.g. a transient Keychain
+    // error) degrades to re-attesting the existing key rather than failing the
+    // whole token fetch.
+    let attestationArtifact = try? await artifactStorage.getArtifact(forKey: keyID)
+    guard let artifact = attestationArtifact ?? nil else {
+      return AppCheckCoreAppAttestProviderState(generatedKeyID: keyID)
+    }
+
+    return AppCheckCoreAppAttestProviderState(registeredKeyID: keyID, artifact: artifact)
+  }
+
+  // MARK: - Helpers
+
+  private func isAppAttestSupported() async throws {
+    if appAttestService.isSupported {
+      return
+    } else {
+      throw AppCheckCoreErrorUtil.unsupportedAttestationProvider("AppAttestProvider")
+    }
+  }
+
+  private func generateAppAttestKeyIDIfNeeded(storedKeyID: String?) async throws -> String {
+    if let storedKeyID = storedKeyID {
+      return storedKeyID
+    } else {
+      return try await generateAppAttestKey()
+    }
+  }
+
+  private func generateAppAttestKey() async throws -> String {
+    do {
+      let keyID = try await withSafeCheckedThrowingContinuation { (continuation: SafeContinuation<
+        String,
+        Error
+      >) in
+        appAttestService.generateKey { key, error in
+          if let error = error {
+            continuation.resume(throwing: error)
+          } else if let key = key {
+            continuation.resume(returning: key)
+          } else {
+            continuation
+              .resume(throwing: AppCheckCoreErrorUtil.error(withFailureReason: "Unknown error."))
+          }
+        }
+      }
+      _ = try await keyIDStorage.setAppAttestKeyID(keyID)
+      return keyID
+    } catch {
+      throw AppCheckCoreErrorUtil.appAttestGenerateKeyFailed(with: error)
+    }
+  }
+
+  static func storageKeySuffix(serviceName: String, resourceName: String) -> String {
+    return "\(serviceName).\(resourceName)"
+  }
+}
+
+// MARK: - Data Objects
+
+private class AppCheckCoreAppAttestKeyAttestationResult {
+  let keyID: String
+  let challenge: Data
+  let attestation: Data
+
+  init(keyID: String, challenge: Data, attestation: Data) {
+    self.keyID = keyID
+    self.challenge = challenge
+    self.attestation = attestation
+  }
+}
+
+private class AppCheckCoreAppAttestAssertionData {
+  let challenge: Data
+  let artifact: Data
+  let assertion: Data
+
+  init(challenge: Data, artifact: Data, assertion: Data) {
+    self.challenge = challenge
+    self.artifact = artifact
+    self.assertion = assertion
+  }
+}
+
+extension NSLock {
+  func execute<T>(_ block: () -> T) -> T {
+    lock()
+    defer { self.unlock() }
+    return block()
+  }
+}

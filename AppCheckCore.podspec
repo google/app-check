@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'AppCheckCore'
-  s.version          = '11.3.2'
+  s.version          = '12.0.0'
   s.summary          = 'App Check Core SDK.'
 
   s.description      = <<-DESC
@@ -17,12 +17,12 @@ Pod::Spec.new do |s|
   }
   s.social_media_url = 'https://twitter.com/Firebase'
 
-  ios_deployment_target = '12.0'
-  osx_deployment_target = '10.15'
-  tvos_deployment_target = '13.0'
-  watchos_deployment_target = '7.0'
+  ios_deployment_target = '15.0'
+  osx_deployment_target = '11.0'
+  tvos_deployment_target = '15.0'
+  watchos_deployment_target = '8.0'
 
-  s.swift_version = '5.5'
+  s.swift_version = '5.9'
 
   s.ios.deployment_target = ios_deployment_target
   s.osx.deployment_target = osx_deployment_target
@@ -35,7 +35,7 @@ Pod::Spec.new do |s|
   base_dir = "AppCheckCore/"
 
   s.source_files = [
-    base_dir + 'Sources/**/*.[mh]',
+    base_dir + 'Sources/**/*.{h,m,swift}',
   ]
   s.ios.source_files = [
     'AppCheckRecaptchaProvider/Sources/**/*.swift',
@@ -45,9 +45,6 @@ Pod::Spec.new do |s|
   s.ios.weak_framework = 'DeviceCheck'
   s.osx.weak_framework = 'DeviceCheck'
   s.tvos.weak_framework = 'DeviceCheck'
-
-  s.dependency 'PromisesObjC', '~> 2.4'
-  s.dependency 'PromisesSwift', '~> 2.4'
   s.dependency 'GoogleUtilities/Environment', '~> 8.0'
   s.dependency 'GoogleUtilities/UserDefaults', '~> 8.0'
   s.ios.dependency 'RecaptchaInterop', '~> 101.0'
@@ -64,8 +61,8 @@ Pod::Spec.new do |s|
       :tvos => tvos_deployment_target
     }
     unit_tests.source_files = [
-      base_dir + 'Tests/Unit/**/*.[mh]',
-      base_dir + 'Tests/Utils/**/*.[mh]',
+      base_dir + 'Tests/Unit/**/*.swift',
+      base_dir + 'Tests/Unit/ObjC/**/*.m',
     ]
 
     unit_tests.resources = base_dir + 'Tests/Fixture/**/*'
@@ -79,12 +76,12 @@ Pod::Spec.new do |s|
       :tvos => tvos_deployment_target
     }
     integration_tests.source_files = [
-      base_dir + 'Tests/Integration/**/*.[mh]',
-      base_dir + 'Tests/Integration/**/*.[mh]',
+      base_dir + 'Tests/Integration/**/*.swift',
     ]
     integration_tests.resources = base_dir + 'Tests/Fixture/**/*'
     integration_tests.requires_app_host = true
   end
+
 
   s.test_spec 'swift-unit' do |swift_unit_tests|
     swift_unit_tests.platforms = {

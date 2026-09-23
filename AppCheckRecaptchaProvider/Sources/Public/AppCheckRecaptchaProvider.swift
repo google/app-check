@@ -16,7 +16,6 @@
   import AppCheckCore
 #endif
 import Foundation
-import Promises
 import RecaptchaInterop
 
 /// Firebase App Check provider that verifies app integrity using the
@@ -47,13 +46,17 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
   ///   - resourceName: The name of the resource protected by App Check; for a Firebase App this is
   ///     "projects/{project_id}/apps/{app_id}".
   ///   - APIKey: The Google Cloud Platform API key.
-  ///   - requestHooks: Hooks that will be invoked on requests through this service.
-  // `@convention(block)` is required because the Swift compiler cannot automatically
-  // bridge collections of closures (like an Array) to Objective-C blocks. This attribute
-  // changes the closure's representation to match the Objective-C block heap layout.
+  ///   - requestHooks: Hooks invoked on each outgoing request. From Swift, pass
+  ///     `[AppCheckCoreAPIRequestHook]`. From Objective-C, pass an `NSArray` of blocks with the
+  ///     signature `void (^)(NSMutableURLRequest *)`; the signature is not checked at compile
+  ///     time and a mismatch will crash when the hook is invoked.
+  ///
+  ///     Typed `[Any]?` rather than `[AppCheckCoreAPIRequestHook]?` deliberately: Swift cannot
+  ///     bridge an `NSArray` into a Swift `Array` whose element is a function type, so the typed
+  ///     signature traps at runtime for any non-nil array passed from Objective-C. Do not
+  ///     "simplify" this type — see PR #111.
   @objc public convenience init?(siteKey: String, resourceName: String, APIKey: String,
-                                 requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? =
-                                   nil) {
+                                 requestHooks: [Any]? = nil) {
     self.init(
       siteKey: siteKey,
       resourceName: resourceName,
@@ -63,15 +66,29 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
     )
   }
 
+  /// - Parameters:
+  ///   - siteKey: The reCAPTCHA site key.
+  ///   - resourceName: The name of the resource protected by App Check; for a Firebase App this is
+  ///     "projects/{project_id}/apps/{app_id}".
+  ///   - APIKey: The Google Cloud Platform API key.
+  ///   - requestHooks: Hooks invoked on each outgoing request. From Swift, pass
+  ///     `[AppCheckCoreAPIRequestHook]`. From Objective-C, pass an `NSArray` of blocks with the
+  ///     signature `void (^)(NSMutableURLRequest *)`; the signature is not checked at compile
+  ///     time and a mismatch will crash when the hook is invoked.
+  ///
+  ///     Typed `[Any]?` rather than `[AppCheckCoreAPIRequestHook]?` deliberately: Swift cannot
+  ///     bridge an `NSArray` into a Swift `Array` whose element is a function type, so the typed
+  ///     signature traps at runtime for any non-nil array passed from Objective-C. Do not
+  ///     "simplify" this type — see PR #111.
+  ///   - actionName: The reCAPTCHA custom action name.
   @objc public convenience init?(siteKey: String, resourceName: String, APIKey: String,
-                                 requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? =
-                                   nil,
+                                 requestHooks: [Any]? = nil,
                                  actionName: String) {
     guard let sdk = RecaptchaEnterpriseSDKLoader(customAction: actionName) else {
       return nil
     }
 
-    let backoffWrapper = _GACAppCheckBackoffWrapper()
+    let backoffWrapper = AppCheckCoreBackoffWrapper()
     let tokenGenerator = RecaptchaTokenGenerator(
       siteKey: siteKey,
       recaptchaAction: sdk.action,
@@ -80,8 +97,8 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
     )
 
     let urlSession = URLSession(configuration: .ephemeral)
-    let appCheckAPIService = _GACAppCheckAPIService(urlSession: urlSession,
-                                                    baseURL: nil,
+    let appCheckAPIService = AppCheckCoreAPIService(urlSession: urlSession,
+                                                    baseURL: nil as String?,
                                                     apiKey: APIKey,
                                                     requestHooks: requestHooks)
     let apiService = RecaptchaAPIService(
@@ -99,38 +116,58 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
     super.init()
   }
 
+  public func getToken() async throws -> AppCheckCoreToken {
+    return try await getToken(limitedUse: false)
+  }
+
+  public func getLimitedUseToken() async throws -> AppCheckCoreToken {
+    return try await getToken(limitedUse: true)
+  }
+
   @objc(getTokenWithCompletion:)
   public func getToken(completion handler: @escaping (AppCheckCoreToken?, (any Error)?) -> Void) {
-    getToken(limitedUse: false)
-      .then { token in
-        handler(token, nil)
-      }.catch { error in
-        handler(nil, error)
+    Task {
+      do {
+        let token = try await getToken(limitedUse: false)
+        Self.deliverOnMainQueue(token, error: nil as Error?, to: handler)
+      } catch {
+        Self.deliverOnMainQueue(nil, error: error, to: handler)
       }
+    }
   }
 
   @objc(getLimitedUseTokenWithCompletion:)
   public func getLimitedUseToken(completion handler: @escaping (AppCheckCoreToken?, (any Error)?)
     -> Void) {
-    getToken(limitedUse: true)
-      .then { token in
-        handler(token, nil)
-      }.catch { error in
-        handler(nil, error)
+    Task {
+      do {
+        let token = try await getToken(limitedUse: true)
+        Self.deliverOnMainQueue(token, error: nil as Error?, to: handler)
+      } catch {
+        Self.deliverOnMainQueue(nil, error: error, to: handler)
       }
+    }
   }
 
-  private func getToken(limitedUse: Bool) -> Promise<AppCheckCoreToken> {
+  private func getToken(limitedUse: Bool) async throws -> AppCheckCoreToken {
     guard let tokenGenerator else {
-      return Promise(_GACAppCheckErrorUtil.missingRecaptchaSDKError())
+      throw AppCheckCoreErrorUtil.missingRecaptchaSDKError()
     }
-    return tokenGenerator.getRecaptchaToken()
-      .then { recaptchaToken in
-        self.apiService.appCheckToken(
-          with: recaptchaToken,
-          limitedUse: limitedUse
-        )
-      }
+    let recaptchaToken = try await tokenGenerator.getRecaptchaToken()
+    return try await apiService.appCheckToken(
+      with: recaptchaToken,
+      limitedUse: limitedUse
+    )
+  }
+
+  private static func deliverOnMainQueue<T: Sendable, E: Sendable>(_ result: T,
+                                                                   error: E?,
+                                                                   to completion: @escaping (T, E?)
+                                                                     -> Void) {
+    nonisolated(unsafe) let completion = completion
+    DispatchQueue.main.async {
+      completion(result, error)
+    }
   }
 }
 

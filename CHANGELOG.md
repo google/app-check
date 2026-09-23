@@ -1,7 +1,29 @@
+# 12.0.0
+- [changed] Ported AppCheckCore from Objective-C to Swift.
+- [changed] Raised Swift tools version to 6.0 for Swift Package Manager.
+- [changed] **Breaking change**: AppCheckCore's minimum supported versions have
+  updated for the following platforms:
+    - | Platform  | AppCheckCore 12 |
+      | ------------- | ------------- |
+      | iOS  | **15.0**  |
+      | macOS  | **11.0**  |
+      | tvOS  | **15.0**  |
+      | watchOS  | **8.0**  |
+      | Mac Catalyst  | **15.0**  |
+- [changed] **Breaking change**: The `GACAppCheckErrorDomain` global constant is no longer visible to Objective-C consumers due to the Swift migration. Use `GACAppCheckErrors.errorDomain` instead.
+  - Before: `if ([error.domain isEqualToString:GACAppCheckErrorDomain]) { ... }`
+  - After: `if ([error.domain isEqualToString:GACAppCheckErrors.errorDomain]) { ... }`
+- [changed] **Breaking change**: Objective-C classes can no longer be subclassed (Swift classes are `objc_subclassing_restricted`). Notably `GACAppCheckSettings` / `FIRAppCheckSettings`.
+- [changed] **Breaking change**: `GACAppCheckTokenResult` is now `final`.
+- [changed] **Breaking change**: `requestHooks:` is now typed `NSArray<id> *` instead of `NSArray<GACAppCheckAPIRequestHook> *`; blocks must match `void (^)(NSMutableURLRequest *)` exactly or they will crash when invoked.
+- [changed] Forced token refreshes are no longer coalesced with an in-flight unforced refresh. This resolves TODO(#42) from v11's `GACAppCheck.m`.
+- [fixed] `GACRecaptchaProvider`'s `requestHooks:` parameter now accepts `NSArray<id> *` / `[Any]?` fixing an `@objc` argument bridging trap when passing request hooks, and establishing `requestHooks:` bridging parity with other providers.
+
 # 11.3.2
-- [fixed] Fixed an issue where the time-to-live (TTL) for a cached token was calculated from the
-  moment the token response was processed locally, rather than when the request was initiated,
-  which could lead to artificially extended token lifetimes during app suspension.
+- [fixed] Fixed an issue where the time-to-live (TTL) for a cached token was
+  calculated from the moment the token response was processed locally, rather
+  than when the request was initiated, which could lead to artificially extended
+  token lifetimes during app suspension.
   (https://github.com/firebase/firebase-ios-sdk/issues/16573)
 
 # 11.3.1

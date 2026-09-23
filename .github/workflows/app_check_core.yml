@@ -17,12 +17,11 @@ jobs:
   pod_lib_lint:
     strategy:
       matrix:
-        # TODO: macos tests are blocked by https://github.com/erikdoe/ocmock/pull/532
-        target: [ios, tvos, macos --skip-tests, watchos]
+        target: [ios, tvos, macos, watchos]
         os: [macos-15, macos-26]
         include:
           - os: macos-15
-            xcode: Xcode_16.4
+            xcode: Xcode_26.2
           - os: macos-26
             xcode: Xcode_26.2
     runs-on: ${{ matrix.os }}
