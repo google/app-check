@@ -92,6 +92,13 @@ public class AppCheckCoreAPIService: NSObject,
         // Recover Objective-C blocks that fail the dynamic cast bridging
         return unsafeBitCast(obj as AnyObject, to: AppCheckCoreAPIRequestHook.self)
       }
+      // Dropping a hook is otherwise invisible: the request still succeeds,
+      // just without whatever the hook would have contributed.
+      AppCheckCoreLogger.log(
+        code: .unknown,
+        logLevel: .error,
+        message: "Ignoring a request hook that is not a block: \(type(of: obj))."
+      )
       return nil
     } ?? []
 
