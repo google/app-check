@@ -66,15 +66,21 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
     )
   }
 
-  /// - Parameter requestHooks: Hooks invoked on each outgoing request. From Swift, pass
-  ///   `[AppCheckCoreAPIRequestHook]`. From Objective-C, pass an `NSArray` of blocks with the
-  ///   signature `void (^)(NSMutableURLRequest *)`; the signature is not checked at compile
-  ///   time and a mismatch will crash when the hook is invoked.
+  /// - Parameters:
+  ///   - siteKey: The reCAPTCHA site key.
+  ///   - resourceName: The name of the resource protected by App Check; for a Firebase App this is
+  ///     "projects/{project_id}/apps/{app_id}".
+  ///   - APIKey: The Google Cloud Platform API key.
+  ///   - requestHooks: Hooks invoked on each outgoing request. From Swift, pass
+  ///     `[AppCheckCoreAPIRequestHook]`. From Objective-C, pass an `NSArray` of blocks with the
+  ///     signature `void (^)(NSMutableURLRequest *)`; the signature is not checked at compile
+  ///     time and a mismatch will crash when the hook is invoked.
   ///
-  ///   Typed `[Any]?` rather than `[AppCheckCoreAPIRequestHook]?` deliberately: Swift cannot
-  ///   bridge an `NSArray` into a Swift `Array` whose element is a function type, so the typed
-  ///   signature traps at runtime for any non-nil array passed from Objective-C. Do not
-  ///   "simplify" this type — see PR #111.
+  ///     Typed `[Any]?` rather than `[AppCheckCoreAPIRequestHook]?` deliberately: Swift cannot
+  ///     bridge an `NSArray` into a Swift `Array` whose element is a function type, so the typed
+  ///     signature traps at runtime for any non-nil array passed from Objective-C. Do not
+  ///     "simplify" this type — see PR #111.
+  ///   - actionName: The reCAPTCHA custom action name.
   @objc public convenience init?(siteKey: String, resourceName: String, APIKey: String,
                                  requestHooks: [Any]? = nil,
                                  actionName: String) {

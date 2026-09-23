@@ -17,6 +17,7 @@
 - [changed] **Breaking change**: `GACAppCheckTokenResult` is now `final`.
 - [changed] **Breaking change**: `requestHooks:` is now typed `NSArray<id> *` instead of `NSArray<GACAppCheckAPIRequestHook> *`; blocks must match `void (^)(NSMutableURLRequest *)` exactly or they will crash when invoked.
 - [changed] Forced token refreshes are no longer coalesced with an in-flight unforced refresh. This resolves TODO(#42) from v11's `GACAppCheck.m`.
+- [fixed] `GACRecaptchaProvider`'s `requestHooks:` parameter now accepts `NSArray<id> *` / `[Any]?` fixing an `@objc` argument bridging trap when passing request hooks, and establishing `requestHooks:` bridging parity with other providers.
 
 # 11.3.2
 - [fixed] Fixed an issue where the time-to-live (TTL) for a cached token was

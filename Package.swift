@@ -94,7 +94,10 @@ let package = Package(
     ),
     .testTarget(
       name: "AppCheckCoreUnitObjC",
-      dependencies: ["AppCheckCore"],
+      dependencies: [
+        "AppCheckCore",
+        "AppCheckRecaptchaProvider",
+      ],
       path: "AppCheckCore/Tests/Unit/ObjC",
       cSettings: [
         .headerSearchPath("../.."),
