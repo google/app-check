@@ -15,7 +15,7 @@
 #import <XCTest/XCTest.h>
 
 @import AppCheckCore;
-if (TARGET_OS_IOS || TARGET_OS_VISION) && !TARGET_OS_MACCATALYST
+#if SWIFT_PACKAGE && (TARGET_OS_IOS || TARGET_OS_VISION) && !TARGET_OS_MACCATALYST
 @import AppCheckRecaptchaProvider;
 #endif
 
@@ -347,7 +347,7 @@ if (TARGET_OS_IOS || TARGET_OS_VISION) && !TARGET_OS_MACCATALYST
   [self waitForExpectations:@[ hookExpectation, completionExpectation ] timeout:2.0];
 }
 
-#if (TARGET_OS_IOS || TARGET_OS_VISION) && !TARGET_OS_MACCATALYST
+#if SWIFT_PACKAGE && (TARGET_OS_IOS || TARGET_OS_VISION) && !TARGET_OS_MACCATALYST
 - (void)testRecaptchaProviderRequestHooksBridging {
   void (^hook)(NSMutableURLRequest *) = ^(NSMutableURLRequest *r) {
   };
