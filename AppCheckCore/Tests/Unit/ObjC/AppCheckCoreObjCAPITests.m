@@ -229,6 +229,27 @@
   XCTAssertEqualObjects(GACAppCheckErrors.errorDomain, @"com.google.app_check_core");
 }
 
+@end
+
+@interface GACAppCheckMockURLProtocol : NSURLProtocol
+@end
+@implementation GACAppCheckMockURLProtocol
++ (BOOL)canInitWithRequest:(NSURLRequest *)request {
+  return YES;
+}
++ (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request {
+  return request;
+}
+- (void)startLoading {
+  [self.client URLProtocol:self
+          didFailWithError:[NSError errorWithDomain:@"test" code:-1 userInfo:nil]];
+}
+- (void)stopLoading {
+}
+@end
+
+@implementation AppCheckCoreObjCAPITests (RequestHooksBridging)
+
 - (void)testRequestHooksBridging {
   XCTestExpectation *hookExpectation = [self expectationWithDescription:@"request hook called"];
 
@@ -236,17 +257,27 @@
     [hookExpectation fulfill];
   };
 
-  GACAppCheckDebugProvider *debugProvider =
-      [[GACAppCheckDebugProvider alloc] initWithServiceName:@"test"
-                                               resourceName:@"test"
-                                                    baseURL:nil
-                                                     APIKey:@"key"
-                                               requestHooks:@[ hook ]];
+  NSURLSessionConfiguration *config = [NSURLSessionConfiguration ephemeralSessionConfiguration];
+  config.protocolClasses = @[ [GACAppCheckMockURLProtocol class] ];
+  NSURLSession *stubSession = [NSURLSession sessionWithConfiguration:config];
 
-  [debugProvider getTokenWithCompletion:^(GACAppCheckToken *debugToken, NSError *error){
-  }];
+  GACAppCheckAPIService *apiService =
+      [[GACAppCheckAPIService alloc] initWithUrlSession:stubSession
+                                                baseURL:nil
+                                                 apiKey:@"key"
+                                           requestHooks:@[ hook, @"not a block" ]];
 
-  [self waitForExpectations:@[ hookExpectation ] timeout:2.0];
+  XCTestExpectation *completionExpectation = [self expectationWithDescription:@"completion called"];
+
+  [apiService sendRequestWithURL:[NSURL URLWithString:@"https://test.local"]
+                      httpMethod:@"GET"
+                            body:nil
+               additionalHeaders:nil
+               completionHandler:^(id response, NSError *_Nullable error) {
+                 [completionExpectation fulfill];
+               }];
+
+  [self waitForExpectations:@[ hookExpectation, completionExpectation ] timeout:2.0];
 }
 
 @end

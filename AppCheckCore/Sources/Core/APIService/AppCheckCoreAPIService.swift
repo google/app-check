@@ -36,18 +36,23 @@ public protocol AppCheckCoreAPIServiceProtocol: NSObjectProtocol {
     -> AppCheckCoreToken
 }
 
+@objc(GACAppCheckAPIService)
 public class AppCheckCoreAPIService: NSObject,
   AppCheckCoreAPIServiceProtocol {
+  private static let nsBlockClass: AnyClass? = NSClassFromString("NSBlock")
+
   public let baseURL: String
   private let urlSession: URLSession
   private let apiKey: String?
-  // Using Any for hook as it's typically `@convention(block) (NSMutableURLRequest) -> Void`
   private let requestHooks: [AppCheckCoreAPIRequestHook]
 
+  /// - Parameter requestHooks: Array of `AppCheckCoreAPIRequestHook` closures. Typed as `[Any]?` to
+  /// avoid an ObjC bridging crash from `[() -> Void]` arrays.
+  @objc
   public convenience init(urlSession: URLSession,
                           baseURL: String?,
                           apiKey: String?,
-                          requestHooks: [Any]? /* Typed as [Any]? to avoid an ObjC bridging crash (see fc4a7a0e) */ ) {
+                          requestHooks: [Any]?) {
     self.init(
       urlSession: urlSession,
       baseURL: baseURL,
@@ -58,17 +63,19 @@ public class AppCheckCoreAPIService: NSObject,
   }
 
   // Internal designated initializer
+  /// - Parameter requestHooks: Array of `AppCheckCoreAPIRequestHook` closures. Typed as `[Any]?` to
+  /// avoid an ObjC bridging crash from `[() -> Void]` arrays.
   public init(urlSession: URLSession,
               baseURL: String?,
               apiKey: String?,
-              requestHooks: [Any]? /* Typed as [Any]? to avoid an ObjC bridging crash (see fc4a7a0e) */,
+              requestHooks: [Any]?,
               environment: [String: String]) {
     self.urlSession = urlSession
     self.apiKey = apiKey
     self.requestHooks = requestHooks?.compactMap { obj in
       if let hook = obj as? AppCheckCoreAPIRequestHook {
         return hook
-      } else if String(describing: type(of: obj)).contains("Block") {
+      } else if let cls = Self.nsBlockClass, (obj as AnyObject).isKind(of: cls) {
         // Recover Objective-C blocks that fail the dynamic cast bridging
         return unsafeBitCast(obj as AnyObject, to: AppCheckCoreAPIRequestHook.self)
       }
@@ -93,6 +100,7 @@ public class AppCheckCoreAPIService: NSObject,
     super.init()
   }
 
+  @objc
   public func sendRequest(withURL requestURL: URL,
                           httpMethod: String,
                           body: Data?,
