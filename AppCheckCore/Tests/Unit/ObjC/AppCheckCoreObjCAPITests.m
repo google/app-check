@@ -15,6 +15,9 @@
 #import <XCTest/XCTest.h>
 
 @import AppCheckCore;
+#if TARGET_OS_IOS
+@import AppCheckRecaptchaProvider;
+#endif
 
 #pragma mark - Protocol Conformance Dummies
 
@@ -219,6 +222,7 @@
   GACAppCheckMessageCode msgProviderMissing = GACAppCheckMessageCodeProviderIsMissing;
   GACAppCheckMessageCode msgStaging = GACAppCheckMessageCodeStagingModeEnabled;
   GACAppCheckMessageCode msgHTTP = GACAppCheckMessageCodeUnexpectedHTTPCode;
+  GACAppCheckMessageCode msgInvalidRequestHook = GACAppCheckMessageCodeInvalidRequestHook;
   GACAppCheckMessageCode msgLocalToken = GACAppCheckMessageCodeLocalDebugToken;
   GACAppCheckMessageCode msgEnvToken = GACAppCheckMessageCodeEnvironmentVariableDebugToken;
   GACAppCheckMessageCode msgFirebaseEnv =
@@ -231,6 +235,7 @@
   XCTAssertEqual(msgProviderMissing, 2002);
   XCTAssertEqual(msgStaging, 2003);
   XCTAssertEqual(msgHTTP, 3001);
+  XCTAssertEqual(msgInvalidRequestHook, 3002);
   XCTAssertEqual(msgLocalToken, 4001);
   XCTAssertEqual(msgEnvToken, 4002);
   XCTAssertEqual(msgFirebaseEnv, 4003);
@@ -341,5 +346,18 @@
 
   [self waitForExpectations:@[ hookExpectation, completionExpectation ] timeout:2.0];
 }
+
+#if TARGET_OS_IOS
+- (void)testRecaptchaProviderRequestHooksBridging {
+  if (@available(iOS 15.0, *)) {
+    void (^hook)(NSMutableURLRequest *) = ^(NSMutableURLRequest *r) {
+    };
+    (void)[[GACRecaptchaProvider alloc] initWithSiteKey:@"key"
+                                           resourceName:@"projects/p/apps/a"
+                                                 APIKey:@"key"
+                                           requestHooks:@[ hook ]];
+  }
+}
+#endif
 
 @end

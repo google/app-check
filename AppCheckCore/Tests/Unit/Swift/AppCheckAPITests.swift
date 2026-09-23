@@ -253,6 +253,7 @@ final class AppCheckAPITests {
     case .providerIsMissing: break
     case .stagingModeEnabled: break
     case .unexpectedHTTPCode: break
+    case .invalidRequestHook: break
     case .localDebugToken: break
     case .environmentVariableDebugToken: break
     case .debugProviderFirebaseEnvironmentVariable: break

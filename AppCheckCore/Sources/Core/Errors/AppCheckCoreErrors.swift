@@ -80,6 +80,7 @@ public enum AppCheckCoreMessageCode: Int {
   case providerIsMissing = 2002
   case stagingModeEnabled = 2003
   case unexpectedHTTPCode = 3001
+  case invalidRequestHook = 3002
 
   // Debug Provider
   case localDebugToken = 4001
