@@ -15,7 +15,7 @@
 #import <XCTest/XCTest.h>
 
 @import AppCheckCore;
-#if TARGET_OS_IOS
+#if SWIFT_PACKAGE && (TARGET_OS_IOS || TARGET_OS_VISION) && !TARGET_OS_MACCATALYST
 @import AppCheckRecaptchaProvider;
 #endif
 
@@ -347,9 +347,9 @@
   [self waitForExpectations:@[ hookExpectation, completionExpectation ] timeout:2.0];
 }
 
-#if TARGET_OS_IOS
+#if (TARGET_OS_IOS || TARGET_OS_VISION) && !TARGET_OS_MACCATALYST
 - (void)testRecaptchaProviderRequestHooksBridging {
-  if (@available(iOS 15.0, *)) {
+  if (@available(iOS 15.0, visionOS 1.0, *)) {
     void (^hook)(NSMutableURLRequest *) = ^(NSMutableURLRequest *r) {
     };
     (void)[[GACRecaptchaProvider alloc] initWithSiteKey:@"key"
