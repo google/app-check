@@ -349,14 +349,12 @@ if (TARGET_OS_IOS || TARGET_OS_VISION) && !TARGET_OS_MACCATALYST
 
 #if (TARGET_OS_IOS || TARGET_OS_VISION) && !TARGET_OS_MACCATALYST
 - (void)testRecaptchaProviderRequestHooksBridging {
-  if (@available(iOS 15.0, visionOS 1.0, *)) {
-    void (^hook)(NSMutableURLRequest *) = ^(NSMutableURLRequest *r) {
-    };
-    (void)[[GACRecaptchaProvider alloc] initWithSiteKey:@"key"
-                                           resourceName:@"projects/p/apps/a"
-                                                 APIKey:@"key"
-                                           requestHooks:@[ hook ]];
-  }
+  void (^hook)(NSMutableURLRequest *) = ^(NSMutableURLRequest *r) {
+  };
+  (void)[[GACRecaptchaProvider alloc] initWithSiteKey:@"key"
+                                         resourceName:@"projects/p/apps/a"
+                                               APIKey:@"key"
+                                         requestHooks:@[ hook ]];
 }
 #endif
 
