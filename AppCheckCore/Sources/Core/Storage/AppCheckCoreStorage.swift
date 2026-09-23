@@ -20,37 +20,37 @@ import Foundation
 #endif
 
 @objc(GACAppCheckStorageProtocol)
-public protocol AppCheckCoreStorageProtocol: NSObjectProtocol {
+protocol AppCheckCoreStorageProtocol: NSObjectProtocol {
   func setToken(_ token: AppCheckCoreToken?) async throws -> AppCheckCoreToken?
   func getToken() async throws -> AppCheckCoreToken?
 }
 
 @objc(GACAppCheckStorage)
-public final class AppCheckCoreStorage: NSObject, AppCheckCoreStorageProtocol {
+final class AppCheckCoreStorage: NSObject, AppCheckCoreStorageProtocol {
   /// Storage service name for Keychain.
   /// Internal scope exists for testing purposes.
   /// Do not rename: retains value for compatibility with existing stored data from v11 or lower.
   static let keychainService = "com.google.app_check_core.token_storage"
 
-  public let tokenKey: String
+  let tokenKey: String
   let keychainStorage: GULKeychainStorage
-  public let accessGroup: String?
+  let accessGroup: String?
 
-  public init(tokenKey: String,
-              keychainStorage: GULKeychainStorage,
-              accessGroup: String?) {
+  init(tokenKey: String,
+       keychainStorage: GULKeychainStorage,
+       accessGroup: String?) {
     self.tokenKey = tokenKey
     self.keychainStorage = keychainStorage
     self.accessGroup = accessGroup
     super.init()
   }
 
-  public convenience init(tokenKey: String, accessGroup: String?) {
+  convenience init(tokenKey: String, accessGroup: String?) {
     let keychainStorage = GULKeychainStorage(service: Self.keychainService)
     self.init(tokenKey: tokenKey, keychainStorage: keychainStorage, accessGroup: accessGroup)
   }
 
-  public func getToken() async throws -> AppCheckCoreToken? {
+  func getToken() async throws -> AppCheckCoreToken? {
     return try await withSafeCheckedThrowingContinuation { continuation in
       keychainStorage.getObjectForKey(
         tokenKey,
@@ -70,7 +70,7 @@ public final class AppCheckCoreStorage: NSObject, AppCheckCoreStorageProtocol {
     }
   }
 
-  public func setToken(_ token: AppCheckCoreToken?) async throws -> AppCheckCoreToken? {
+  func setToken(_ token: AppCheckCoreToken?) async throws -> AppCheckCoreToken? {
     return try await withSafeCheckedThrowingContinuation { continuation in
       if let token = token {
         let storedToken = AppCheckCoreStoredToken()

@@ -46,8 +46,15 @@ public class AppCheckCoreAPIService: NSObject,
   private let apiKey: String?
   private let requestHooks: [AppCheckCoreAPIRequestHook]
 
-  /// - Parameter requestHooks: Array of `AppCheckCoreAPIRequestHook` closures. Typed as `[Any]?` to
-  /// avoid an ObjC bridging crash from `[() -> Void]` arrays.
+  /// - Parameter requestHooks: Hooks invoked on each outgoing request. From Swift, pass
+  ///   `[AppCheckCoreAPIRequestHook]`. From Objective-C, pass an `NSArray` of blocks with the
+  ///   signature `void (^)(NSMutableURLRequest *)`; the signature is not checked at compile
+  ///   time and a mismatch will crash when the hook is invoked.
+  ///
+  ///   Typed `[Any]?` rather than `[AppCheckCoreAPIRequestHook]?` deliberately: Swift cannot
+  ///   bridge an `NSArray` into a Swift `Array` whose element is a function type, so the typed
+  ///   signature traps at runtime for any non-nil array passed from Objective-C. Do not
+  ///   "simplify" this type — see PR #111.
   @objc(initWithURLSession:baseURL:APIKey:requestHooks:)
   public convenience init(urlSession: URLSession,
                           baseURL: String?,
@@ -62,9 +69,15 @@ public class AppCheckCoreAPIService: NSObject,
     )
   }
 
-  /// - Parameter requestHooks: Array of `AppCheckCoreAPIRequestHook` closures. Typed as `[Any]?` to
-  /// avoid an ObjC bridging crash from `[() -> Void]` arrays.
-  @objc(initWithURLSession:baseURL:APIKey:requestHooks:environment:)
+  /// - Parameter requestHooks: Hooks invoked on each outgoing request. From Swift, pass
+  ///   `[AppCheckCoreAPIRequestHook]`. From Objective-C, pass an `NSArray` of blocks with the
+  ///   signature `void (^)(NSMutableURLRequest *)`; the signature is not checked at compile
+  ///   time and a mismatch will crash when the hook is invoked.
+  ///
+  ///   Typed `[Any]?` rather than `[AppCheckCoreAPIRequestHook]?` deliberately: Swift cannot
+  ///   bridge an `NSArray` into a Swift `Array` whose element is a function type, so the typed
+  ///   signature traps at runtime for any non-nil array passed from Objective-C. Do not
+  ///   "simplify" this type — see PR #111.
   public init(urlSession: URLSession,
               baseURL: String?,
               apiKey: String?,

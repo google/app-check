@@ -17,7 +17,7 @@ import Foundation
 private let kResponseFieldToken = "token"
 private let kResponseFieldTTL = "ttl"
 
-public extension AppCheckCoreToken {
+extension AppCheckCoreToken {
   @objc(initWithTokenExchangeResponse:requestDate:error:)
   convenience init(tokenExchangeResponse response: Data, requestDate: Date) throws {
     guard !response.isEmpty else {

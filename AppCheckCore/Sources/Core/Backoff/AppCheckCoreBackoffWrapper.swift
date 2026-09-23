@@ -14,6 +14,9 @@
 
 import Foundation
 
+// Note: Swift derives ObjC enum constants from the case names, emitting
+// GACAppCheckBackoffTypeOneDay instead of v11's GACAppCheckBackoffType1Day. No consumer references
+// it, so this divergence is accepted.
 @objc(GACAppCheckBackoffType)
 public enum AppCheckCoreBackoffType: UInt {
   case none
@@ -63,6 +66,7 @@ private class AppCheckCoreBackoffOperationFailure: NSObject {
   }
 }
 
+@objc(_GACAppCheckBackoffWrapper)
 public class AppCheckCoreBackoffWrapper: NSObject, AppCheckCoreBackoffWrapperProtocol {
   private let dateProvider: AppCheckCoreDateProvider
   private var lastFailure: AppCheckCoreBackoffOperationFailure?

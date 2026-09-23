@@ -13,6 +13,10 @@
 - [changed] **Breaking change**: The `GACAppCheckErrorDomain` global constant is no longer visible to Objective-C consumers due to the Swift migration. Use `GACAppCheckErrors.errorDomain` instead.
   - Before: `if ([error.domain isEqualToString:GACAppCheckErrorDomain]) { ... }`
   - After: `if ([error.domain isEqualToString:GACAppCheckErrors.errorDomain]) { ... }`
+- [changed] **Breaking change**: Objective-C classes can no longer be subclassed (Swift classes are `objc_subclassing_restricted`). Notably `GACAppCheckSettings` / `FIRAppCheckSettings`.
+- [changed] **Breaking change**: `GACAppCheckTokenResult` is now `final`.
+- [changed] **Breaking change**: `requestHooks:` is now typed `NSArray<id> *` instead of `NSArray<GACAppCheckAPIRequestHook> *`; blocks must match `void (^)(NSMutableURLRequest *)` exactly or they will crash when invoked.
+- [changed] Forced token refreshes are no longer coalesced with an in-flight unforced refresh. This resolves TODO(#42) from v11's `GACAppCheck.m`.
 
 # 11.3.2
 - [fixed] Fixed an issue where the time-to-live (TTL) for a cached token was
