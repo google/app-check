@@ -26,7 +26,7 @@ public func AppCheckCoreSetErrorToPointer(_ error: Error, _ pointer: NSErrorPoin
   }
 }
 
-@objc(GACAppCheckErrorUtil)
+@objc(_GACAppCheckErrorUtil)
 public class AppCheckCoreErrorUtil: NSObject {
   @objc
   public static func publicDomainError(with error: Error) -> Error {

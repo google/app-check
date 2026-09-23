@@ -59,6 +59,23 @@
 @interface AppCheckCoreObjCAPITests : XCTestCase
 @end
 
+@interface GACAppCheckMockURLProtocol : NSURLProtocol
+@end
+@implementation GACAppCheckMockURLProtocol
++ (BOOL)canInitWithRequest:(NSURLRequest *)request {
+  return YES;
+}
++ (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request {
+  return request;
+}
+- (void)startLoading {
+  [self.client URLProtocol:self
+          didFailWithError:[NSError errorWithDomain:@"test" code:-1 userInfo:nil]];
+}
+- (void)stopLoading {
+}
+@end
+
 @implementation AppCheckCoreObjCAPITests
 
 - (void)testPublicAPICompileAndLink {
@@ -229,27 +246,6 @@
   XCTAssertEqualObjects(GACAppCheckErrors.errorDomain, @"com.google.app_check_core");
 }
 
-@end
-
-@interface GACAppCheckMockURLProtocol : NSURLProtocol
-@end
-@implementation GACAppCheckMockURLProtocol
-+ (BOOL)canInitWithRequest:(NSURLRequest *)request {
-  return YES;
-}
-+ (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request {
-  return request;
-}
-- (void)startLoading {
-  [self.client URLProtocol:self
-          didFailWithError:[NSError errorWithDomain:@"test" code:-1 userInfo:nil]];
-}
-- (void)stopLoading {
-}
-@end
-
-@implementation AppCheckCoreObjCAPITests (RequestHooksBridging)
-
 - (void)testRequestHooksBridging {
   XCTestExpectation *hookExpectation = [self expectationWithDescription:@"request hook called"];
 
@@ -261,11 +257,11 @@
   config.protocolClasses = @[ [GACAppCheckMockURLProtocol class] ];
   NSURLSession *stubSession = [NSURLSession sessionWithConfiguration:config];
 
-  GACAppCheckAPIService *apiService =
-      [[GACAppCheckAPIService alloc] initWithUrlSession:stubSession
-                                                baseURL:nil
-                                                 apiKey:@"key"
-                                           requestHooks:@[ hook, @"not a block" ]];
+  _GACAppCheckAPIService *apiService =
+      [[_GACAppCheckAPIService alloc] initWithURLSession:stubSession
+                                                 baseURL:nil
+                                                  APIKey:@"key"
+                                            requestHooks:@[ hook, @"not a block" ]];
 
   XCTestExpectation *completionExpectation = [self expectationWithDescription:@"completion called"];
 

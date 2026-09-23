@@ -14,7 +14,7 @@
 
 import Foundation
 
-@objc(GACAppCheckCoreBackoffType)
+@objc(GACAppCheckBackoffType)
 public enum AppCheckCoreBackoffType: UInt {
   case none
   case oneDay

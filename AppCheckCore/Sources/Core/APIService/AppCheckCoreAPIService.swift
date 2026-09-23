@@ -36,7 +36,7 @@ public protocol AppCheckCoreAPIServiceProtocol: NSObjectProtocol {
     -> AppCheckCoreToken
 }
 
-@objc(GACAppCheckAPIService)
+@objc(_GACAppCheckAPIService)
 public class AppCheckCoreAPIService: NSObject,
   AppCheckCoreAPIServiceProtocol {
   private static let nsBlockClass: AnyClass? = NSClassFromString("NSBlock")
@@ -48,7 +48,7 @@ public class AppCheckCoreAPIService: NSObject,
 
   /// - Parameter requestHooks: Array of `AppCheckCoreAPIRequestHook` closures. Typed as `[Any]?` to
   /// avoid an ObjC bridging crash from `[() -> Void]` arrays.
-  @objc
+  @objc(initWithURLSession:baseURL:APIKey:requestHooks:)
   public convenience init(urlSession: URLSession,
                           baseURL: String?,
                           apiKey: String?,
@@ -62,9 +62,9 @@ public class AppCheckCoreAPIService: NSObject,
     )
   }
 
-  // Internal designated initializer
   /// - Parameter requestHooks: Array of `AppCheckCoreAPIRequestHook` closures. Typed as `[Any]?` to
   /// avoid an ObjC bridging crash from `[() -> Void]` arrays.
+  @objc(initWithURLSession:baseURL:APIKey:requestHooks:environment:)
   public init(urlSession: URLSession,
               baseURL: String?,
               apiKey: String?,
