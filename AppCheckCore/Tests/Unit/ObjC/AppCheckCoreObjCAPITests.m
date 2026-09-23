@@ -246,24 +246,90 @@
   XCTAssertEqualObjects(GACAppCheckErrors.errorDomain, @"com.google.app_check_core");
 }
 
+/// Builds a session that never touches the network.
+- (NSURLSession *)stubSession {
+  NSURLSessionConfiguration *config = [NSURLSessionConfiguration ephemeralSessionConfiguration];
+  config.protocolClasses = @[ [GACAppCheckMockURLProtocol class] ];
+  return [NSURLSession sessionWithConfiguration:config];
+}
+
+/// Drives a request with a non-empty array of Objective-C blocks.
+///
+/// Elsewhere this file passes `requestHooks:nil`, which never builds an
+/// `NSArray` and so never crosses the bridge, and the Swift tests pass Swift
+/// closures, which never bridge either. Neither performs the motion Firebase
+/// actually performs.
+///
+/// Constructing the service is not enough to catch a bridging regression:
+/// `NSArray` to `Array` bridging is lazy, so the element cast is forced on
+/// first access, which happens while building a request.
+///
+/// The hook is shaped like `FIRHeartbeatLogger`'s App Check request hook, the
+/// only non-nil hook Firebase passes in production. Asserting that its header
+/// survives is stronger than asserting it ran: it shows the recovered block
+/// was invoked with the correct ABI and handed a usable request, not merely
+/// that control reached it.
 - (void)testRequestHooksBridging {
   XCTestExpectation *hookExpectation = [self expectationWithDescription:@"request hook called"];
+  XCTestExpectation *completionExpectation = [self expectationWithDescription:@"completion called"];
+
+  __block NSMutableURLRequest *capturedRequest = nil;
+  void (^heartbeatHook)(NSMutableURLRequest *) = ^(NSMutableURLRequest *request) {
+    [request setValue:@"test-heartbeat" forHTTPHeaderField:@"X-firebase-client"];
+    capturedRequest = request;
+    [hookExpectation fulfill];
+  };
+
+  _GACAppCheckAPIService *apiService =
+      [[_GACAppCheckAPIService alloc] initWithURLSession:[self stubSession]
+                                                 baseURL:nil
+                                                  APIKey:@"key"
+                                            requestHooks:@[ heartbeatHook ]];
+
+  [apiService sendRequestWithURL:[NSURL URLWithString:@"https://test.local"]
+                      httpMethod:@"GET"
+                            body:nil
+               additionalHeaders:nil
+               completionHandler:^(id response, NSError *_Nullable error) {
+                 [completionExpectation fulfill];
+               }];
+
+  [self waitForExpectations:@[ hookExpectation, completionExpectation ] timeout:2.0];
+
+  XCTAssertTrue([capturedRequest isKindOfClass:[NSMutableURLRequest class]]);
+  XCTAssertEqualObjects([capturedRequest valueForHTTPHeaderField:@"X-firebase-client"],
+                        @"test-heartbeat");
+}
+
+/// Objects that are not blocks must be ignored rather than reinterpreted.
+///
+/// `NSBlockOperation` is the case that matters, and the only one that tells
+/// the two candidate filters apart. A class-name substring check admits it,
+/// because "NSBlockOperation" contains "Block", and then bit-casts an
+/// `NSOperation` into a callable; invoking that exits the process with
+/// SIGSEGV. An `NSBlock` ancestry check rejects it. A non-block that is also
+/// not named "...Block...", such as an `NSString`, is rejected by both and so
+/// pins neither.
+///
+/// The valid hook is last so that rejecting an element cannot be mistaken for
+/// abandoning the rest of the array.
+- (void)testNonBlockRequestHooksAreIgnored {
+  XCTestExpectation *hookExpectation = [self expectationWithDescription:@"request hook called"];
+  XCTestExpectation *completionExpectation = [self expectationWithDescription:@"completion called"];
 
   void (^hook)(NSMutableURLRequest *) = ^(NSMutableURLRequest *request) {
     [hookExpectation fulfill];
   };
 
-  NSURLSessionConfiguration *config = [NSURLSessionConfiguration ephemeralSessionConfiguration];
-  config.protocolClasses = @[ [GACAppCheckMockURLProtocol class] ];
-  NSURLSession *stubSession = [NSURLSession sessionWithConfiguration:config];
+  NSBlockOperation *blockOperation = [NSBlockOperation blockOperationWithBlock:^{
+    XCTFail(@"A non-block request hook must never be invoked.");
+  }];
 
   _GACAppCheckAPIService *apiService =
-      [[_GACAppCheckAPIService alloc] initWithURLSession:stubSession
+      [[_GACAppCheckAPIService alloc] initWithURLSession:[self stubSession]
                                                  baseURL:nil
                                                   APIKey:@"key"
-                                            requestHooks:@[ hook, @"not a block" ]];
-
-  XCTestExpectation *completionExpectation = [self expectationWithDescription:@"completion called"];
+                                            requestHooks:@[ blockOperation, @"not a block", hook ]];
 
   [apiService sendRequestWithURL:[NSURL URLWithString:@"https://test.local"]
                       httpMethod:@"GET"

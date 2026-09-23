@@ -46,13 +46,17 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
   ///   - resourceName: The name of the resource protected by App Check; for a Firebase App this is
   ///     "projects/{project_id}/apps/{app_id}".
   ///   - APIKey: The Google Cloud Platform API key.
-  ///   - requestHooks: Hooks that will be invoked on requests through this service.
-  // `@convention(block)` is required because the Swift compiler cannot automatically
-  // bridge collections of closures (like an Array) to Objective-C blocks. This attribute
-  // changes the closure's representation to match the Objective-C block heap layout.
+  ///   - requestHooks: Hooks invoked on each outgoing request. From Swift, pass
+  ///     `[AppCheckCoreAPIRequestHook]`. From Objective-C, pass an `NSArray` of blocks with the
+  ///     signature `void (^)(NSMutableURLRequest *)`; the signature is not checked at compile
+  ///     time and a mismatch will crash when the hook is invoked.
+  ///
+  ///     Typed `[Any]?` rather than `[AppCheckCoreAPIRequestHook]?` deliberately: Swift cannot
+  ///     bridge an `NSArray` into a Swift `Array` whose element is a function type, so the typed
+  ///     signature traps at runtime for any non-nil array passed from Objective-C. Do not
+  ///     "simplify" this type — see PR #111.
   @objc public convenience init?(siteKey: String, resourceName: String, APIKey: String,
-                                 requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? =
-                                   nil) {
+                                 requestHooks: [Any]? = nil) {
     self.init(
       siteKey: siteKey,
       resourceName: resourceName,
@@ -62,9 +66,17 @@ public final class AppCheckRecaptchaProvider: NSObject, AppCheckCoreProvider {
     )
   }
 
+  /// - Parameter requestHooks: Hooks invoked on each outgoing request. From Swift, pass
+  ///   `[AppCheckCoreAPIRequestHook]`. From Objective-C, pass an `NSArray` of blocks with the
+  ///   signature `void (^)(NSMutableURLRequest *)`; the signature is not checked at compile
+  ///   time and a mismatch will crash when the hook is invoked.
+  ///
+  ///   Typed `[Any]?` rather than `[AppCheckCoreAPIRequestHook]?` deliberately: Swift cannot
+  ///   bridge an `NSArray` into a Swift `Array` whose element is a function type, so the typed
+  ///   signature traps at runtime for any non-nil array passed from Objective-C. Do not
+  ///   "simplify" this type — see PR #111.
   @objc public convenience init?(siteKey: String, resourceName: String, APIKey: String,
-                                 requestHooks: [@convention(block) (NSMutableURLRequest) -> Void]? =
-                                   nil,
+                                 requestHooks: [Any]? = nil,
                                  actionName: String) {
     guard let sdk = RecaptchaEnterpriseSDKLoader(customAction: actionName) else {
       return nil
