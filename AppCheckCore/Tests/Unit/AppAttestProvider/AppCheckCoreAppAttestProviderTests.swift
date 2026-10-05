@@ -176,6 +176,8 @@ class FakeAppCheckBackoffWrapper: NSObject, AppCheckCoreBackoffWrapperProtocol {
   var isNextOperationAllowed: Bool = true
   var backoffCalledCount = 0
   var defaultErrorHandler: ((Error) -> AppCheckCoreBackoffType)?
+  /// The backoff type returned by the provider's error handler for each failed operation.
+  var errorHandlerResults: [AppCheckCoreBackoffType] = []
 
   func defaultAppCheckProviderErrorHandler() -> (Error) -> AppCheckCoreBackoffType {
     return { error in .none }
@@ -194,7 +196,7 @@ class FakeAppCheckBackoffWrapper: NSObject, AppCheckCoreBackoffWrapperProtocol {
       if let defaultErrorHandler = defaultErrorHandler {
         _ = defaultErrorHandler(error)
       } else {
-        _ = errorHandler(error)
+        errorHandlerResults.append(errorHandler(error))
       }
       throw error
     }
@@ -398,6 +400,9 @@ class AppCheckCoreAppAttestProviderTests: XCTestCase {
 
     XCTAssertEqual(fakeBackoffWrapper.backoffCalledCount, 1)
     XCTAssertEqual(mockAPIService.attestKeyCallCount, 0)
+    // Errors that don't come from DeviceCheck keep the key and use the default backoff.
+    XCTAssertEqual(mockStorage.setAppAttestKeyIDCallCount, 0)
+    XCTAssertEqual(fakeBackoffWrapper.errorHandlerResults, [.none])
   }
 
   func testGetToken_WhenUnregisteredKeyAndKeyAttestationExchangeError() async throws {
@@ -505,6 +510,135 @@ class AppCheckCoreAppAttestProviderTests: XCTestCase {
     try await assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAttestationError(
       invalidInputError
     )
+  }
+
+  // MARK: - Failed key attestation (other DeviceCheck errors)
+
+  func testGetToken_WhenKeyAttestationFailsWithOtherDeviceCheckError_ThenKeyIsDiscardedWithoutRetry() async throws {
+    try await assertKeyIsDiscardedWithoutRetryWhenKeyAttestationFails(
+      withErrorCode: DCError.unknownSystemFailure.rawValue
+    )
+
+    resetMocks()
+    try await assertKeyIsDiscardedWithoutRetryWhenKeyAttestationFails(
+      withErrorCode: DCError.featureUnsupported.rawValue
+    )
+
+    resetMocks()
+    // An error code that a future OS version might add.
+    try await assertKeyIsDiscardedWithoutRetryWhenKeyAttestationFails(withErrorCode: 1000)
+  }
+
+  func testGetToken_WhenAssertionAndNewKeyAttestationFailWithSystemFailure_ThenNewKeyIsDiscarded() async throws {
+    // An assertion failure resets the key and retries attestation with a new key. If attesting
+    // the new key fails too, the new key must not be kept either.
+    let systemFailureError = NSError(
+      domain: DCErrorDomain,
+      code: DCError.unknownSystemFailure.rawValue
+    )
+    mockAppCheckCoreAppAttestService.isSupportedResult = true
+    mockStorage.getAppAttestKeyIDResults.append(.success("existingKeyID"))
+    mockArtifactStorage.getArtifactResults.append(.success("storedArtifact".data(using: .utf8)!))
+    mockAPIService.getRandomChallengeResults.append(.success(randomChallenge))
+    mockAppCheckCoreAppAttestService.generateAssertionResults.append(.failure(systemFailureError))
+    expectAttestationReset()
+
+    expectAppAttestAvailabilityToBeCheckedAndNotExistingStoredKeyRequested()
+    let newKeyID = "newKeyID"
+    mockAppCheckCoreAppAttestService.generateKeyResults.append(.success(newKeyID))
+    mockStorage.setAppAttestKeyIDResults.append(.success(newKeyID))
+    mockAPIService.getRandomChallengeResults.append(.success(randomChallenge))
+    mockAppCheckCoreAppAttestService.attestKeyResults.append(.failure(systemFailureError))
+    expectAttestationReset()
+
+    do {
+      _ = try await provider.getToken()
+      XCTFail("Should throw")
+    } catch {
+      XCTAssertEqual(
+        (error as NSError).userInfo[NSUnderlyingErrorKey] as? NSError,
+        systemFailureError
+      )
+    }
+
+    XCTAssertEqual(mockStorage.setAppAttestKeyIDArgs, [nil, newKeyID, nil])
+    XCTAssertEqual(mockAppCheckCoreAppAttestService.generateKeyCallCount, 1)
+    XCTAssertEqual(mockAppCheckCoreAppAttestService.attestKeyCallCount, 1)
+    XCTAssertEqual(mockAPIService.attestKeyCallCount, 0)
+    XCTAssertEqual(fakeBackoffWrapper.errorHandlerResults, [.exponential])
+  }
+
+  func testGetToken_WhenKeyAttestationFailsWithServerUnavailable_ThenSameKeyIsRetriedAfterBackoff() async throws {
+    // Use the real backoff wrapper with a controllable clock.
+    var currentDate = Date()
+    provider = AppCheckCoreAppAttestProvider(
+      appAttestService: mockAppCheckCoreAppAttestService,
+      apiService: mockAPIService,
+      keyIDStorage: mockStorage,
+      artifactStorage: mockArtifactStorage,
+      backoffWrapper: AppCheckCoreBackoffWrapper(dateProvider: { currentDate })
+    )
+
+    mockAppCheckCoreAppAttestService.isSupportedResult = true
+    let existingKeyID = "existingKeyID"
+    mockStorage.getAppAttestKeyIDResults.append(.success(existingKeyID))
+    mockArtifactStorage.getArtifactResults.append(.success(nil))
+    mockAPIService.getRandomChallengeResults.append(.success(randomChallenge))
+    let serverUnavailableError = NSError(
+      domain: DCErrorDomain,
+      code: DCError.serverUnavailable.rawValue
+    )
+    mockAppCheckCoreAppAttestService.attestKeyResults.append(.failure(serverUnavailableError))
+
+    do {
+      _ = try await provider.getToken()
+      XCTFail("Should throw")
+    } catch {
+      XCTAssertEqual(
+        (error as NSError).userInfo[NSUnderlyingErrorKey] as? NSError,
+        serverUnavailableError
+      )
+    }
+
+    // Apple: "try attestation again later with the same key." The key is kept, and an immediate
+    // retry is backed off without calling Apple's server.
+    XCTAssertEqual(mockStorage.setAppAttestKeyIDCallCount, 0)
+    XCTAssertEqual(mockArtifactStorage.setArtifactCallCount, 0)
+
+    do {
+      _ = try await provider.getToken()
+      XCTFail("Should throw")
+    } catch {
+      let failureReason = (error as NSError).userInfo[NSLocalizedFailureReasonErrorKey] as? String
+      XCTAssertTrue(failureReason?.hasPrefix("Too many attempts.") ?? false)
+    }
+    XCTAssertEqual(mockStorage.getAppAttestKeyIDCallCount, 1)
+    XCTAssertEqual(mockAppCheckCoreAppAttestService.attestKeyCallCount, 1)
+
+    // The first backoff interval is 1-1.5 seconds. After it, the same key is attested again.
+    currentDate = currentDate.addingTimeInterval(2)
+    mockStorage.getAppAttestKeyIDResults.append(.success(existingKeyID))
+    mockArtifactStorage.getArtifactResults.append(.success(nil))
+    mockAPIService.getRandomChallengeResults.append(.success(randomChallenge))
+    let attestationData = "attestation data".data(using: .utf8)!
+    mockAppCheckCoreAppAttestService.attestKeyResults.append(.success(attestationData))
+    let facToken = AppCheckCoreToken(token: "FAC token", expirationDate: Date())
+    let artifactData = "attestation artifact".data(using: .utf8)!
+    let attestKeyResponse = AppCheckCoreAppAttestAttestationResponse(
+      artifact: artifactData,
+      token: facToken
+    )
+    mockAPIService.attestKeyResults.append(.success(attestKeyResponse))
+    mockArtifactStorage.setArtifactResults.append(.success(artifactData))
+
+    let token = try await provider.getToken()
+
+    XCTAssertEqual(token.token, facToken.token)
+    XCTAssertEqual(
+      mockAppCheckCoreAppAttestService.attestKeyArgs.map { $0.keyId },
+      [existingKeyID, existingKeyID]
+    )
+    XCTAssertEqual(mockStorage.setAppAttestKeyIDCallCount, 0)
   }
 
   // MARK: - FAC token refresh (assertion)
@@ -840,6 +974,39 @@ class AppCheckCoreAppAttestProviderTests: XCTestCase {
     expectAttestationReset()
 
     // Assert that attestation is tried successfully.
+    try await assertGetToken_WhenNoExistingKey_Success()
+  }
+
+  func assertKeyIsDiscardedWithoutRetryWhenKeyAttestationFails(withErrorCode errorCode: Int) async throws {
+    mockAppCheckCoreAppAttestService.isSupportedResult = true
+    mockStorage.getAppAttestKeyIDResults.append(.success("existingKeyID"))
+    mockArtifactStorage.getArtifactResults.append(.success(nil))
+    mockAPIService.getRandomChallengeResults.append(.success(randomChallenge))
+    let deviceCheckError = NSError(domain: DCErrorDomain, code: errorCode)
+    mockAppCheckCoreAppAttestService.attestKeyResults.append(.failure(deviceCheckError))
+    expectAttestationReset()
+
+    do {
+      _ = try await provider.getToken()
+      XCTFail("Should throw")
+    } catch {
+      XCTAssertEqual(
+        (error as NSError).userInfo[NSUnderlyingErrorKey] as? NSError,
+        deviceCheckError
+      )
+    }
+
+    // Apple: "For any other error, discard the key identifier and create a new key when you want
+    // to try again." The key is discarded, but attestation is not retried within the same
+    // request, and the request is backed off.
+    XCTAssertEqual(mockStorage.setAppAttestKeyIDArgs, [nil])
+    XCTAssertEqual(mockArtifactStorage.setArtifactCallCount, 1)
+    XCTAssertEqual(mockAppCheckCoreAppAttestService.generateKeyCallCount, 0)
+    XCTAssertEqual(mockAppCheckCoreAppAttestService.attestKeyCallCount, 1)
+    XCTAssertEqual(mockAPIService.attestKeyCallCount, 0)
+    XCTAssertEqual(fakeBackoffWrapper.errorHandlerResults, [.exponential])
+
+    // The next request generates and attests a new key.
     try await assertGetToken_WhenNoExistingKey_Success()
   }
 

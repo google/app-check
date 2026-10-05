@@ -187,9 +187,18 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
 
   private func createGetTokenSequenceWithBackoff(limitedUse: Bool) async throws
     -> AppCheckCoreToken {
+    let defaultErrorHandler = backoffWrapper.defaultAppCheckProviderErrorHandler()
     return try await backoffWrapper.applyBackoffToOperation({
       try await self.createGetTokenSequence(limitedUse: limitedUse)
-    }, errorHandler: backoffWrapper.defaultAppCheckProviderErrorHandler())
+    }, errorHandler: { error in
+      // Back off after DeviceCheck errors. Retrying them right away rarely helps, and attesting a
+      // key calls Apple's server, which "might throttle attestation traffic". Apple asks apps "to
+      // have a mechanism to pull back on requests".
+      if AppCheckCoreAppAttestProvider.deviceCheckError(from: error) != nil {
+        return .exponential
+      }
+      return defaultErrorHandler(error)
+    })
   }
 
   private func createGetTokenSequence(limitedUse: Bool) async throws -> AppCheckCoreToken {
@@ -320,18 +329,35 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
     do {
       attestationResult = try await attestKey(keyID: generatedKeyID, challenge: challenge)
     } catch {
-      let nsError = error as NSError
-      if let underlyingError = nsError.userInfo[NSUnderlyingErrorKey] as? NSError,
-         underlyingError.domain == DCErrorDomain,
-         underlyingError.code == DCError.invalidKey.rawValue || underlyingError.code == DCError
-         .invalidInput.rawValue {
-        AppCheckCoreLogger.log(
-          code: .attestationRejected,
-          logLevel: .debug,
-          message: "App Attest invalid key/input; the existing attestation will be reset. DC Error Code: \(underlyingError.code)."
-        )
-        try await resetAttestation()
-        throw AppCheckCoreAppAttestRejectionError(underlyingError: error)
+      if let deviceCheckError = AppCheckCoreAppAttestProvider.deviceCheckError(from: error) {
+        switch deviceCheckError.code {
+        case DCError.invalidKey.rawValue, DCError.invalidInput.rawValue:
+          AppCheckCoreLogger.log(
+            code: .attestationRejected,
+            logLevel: .debug,
+            message: "App Attest invalid key/input; the existing attestation will be reset. DC Error Code: \(deviceCheckError.code)."
+          )
+          try await resetAttestation()
+          throw AppCheckCoreAppAttestRejectionError(underlyingError: error)
+        case DCError.serverUnavailable.rawValue:
+          // Apple: "If the method, which accesses a remote Apple server, returns the
+          // serverUnavailable error, try attestation again later with the same key." Keep the key;
+          // the backoff applied in `createGetTokenSequenceWithBackoff` provides the "later".
+          throw error
+        default:
+          // Apple: "For any other error, discard the key identifier and create a new key when you
+          // want to try again." Unlike invalid key/input, don't retry right away: errors such as
+          // `unknownSystemFailure` can persist, and an immediate retry would generate another key
+          // and call Apple's server again. The next token request, after the backoff, generates a
+          // new key.
+          AppCheckCoreLogger.log(
+            code: .attestationRejected,
+            logLevel: .debug,
+            message: "App Attest key attestation failed; the key will be discarded and a new key generated on the next attempt. DC Error Code: \(deviceCheckError.code)."
+          )
+          try await resetAttestation()
+          throw error
+        }
       }
       if let rejectionError = error as? AppCheckCoreAppAttestRejectionError {
         throw rejectionError.underlyingError ?? rejectionError
@@ -478,6 +504,20 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
   }
 
   // MARK: - Helpers
+
+  /// Returns the DeviceCheck error behind `error`, if any. `AppCheckCoreErrorUtil` wraps App Attest
+  /// errors and stores the original `DCError` under `NSUnderlyingErrorKey`.
+  private static func deviceCheckError(from error: Error) -> NSError? {
+    let nsError = error as NSError
+    if nsError.domain == DCErrorDomain {
+      return nsError
+    }
+    if let underlyingError = nsError.userInfo[NSUnderlyingErrorKey] as? NSError,
+       underlyingError.domain == DCErrorDomain {
+      return underlyingError
+    }
+    return nil
+  }
 
   private func isAppAttestSupported() async throws {
     if appAttestService.isSupported {
