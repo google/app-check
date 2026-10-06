@@ -253,13 +253,21 @@ class AppCheckCoreAppAttestProviderTests: XCTestCase {
   }
 
   func attestationRejectionHTTPError() -> AppCheckCoreHTTPError {
+    return httpError(statusCode: 403, body: "Could not verify attestation")
+  }
+
+  func assertionRejectionHTTPError() -> AppCheckCoreHTTPError {
+    return httpError(statusCode: 403)
+  }
+
+  func httpError(statusCode: Int, body: String? = nil) -> AppCheckCoreHTTPError {
     let response = HTTPURLResponse(
       url: URL(string: "http://localhost")!,
-      statusCode: 403,
+      statusCode: statusCode,
       httpVersion: "HTTP/1.1",
       headerFields: nil
     )!
-    let responseBody = "Could not verify attestation".data(using: .utf8)!
+    let responseBody = (body ?? "HTTP error \(statusCode)").data(using: .utf8)!
     return AppCheckCoreHTTPError(httpResponse: response, data: responseBody)
   }
 
@@ -282,6 +290,24 @@ class AppCheckCoreAppAttestProviderTests: XCTestCase {
   func expectAttestationReset() {
     mockStorage.setAppAttestKeyIDResults.append(.success(nil))
     mockArtifactStorage.setArtifactResults.append(.success(nil))
+  }
+
+  /// Scripts the start of a token request with a registered key: App Attest is supported, and a
+  /// key ID and an artifact are stored.
+  func expectRegisteredKey(withKeyID keyID: String = "existingKeyID") {
+    mockAppCheckCoreAppAttestService.isSupportedResult = true
+    mockStorage.getAppAttestKeyIDResults.append(.success(keyID))
+    mockArtifactStorage.getArtifactResults.append(.success("storedArtifact".data(using: .utf8)!))
+  }
+
+  /// Scripts a token request with a registered key, whose assertion exchange returns `result`.
+  func expectAssertionExchange(withResult result: Result<AppCheckCoreToken, Error>,
+                               keyID: String = "existingKeyID") {
+    expectRegisteredKey(withKeyID: keyID)
+    mockAPIService.getRandomChallengeResults.append(.success(randomChallenge))
+    mockAppCheckCoreAppAttestService.generateAssertionResults
+      .append(.success("generatedAssertion".data(using: .utf8)!))
+    mockAPIService.getAppCheckCoreTokenResults.append(result)
   }
 
   // MARK: - Initial handshake (attestation)
@@ -629,6 +655,160 @@ class AppCheckCoreAppAttestProviderTests: XCTestCase {
     )
   }
 
+  // MARK: - Assertion rejected by backend
+
+  func testGetToken_WhenBackendRejectsAssertionThreeTimesInARow_ThenAttestationIsResetAndRetriedOnceSuccess() async throws {
+    // The first two rejections keep the key and the artifact.
+    await assertGetTokenFails(withAssertionExchangeError: assertionRejectionHTTPError())
+    await assertGetTokenFails(withAssertionExchangeError: assertionRejectionHTTPError())
+    XCTAssertEqual(mockStorage.setAppAttestKeyIDCallCount, 0)
+    XCTAssertEqual(mockArtifactStorage.setArtifactCallCount, 0)
+
+    // The third rejection in a row resets the attestation, and the same request attests a new key.
+    expectAssertionExchange(withResult: .failure(assertionRejectionHTTPError()))
+    expectAttestationReset()
+    try await assertGetToken_WhenNoExistingKey_Success()
+
+    XCTAssertEqual(fakeBackoffWrapper.backoffCalledCount, 3)
+    XCTAssertEqual(mockAPIService.getAppCheckCoreTokenCallCount, 3)
+    XCTAssertEqual(mockStorage.setAppAttestKeyIDArgs, [nil, "generatedKeyID"])
+    XCTAssertEqual(mockArtifactStorage.setArtifactArgs.map { $0.artifact },
+                   [nil, "attestation artifact".data(using: .utf8)!])
+    XCTAssertEqual(mockAppCheckCoreAppAttestService.generateKeyCallCount, 1)
+  }
+
+  func testGetToken_WhenBackendRejectsAssertionThreeTimesInARow_ThenAttestationIsResetAndRetriedOnceError() async throws {
+    await assertGetTokenFails(withAssertionExchangeError: assertionRejectionHTTPError())
+    await assertGetTokenFails(withAssertionExchangeError: assertionRejectionHTTPError())
+
+    // The third rejection resets the attestation and retries with a new key. The backend rejects
+    // the new key's attestation, which resets the attestation again. There is no second retry.
+    expectAssertionExchange(withResult: .failure(assertionRejectionHTTPError()))
+    expectAttestationReset()
+    expectAppAttestAvailabilityToBeCheckedAndNotExistingStoredKeyRequested()
+    let newKeyID = "newKeyID"
+    let attestationData = "attestation data".data(using: .utf8)!
+    expectAppAttestKeyGeneratedAndAttested(withKeyID: newKeyID, attestationData: attestationData)
+    let attestationError = attestationRejectionHTTPError()
+    mockAPIService.attestKeyResults.append(.failure(attestationError))
+    expectAttestationReset()
+
+    do {
+      _ = try await provider.getToken()
+      XCTFail("Should throw")
+    } catch {
+      // The retry's error is returned, not the assertion rejection.
+      XCTAssertEqual(error as NSError, attestationError as NSError)
+    }
+
+    XCTAssertEqual(mockStorage.setAppAttestKeyIDArgs, [nil, newKeyID, nil])
+    XCTAssertEqual(mockArtifactStorage.setArtifactArgs.map { $0.artifact }, [nil, nil])
+    XCTAssertEqual(mockAppCheckCoreAppAttestService.generateKeyCallCount, 1)
+    XCTAssertEqual(mockAPIService.attestKeyCallCount, 1)
+  }
+
+  func testGetToken_WhenAssertionSucceedsBetweenBackendRejections_ThenAttestationIsKept() async throws {
+    await assertGetTokenFails(withAssertionExchangeError: assertionRejectionHTTPError())
+    await assertGetTokenFails(withAssertionExchangeError: assertionRejectionHTTPError())
+
+    // A successful assertion exchange starts the count over.
+    let facToken = AppCheckCoreToken(token: "FAC token", expirationDate: Date())
+    expectAssertionExchange(withResult: .success(facToken))
+    let token = try await provider.getToken()
+    XCTAssertEqual(token.token, facToken.token)
+
+    await assertGetTokenFails(withAssertionExchangeError: assertionRejectionHTTPError())
+    await assertGetTokenFails(withAssertionExchangeError: assertionRejectionHTTPError())
+
+    XCTAssertEqual(mockAPIService.getAppCheckCoreTokenCallCount, 5)
+    XCTAssertEqual(mockStorage.setAppAttestKeyIDCallCount, 0)
+    XCTAssertEqual(mockArtifactStorage.setArtifactCallCount, 0)
+  }
+
+  func testGetToken_WhenAssertionExchangeFailsWithOtherErrors_ThenAttestationIsKept() async throws {
+    var otherErrors: [Error] = [400, 401, 404, 429, 500, 503].map { httpError(statusCode: $0) }
+    otherErrors.append(NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut))
+    for error in otherErrors {
+      await assertGetTokenFails(withAssertionExchangeError: error)
+    }
+
+    XCTAssertEqual(mockAPIService.getAppCheckCoreTokenCallCount, otherErrors.count)
+    XCTAssertEqual(mockStorage.setAppAttestKeyIDCallCount, 0)
+    XCTAssertEqual(mockArtifactStorage.setArtifactCallCount, 0)
+  }
+
+  func testGetToken_WhenOtherErrorInterruptsBackendRejections_ThenCountStartsOver() async throws {
+    await assertGetTokenFails(withAssertionExchangeError: assertionRejectionHTTPError())
+    await assertGetTokenFails(withAssertionExchangeError: assertionRejectionHTTPError())
+    // A different error means the rejections are no longer in a row.
+    await assertGetTokenFails(withAssertionExchangeError: httpError(statusCode: 503))
+    await assertGetTokenFails(withAssertionExchangeError: assertionRejectionHTTPError())
+    await assertGetTokenFails(withAssertionExchangeError: assertionRejectionHTTPError())
+    XCTAssertEqual(mockStorage.setAppAttestKeyIDCallCount, 0)
+    XCTAssertEqual(mockArtifactStorage.setArtifactCallCount, 0)
+
+    // The third rejection in a row after the 503 resets the attestation.
+    expectAssertionExchange(withResult: .failure(assertionRejectionHTTPError()))
+    expectAttestationReset()
+    try await assertGetToken_WhenNoExistingKey_Success()
+
+    XCTAssertEqual(mockStorage.setAppAttestKeyIDArgs, [nil, "generatedKeyID"])
+    XCTAssertEqual(mockArtifactStorage.setArtifactArgs.map { $0.artifact },
+                   [nil, "attestation artifact".data(using: .utf8)!])
+  }
+
+  func testGetToken_WhenStoredKeyChangesBetweenBackendRejections_ThenCountStartsOver() async throws {
+    await assertGetTokenFails(withAssertionExchangeError: assertionRejectionHTTPError(),
+                              keyID: "keyID1")
+    await assertGetTokenFails(withAssertionExchangeError: assertionRejectionHTTPError(),
+                              keyID: "keyID1")
+    // The first rejection for a different key doesn't continue the count.
+    await assertGetTokenFails(withAssertionExchangeError: assertionRejectionHTTPError(),
+                              keyID: "keyID2")
+
+    XCTAssertEqual(mockStorage.setAppAttestKeyIDCallCount, 0)
+    XCTAssertEqual(mockArtifactStorage.setArtifactCallCount, 0)
+  }
+
+  func testGetToken_WhenRequestFailsBeforeAssertionExchange_ThenCountIsUnchanged() async throws {
+    await assertGetTokenFails(withAssertionExchangeError: assertionRejectionHTTPError())
+    await assertGetTokenFails(withAssertionExchangeError: assertionRejectionHTTPError())
+
+    // Failures before the exchange neither add to the count nor start it over, not even a 403 from
+    // the challenge request.
+    let challengeError = assertionRejectionHTTPError()
+    expectRegisteredKey()
+    mockAPIService.getRandomChallengeResults.append(.failure(challengeError))
+    do {
+      _ = try await provider.getToken()
+      XCTFail("Should throw")
+    } catch {
+      XCTAssertEqual(error as NSError, challengeError as NSError)
+    }
+
+    let assertionError = NSError(domain: DCErrorDomain, code: DCError.serverUnavailable.rawValue)
+    expectRegisteredKey()
+    mockAPIService.getRandomChallengeResults.append(.success(randomChallenge))
+    mockAppCheckCoreAppAttestService.generateAssertionResults.append(.failure(assertionError))
+    do {
+      _ = try await provider.getToken()
+      XCTFail("Should throw")
+    } catch {
+      XCTAssertEqual((error as NSError).userInfo[NSUnderlyingErrorKey] as? NSError, assertionError)
+    }
+
+    XCTAssertEqual(mockAPIService.getAppCheckCoreTokenCallCount, 2)
+    XCTAssertEqual(mockStorage.setAppAttestKeyIDCallCount, 0)
+    XCTAssertEqual(mockArtifactStorage.setArtifactCallCount, 0)
+
+    // The next rejection is the third in a row, so it resets the attestation.
+    expectAssertionExchange(withResult: .failure(assertionRejectionHTTPError()))
+    expectAttestationReset()
+    try await assertGetToken_WhenNoExistingKey_Success()
+
+    XCTAssertEqual(mockStorage.setAppAttestKeyIDArgs, [nil, "generatedKeyID"])
+  }
+
   // MARK: - Request merging
 
   func testGetToken_WhenCalledSeveralTimesSuccess_ThenThereIsOnlyOneOngoingHandshake() async throws {
@@ -789,6 +969,19 @@ class AppCheckCoreAppAttestProviderTests: XCTestCase {
 
     XCTAssertEqual(token.token, facToken.token)
     XCTAssertEqual(token.expirationDate, facToken.expirationDate)
+  }
+
+  /// Makes a token request with a registered key, whose assertion exchange fails with
+  /// `exchangeError`, and checks that the request fails with that error.
+  func assertGetTokenFails(withAssertionExchangeError exchangeError: Error,
+                           keyID: String = "existingKeyID") async {
+    expectAssertionExchange(withResult: .failure(exchangeError), keyID: keyID)
+    do {
+      _ = try await provider.getToken()
+      XCTFail("Should throw")
+    } catch {
+      XCTAssertEqual(error as NSError, exchangeError as NSError)
+    }
   }
 
   func assertAttestationResetAndGetTokenRetryWhenExistingKeyIsRejectedWithAttestationError(_ error: NSError) async throws {
