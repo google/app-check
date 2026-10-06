@@ -1,3 +1,10 @@
+# Unreleased
+- [fixed] When the App Check backend rejects App Attest assertions for the same
+  key three times in a row (HTTP 403), the key and its attestation artifact are
+  now discarded and a new key is attested. Previously the rejected artifact was
+  kept, so every later token request failed until the app was reinstalled.
+  (#131)
+
 # 12.0.0
 - [changed] Ported AppCheckCore from Objective-C to Swift.
 - [changed] Raised Swift tools version to 6.0 for Swift Package Manager.

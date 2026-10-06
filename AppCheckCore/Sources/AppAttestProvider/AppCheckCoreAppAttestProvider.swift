@@ -30,6 +30,15 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
   private var ongoingGetTokenOperationLimitedUse: Bool = false
   private let lock = NSLock()
 
+  /// How many times in a row the backend can reject assertions (HTTP 403) for a key before the
+  /// key and its artifact are discarded.
+  private static let assertionRejectionLimit = 3
+
+  /// The key whose assertions the backend rejected, and how many times in a row. Any other outcome
+  /// of the assertion exchange starts the count over. Guarded by `lock`. The count is in memory
+  /// only, so it also starts over when the app relaunches.
+  private var assertionRejections: (keyID: String, count: Int)?
+
   // MARK: - Initializers
 
   @available(*, unavailable)
@@ -378,13 +387,56 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
       artifact: artifact,
       challenge: challenge
     )
-    let token = try await apiService.getAppCheckToken(
-      withArtifact: assertion.artifact,
-      challenge: assertion.challenge,
-      assertion: assertion.assertion,
-      limitedUse: limitedUse
-    )
-    return token
+    do {
+      let token = try await apiService.getAppCheckToken(
+        withArtifact: assertion.artifact,
+        challenge: assertion.challenge,
+        assertion: assertion.assertion,
+        limitedUse: limitedUse
+      )
+      lock.execute { assertionRejections = nil }
+      return token
+    } catch let httpError as AppCheckCoreHTTPError where httpError.httpResponse.statusCode == 403 {
+      // The backend rejected the assertion, for example because it no longer accepts the stored
+      // artifact. Assertions can't replace the artifact, so without a reset every later request
+      // would be rejected too. Reset only after several rejections in a row, though: attesting a
+      // new key calls Apple's server, and Apple recommends "only generating new keys when
+      // absolutely necessary" to keep the number of keys per device low.
+      let limit = AppCheckCoreAppAttestProvider.assertionRejectionLimit
+      let rejectionCount = recordAssertionRejection(forKeyID: keyID)
+      guard rejectionCount >= limit else {
+        AppCheckCoreLogger.log(
+          code: .assertionRejected,
+          logLevel: .debug,
+          message: "App Attest assertion was rejected by backend (\(rejectionCount) of \(limit) in a row)."
+        )
+        throw httpError
+      }
+      AppCheckCoreLogger.log(
+        code: .assertionRejected,
+        logLevel: .debug,
+        message: "App Attest assertion was rejected by backend \(limit) times in a row. The existing attestation will be reset."
+      )
+      try await resetAttestation()
+      throw AppCheckCoreAppAttestRejectionError(underlyingError: httpError)
+    } catch {
+      lock.execute { assertionRejections = nil }
+      throw error
+    }
+  }
+
+  /// Records that the backend rejected an assertion for `keyID` and returns how many times in a row
+  /// it has done so. Reaching `assertionRejectionLimit` starts the count over.
+  private func recordAssertionRejection(forKeyID keyID: String) -> Int {
+    return lock.execute { () -> Int in
+      var count = 1
+      if let previous = assertionRejections, previous.keyID == keyID {
+        count = previous.count + 1
+      }
+      let limit = AppCheckCoreAppAttestProvider.assertionRejectionLimit
+      assertionRejections = count < limit ? (keyID: keyID, count: count) : nil
+      return count
+    }
   }
 
   private func generateAssertion(keyID: String, artifact: Data,
