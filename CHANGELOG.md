@@ -3,6 +3,10 @@
   being served after the clock was corrected, because its stored dates inherited the offset.
   Cached tokens received in the future are now refreshed.
   (https://github.com/firebase/firebase-ios-sdk/issues/16939)
+- [changed] The debug provider now only tracks the registration state of the
+  locally generated debug token. Token exchanges using an environment variable
+  no longer mark the local token as registered on success or clear its
+  registered state on failure. (#135)
 
 # 12.0.0
 - [changed] Ported AppCheckCore from Objective-C to Swift.

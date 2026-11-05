@@ -67,6 +67,13 @@ class AppCheckCoreDebugProviderTests: XCTestCase {
     provider = nil
     UserDefaults.standard.removeObject(forKey: kDebugTokenUserDefaultsKey)
     UserDefaults.standard.removeObject(forKey: kDebugTokenRegisteredUserDefaultsKey)
+    // The prefix alone is not a real key; also clear the flag for the suite's default provider.
+    UserDefaults.standard.removeObject(
+      forKey: AppCheckCoreDebugProvider.registeredUserDefaultsKey(
+        forServiceName: "test-service",
+        resourceName: "projects/test-project/apps/test-app"
+      )
+    )
     super.tearDown()
   }
 
@@ -251,6 +258,54 @@ class AppCheckCoreDebugProviderTests: XCTestCase {
 
     // Check if the same token is used once generated.
     XCTAssertEqual(provider.currentDebugToken(), generatedToken)
+  }
+
+  func testGetTokenSuccessWithEnvironmentDebugTokenDoesNotSetRegisteredFlag() async throws {
+    let registeredKey = AppCheckCoreDebugProvider.registeredUserDefaultsKey(
+      forServiceName: "test-service",
+      resourceName: "projects/test-project/apps/test-app"
+    )
+    UserDefaults.standard.removeObject(forKey: registeredKey)
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [kDebugTokenEnvKey: "env token"])
+    fakeAPIService.tokenResult = .success(AppCheckCoreToken(
+      token: "valid_token",
+      expirationDate: Date().addingTimeInterval(3600)
+    ))
+
+    _ = try await provider.getToken()
+
+    XCTAssertNil(UserDefaults.standard.object(forKey: registeredKey))
+  }
+
+  func testGetTokenFailureWithEnvironmentDebugTokenPreservesRegisteredFlag() async throws {
+    let registeredKey = AppCheckCoreDebugProvider.registeredUserDefaultsKey(
+      forServiceName: "test-service",
+      resourceName: "projects/test-project/apps/test-app"
+    )
+    UserDefaults.standard.set(true, forKey: registeredKey)
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [kDebugTokenEnvKey: "env token"])
+    fakeAPIService.tokenResult = .failure(NSError(domain: "testDomain", code: -1, userInfo: nil))
+
+    await XCTAssertThrowsErrorAsync(try await provider.getToken())
+
+    XCTAssertTrue(UserDefaults.standard.bool(forKey: registeredKey))
+  }
+
+  /// Asserts that `expression` throws, since `XCTAssertThrowsError` does not accept async
+  /// expressions.
+  private func XCTAssertThrowsErrorAsync<T>(_ expression: @autoclosure () async throws -> T,
+                                            file: StaticString = #filePath,
+                                            line: UInt = #line) async {
+    do {
+      _ = try await expression()
+      XCTFail("Expected error to be thrown", file: file, line: line)
+    } catch {}
   }
 
   // MARK: - Debug token to FAC token exchange
