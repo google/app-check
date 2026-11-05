@@ -1,12 +1,12 @@
-# Unreleased
+# 12.1.0
 - [fixed] Fixed an issue where a cached token fetched while the device clock was ahead kept
   being served after the clock was corrected, because its stored dates inherited the offset.
   Cached tokens received in the future are now refreshed.
   (https://github.com/firebase/firebase-ios-sdk/issues/16939)
-- [changed] The debug provider now only tracks the registration state of the
-  locally generated debug token. Token exchanges using an environment variable
-  no longer mark the local token as registered on success or clear its
-  registered state on failure. (#135)
+- [fixed] Fixed an issue where a debug token exchange using the
+  `AppCheckDebugToken` or `FIRAAppCheckDebugToken` environment variable
+  updated the locally generated debug token's registered state, which could
+  suppress or repeat its registration instructions. (#135)
 
 # 12.0.0
 - [changed] Ported AppCheckCore from Objective-C to Swift.
