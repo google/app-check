@@ -1,3 +1,9 @@
+# Unreleased
+- [fixed] Fixed an issue where a cached token fetched while the device clock was ahead kept
+  being served after the clock was corrected, because its stored dates inherited the offset.
+  Cached tokens received in the future are now refreshed.
+  (https://github.com/firebase/firebase-ios-sdk/issues/16939)
+
 # 12.0.0
 - [changed] Ported AppCheckCore from Objective-C to Swift.
 - [changed] Raised Swift tools version to 6.0 for Swift Package Manager.
