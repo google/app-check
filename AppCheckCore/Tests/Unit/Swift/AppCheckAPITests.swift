@@ -148,6 +148,35 @@ final class AppCheckAPITests {
     _ = debugProvider.localDebugToken()
     _ = debugProvider.currentDebugToken()
 
+    // `AppCheckDebugProvider` initializer with a caller-provided debug token
+    let providedTokenDebugProvider = AppCheckCoreDebugProvider(
+      serviceName: serviceName,
+      resourceName: resourceName,
+      baseURL: nil,
+      apiKey: apiKey,
+      requestHooks: requestHooks,
+      debugToken: "debug-token"
+    )
+    _ = providedTokenDebugProvider.currentDebugToken()
+
+    // A `nil` debug token must resolve without ambiguity against the 5-argument initializer.
+    let nilTokenDebugProvider = AppCheckCoreDebugProvider(
+      serviceName: serviceName,
+      resourceName: resourceName,
+      baseURL: nil,
+      apiKey: apiKey,
+      requestHooks: requestHooks,
+      debugToken: nil
+    )
+
+    // Debug token source
+    switch nilTokenDebugProvider.debugTokenSource {
+    case .local: break
+    case .environmentVariable: break
+    case .provided: break
+    @unknown default: break
+    }
+
     // MARK: - AppCheckToken
 
     let token = AppCheckCoreToken(token: "token", expirationDate: Date.distantFuture)
@@ -258,6 +287,7 @@ final class AppCheckAPITests {
     case .environmentVariableDebugToken: break
     case .debugProviderFirebaseEnvironmentVariable: break
     case .debugProviderFailedExchange: break
+    case .providedDebugToken: break
     case .appAttestNotSupported: break
     case .attestationRejected: break
     case .assertionRejected: break
