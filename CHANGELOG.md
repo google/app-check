@@ -3,6 +3,10 @@
   ahead kept being served after the clock was corrected, because its stored
   dates inherited the offset. Cached tokens received in the future are now
   refreshed. (https://github.com/firebase/firebase-ios-sdk/issues/16939)
+- [fixed] Fixed an issue where a debug token exchange using the
+  `AppCheckDebugToken` or `FIRAAppCheckDebugToken` environment variable
+  updated the locally generated debug token's registered state, which could
+  suppress or repeat its registration instructions. (#135)
 - [fixed] Fixed an issue where provider request backoff could block retries if
   the device clock moved backward after a failed request. (#137)
 
