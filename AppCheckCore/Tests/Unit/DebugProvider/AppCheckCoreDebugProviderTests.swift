@@ -570,6 +570,25 @@ class AppCheckCoreDebugProviderTests: XCTestCase {
     XCTAssertEqual(fakeAPIService.passedLimitedUse, false)
   }
 
+  func testGetTokenWithEnvironmentDebugTokenDoesNotCreateLocalToken() async throws {
+    // `setUp` creates a provider without an environment variable, which stores a local token.
+    UserDefaults.standard.removeObject(forKey: kDebugTokenUserDefaultsKey)
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [kDebugTokenEnvKey: "env token"])
+    fakeAPIService.tokenResult = .success(AppCheckCoreToken(
+      token: "valid_token",
+      expirationDate: Date().addingTimeInterval(3600)
+    ))
+
+    _ = try await provider.getToken()
+
+    XCTAssertEqual(fakeAPIService.passedDebugToken, "env token")
+    // The local token is only generated, stored, and logged when it is the token in use.
+    XCTAssertNil(UserDefaults.standard.string(forKey: kDebugTokenUserDefaultsKey))
+  }
+
   // MARK: - Registered UserDefaults key construction
 
   /// Backfilled from the v11 suite
