@@ -24,9 +24,15 @@ private let kDebugTokenEnvKey = "AppCheckDebugToken"
 private let kFirebaseDebugTokenEnvKey = "FIRAAppCheckDebugToken"
 
 /// The source of the debug token used by an `AppCheckCoreDebugProvider`.
+///
+/// New sources may be added in future versions; Swift clients should include an
+/// `@unknown default` case when switching over this enum.
+#if hasAttribute(nonexhaustive)
+  @nonexhaustive
+#endif
 @objc(GACAppCheckDebugTokenSource)
 public enum AppCheckCoreDebugTokenSource: Int {
-  /// The token stored locally by the provider, which is generated and stored if none exists.
+  /// The token stored locally by the provider (generated on first use).
   case local = 0
 
   /// The `AppCheckDebugToken` or `FIRAAppCheckDebugToken` environment variable.
