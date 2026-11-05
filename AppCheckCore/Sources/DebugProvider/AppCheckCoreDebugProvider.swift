@@ -171,11 +171,11 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
       )
 
       let nsError = error as NSError
-      let isServerUnreachable = nsError.domain == AppCheckCoreErrorDomain &&
-        nsError.code == AppCheckCoreErrorCode.serverUnreachable.rawValue
+      let isServerReachable = nsError.domain != AppCheckCoreErrorDomain ||
+        nsError.code != AppCheckCoreErrorCode.serverUnreachable.rawValue
       // As on success, only the local token's registration is tracked: a rejected environment
       // variable token says nothing about whether the local token is registered.
-      if usesLocalDebugToken, !isServerUnreachable {
+      if usesLocalDebugToken, isServerReachable {
         GULUserDefaults.standard().removeObject(forKey: registeredUserDefaultsKey)
       }
       throw error
