@@ -212,6 +212,63 @@ class AppCheckCoreBackoffWrapperTests: XCTestCase {
     }
   }
 
+  func testBackoffWhenClockMovesBackwardAllowsRetryAndReanchorsBackoff() async throws {
+    // Simulate a failure recorded while the device clock was 48h ahead.
+    let skew: TimeInterval = 48 * 60 * 60
+    let realNow = Date()
+    currentDate = realNow.addingTimeInterval(skew)
+
+    setUpOperationError()
+    setUpErrorHandler(with: .exponential)
+
+    do {
+      _ = try await backoffWrapper.applyBackoffToOperation(
+        operationProvider,
+        errorHandler: errorHandler
+      )
+      XCTFail("Expected error")
+    } catch {
+      XCTAssertEqual(error as NSError, operationResult as? NSError)
+    }
+    await fulfillment(of: [operationFinishExpectation, errorHandlerExpectation], timeout: 5.0)
+
+    // Clock is corrected back to real time (`timeSinceFailure` is now negative).
+    // The wrapper should allow an immediate retry rather than locking out for 48h; if that retry
+    // also fails, `finishDate` re-anchors to the corrected clock and normal backoff resumes.
+    currentDate = realNow
+    setUpOperationError()
+    setUpErrorHandler(with: .exponential)
+
+    do {
+      _ = try await backoffWrapper.applyBackoffToOperation(
+        operationProvider,
+        errorHandler: errorHandler
+      )
+      XCTFail("Expected error")
+    } catch {
+      XCTAssertEqual(error as NSError, operationResult as? NSError)
+    }
+    await fulfillment(of: [operationFinishExpectation, errorHandlerExpectation], timeout: 5.0)
+
+    // Subsequent call 0.5s later is now properly throttled against the re-anchored failure date.
+    currentDate = realNow.addingTimeInterval(0.5)
+    setUpOperationSuccess()
+    setUpErrorHandler(with: .none)
+    operationFinishExpectation.isInverted = true
+    errorHandlerExpectation.isInverted = true
+
+    do {
+      _ = try await backoffWrapper.applyBackoffToOperation(
+        operationProvider,
+        errorHandler: errorHandler
+      )
+      XCTFail("Expected backoff error")
+    } catch {
+      XCTAssertTrue(isBackoffError(error as NSError))
+    }
+    await fulfillment(of: [operationFinishExpectation, errorHandlerExpectation], timeout: 0.1)
+  }
+
   // MARK: - Helpers
 
   private func setUpErrorHandler(with backoffType: AppCheckCoreBackoffType) {
