@@ -25,8 +25,8 @@ private let kFirebaseDebugTokenEnvKey = "FIRAAppCheckDebugToken"
 
 /// The source of the debug token used by an `AppCheckCoreDebugProvider`.
 ///
-/// New sources may be added in future versions; Swift clients should include an
-/// `@unknown default` case when switching over this enum.
+/// New sources may be added in future versions; handle unknown values with
+/// `@unknown default` in Swift or `default:` in Objective-C.
 #if hasAttribute(nonexhaustive)
   @nonexhaustive
 #endif
