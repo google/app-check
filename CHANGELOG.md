@@ -4,7 +4,7 @@
   dates inherited the offset. Cached tokens received in the future are now
   refreshed. (https://github.com/firebase/firebase-ios-sdk/issues/16939)
 - [fixed] Fixed an issue where provider request backoff could block retries if
-  the device clock moved backward after a failed request. (#136)
+  the device clock moved backward after a failed request. (#137)
 
 # 12.0.0
 - [changed] Ported AppCheckCore from Objective-C to Swift.
