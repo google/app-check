@@ -260,6 +260,192 @@ class AppCheckCoreDebugProviderTests: XCTestCase {
     XCTAssertEqual(provider.currentDebugToken(), generatedToken)
   }
 
+  // MARK: - Debug token source
+
+  func testDebugTokenSourceIsLocalWhenNoEnvironmentVariableOrProvidedToken() {
+    XCTAssertEqual(provider.debugTokenSource, .local)
+  }
+
+  func testDebugTokenSourceIsLocalWhenEmptyDebugTokenProvided() {
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [:],
+                                         debugToken: "")
+
+    XCTAssertEqual(provider.debugTokenSource, .local)
+  }
+
+  func testDebugTokenSourceIsLocalWhenWhitespaceOnlyDebugTokenProvided() {
+    let storedToken = "stored token"
+    UserDefaults.standard.set(storedToken, forKey: kDebugTokenUserDefaultsKey)
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [:],
+                                         debugToken: " \n")
+
+    XCTAssertEqual(provider.debugTokenSource, .local)
+    XCTAssertEqual(provider.currentDebugToken(), storedToken)
+  }
+
+  func testCurrentTokenTrimsWhitespaceFromProvidedDebugToken() {
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [:],
+                                         debugToken: " provided token\n")
+
+    XCTAssertEqual(provider.debugTokenSource, .provided)
+    XCTAssertEqual(provider.currentDebugToken(), "provided token")
+  }
+
+  func testDebugTokenSourceIsProvidedWhenDebugTokenProvided() {
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [:],
+                                         debugToken: "provided token")
+
+    XCTAssertEqual(provider.debugTokenSource, .provided)
+  }
+
+  func testDebugTokenSourceIsEnvironmentVariableWhenEnvironmentVariableSet() {
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [kFirebaseDebugTokenEnvKey: "env token"])
+
+    XCTAssertEqual(provider.debugTokenSource, .environmentVariable)
+  }
+
+  func testDebugTokenSourceIsEnvironmentVariableWhenTokenAlsoProvided() {
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [kDebugTokenEnvKey: "same token"],
+                                         debugToken: "same token")
+
+    // An environment variable wins even when it matches the provided token.
+    XCTAssertEqual(provider.debugTokenSource, .environmentVariable)
+  }
+
+  // MARK: - Provided debug token
+
+  func testCurrentTokenWhenDebugTokenProvidedAndNoEnvironmentVariable() {
+    UserDefaults.standard.removeObject(forKey: kDebugTokenUserDefaultsKey)
+    let providedToken = "provided token"
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [:],
+                                         debugToken: providedToken)
+
+    XCTAssertEqual(provider.currentDebugToken(), providedToken)
+    // The provided token must not be persisted, nor a local token generated in its place.
+    XCTAssertNil(UserDefaults.standard.string(forKey: kDebugTokenUserDefaultsKey))
+  }
+
+  func testCurrentTokenWhenDebugTokenProvidedAndTokenStored() {
+    UserDefaults.standard.set("stored token", forKey: kDebugTokenUserDefaultsKey)
+    let providedToken = "provided token"
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [:],
+                                         debugToken: providedToken)
+
+    XCTAssertEqual(provider.currentDebugToken(), providedToken)
+    XCTAssertEqual(provider.localDebugToken(), "stored token")
+  }
+
+  func testCurrentTokenWhenEnvironmentVariableSetAndDebugTokenProvided() {
+    let envToken = "env token"
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [kDebugTokenEnvKey: envToken],
+                                         debugToken: "provided token")
+
+    XCTAssertEqual(provider.currentDebugToken(), envToken)
+  }
+
+  func testCurrentTokenWhenFirebaseEnvironmentVariableSetAndDebugTokenProvided() {
+    let envToken = "firebase env token"
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [kFirebaseDebugTokenEnvKey: envToken],
+                                         debugToken: "provided token")
+
+    XCTAssertEqual(provider.currentDebugToken(), envToken)
+  }
+
+  func testCurrentTokenWhenEmptyDebugTokenProvidedAndTokenStored() {
+    let storedToken = "stored token"
+    UserDefaults.standard.set(storedToken, forKey: kDebugTokenUserDefaultsKey)
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [:],
+                                         debugToken: "")
+
+    XCTAssertEqual(provider.currentDebugToken(), storedToken)
+  }
+
+  func testCurrentTokenWhenEmptyDebugTokenProvidedAndNoTokenStored() {
+    UserDefaults.standard.removeObject(forKey: kDebugTokenUserDefaultsKey)
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [:],
+                                         debugToken: "")
+
+    let generatedToken = provider.currentDebugToken()
+
+    XCTAssertFalse(generatedToken.isEmpty)
+    XCTAssertEqual(UserDefaults.standard.string(forKey: kDebugTokenUserDefaultsKey), generatedToken)
+  }
+
+  func testLocalDebugTokenIsIndependentOfProvidedDebugToken() {
+    UserDefaults.standard.removeObject(forKey: kDebugTokenUserDefaultsKey)
+    let providedToken = "provided token"
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [:],
+                                         debugToken: providedToken)
+
+    let localToken = provider.localDebugToken()
+
+    XCTAssertNotEqual(localToken, providedToken)
+    XCTAssertEqual(UserDefaults.standard.string(forKey: kDebugTokenUserDefaultsKey), localToken)
+    XCTAssertEqual(provider.currentDebugToken(), providedToken)
+  }
+
+  func testGetTokenSuccessWithProvidedDebugTokenDoesNotSetRegisteredFlag() async throws {
+    let registeredKey = AppCheckCoreDebugProvider.registeredUserDefaultsKey(
+      forServiceName: "test-service",
+      resourceName: "projects/test-project/apps/test-app"
+    )
+    UserDefaults.standard.removeObject(forKey: registeredKey)
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [:],
+                                         debugToken: "provided token")
+    fakeAPIService.tokenResult = .success(AppCheckCoreToken(
+      token: "valid_token",
+      expirationDate: Date().addingTimeInterval(3600)
+    ))
+
+    _ = try await provider.getToken()
+
+    // Only the locally generated token is tracked as registered; a provided token that later
+    // disappears must not suppress the registration instructions for the local token.
+    XCTAssertNil(UserDefaults.standard.object(forKey: registeredKey))
+  }
+
   func testGetTokenSuccessWithEnvironmentDebugTokenDoesNotSetRegisteredFlag() async throws {
     let registeredKey = AppCheckCoreDebugProvider.registeredUserDefaultsKey(
       forServiceName: "test-service",
@@ -278,6 +464,25 @@ class AppCheckCoreDebugProviderTests: XCTestCase {
     _ = try await provider.getToken()
 
     XCTAssertNil(UserDefaults.standard.object(forKey: registeredKey))
+  }
+
+  func testGetTokenFailureWithProvidedDebugTokenPreservesRegisteredFlag() async throws {
+    let registeredKey = AppCheckCoreDebugProvider.registeredUserDefaultsKey(
+      forServiceName: "test-service",
+      resourceName: "projects/test-project/apps/test-app"
+    )
+    UserDefaults.standard.set(true, forKey: registeredKey)
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [:],
+                                         debugToken: "provided token")
+    fakeAPIService.tokenResult = .failure(NSError(domain: "testDomain", code: -1, userInfo: nil))
+
+    await XCTAssertThrowsErrorAsync(try await provider.getToken())
+
+    // The local token was not exchanged, so its registration state must be left untouched.
+    XCTAssertTrue(UserDefaults.standard.bool(forKey: registeredKey))
   }
 
   func testGetTokenFailureWithEnvironmentDebugTokenPreservesRegisteredFlag() async throws {
@@ -306,6 +511,27 @@ class AppCheckCoreDebugProviderTests: XCTestCase {
       _ = try await expression()
       XCTFail("Expected error to be thrown", file: file, line: line)
     } catch {}
+  }
+
+  func testGetTokenUsesProvidedDebugToken() async throws {
+    let providedToken = "provided token"
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [:],
+                                         debugToken: providedToken)
+    let validToken = AppCheckCoreToken(
+      token: "valid_token",
+      expirationDate: Date(),
+      receivedAt: Date()
+    )
+    fakeAPIService.tokenResult = .success(validToken)
+
+    let token = try await provider.getToken()
+
+    XCTAssertEqual(token.token, validToken.token)
+    XCTAssertEqual(fakeAPIService.passedDebugToken, providedToken)
+    XCTAssertEqual(fakeAPIService.passedLimitedUse, false)
   }
 
   // MARK: - Debug token to FAC token exchange
