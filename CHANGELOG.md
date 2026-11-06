@@ -7,7 +7,7 @@
   (https://github.com/google/app-check/issues/129)
 - [changed] App Attest token requests now back off exponentially after
   DeviceCheck errors, including `DCErrorServerUnavailable`, instead of retrying
-  on every token request.
+  on every token request. (#130)
 - [added] Added
   `AppCheckCoreDebugProvider(serviceName:resourceName:baseURL:apiKey:requestHooks:debugToken:)`,
   which accepts a caller-provided debug token. The provided token is used when

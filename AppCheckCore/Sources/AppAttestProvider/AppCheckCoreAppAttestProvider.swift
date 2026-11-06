@@ -391,7 +391,10 @@ public class AppCheckCoreAppAttestProvider: NSObject, AppCheckCoreProvider {
 
   private func resetAttestation() async throws {
     _ = try await keyIDStorage.setAppAttestKeyID(nil)
-    _ = try await artifactStorage.setArtifact(nil, forKey: "")
+    // Best-effort cleanup: `keyIDStorage` is authoritative and `getArtifact(forKey:)` checks
+    // `artifact.keyID == keyID`, so a Keychain error must not mask the triggering error or abort
+    // recovery retries.
+    _ = try? await artifactStorage.setArtifact(nil, forKey: "")
   }
 
   // MARK: - Token refresh sequence (assertion)

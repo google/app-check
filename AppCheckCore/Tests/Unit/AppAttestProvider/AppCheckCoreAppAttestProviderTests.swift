@@ -568,6 +568,66 @@ class AppCheckCoreAppAttestProviderTests: XCTestCase {
     XCTAssertEqual(fakeBackoffWrapper.errorHandlerResults, [.exponential])
   }
 
+  func testGetToken_WhenResetArtifactCleanupFails_ThenDeviceCheckErrorAndRetryArePreserved() async throws {
+    let keychainError = AppCheckCoreErrorUtil.keychainError(
+      with: NSError(domain: "Keychain", code: -25308)
+    )
+
+    // 1. Non-retried DeviceCheck error (`unknownSystemFailure`): Keychain cleanup failure must not
+    // mask the DeviceCheck error or skip exponential backoff.
+    let systemFailureError = NSError(
+      domain: DCErrorDomain,
+      code: DCError.unknownSystemFailure.rawValue
+    )
+    mockAppCheckCoreAppAttestService.isSupportedResult = true
+    mockStorage.getAppAttestKeyIDResults.append(.success("existingKeyID"))
+    mockArtifactStorage.getArtifactResults.append(.success(nil))
+    mockAPIService.getRandomChallengeResults.append(.success(randomChallenge))
+    mockAppCheckCoreAppAttestService.attestKeyResults.append(.failure(systemFailureError))
+    mockStorage.setAppAttestKeyIDResults.append(.success(nil))
+    mockArtifactStorage.setArtifactResults.append(.failure(keychainError))
+
+    do {
+      _ = try await provider.getToken()
+      XCTFail("Should throw")
+    } catch {
+      XCTAssertEqual(
+        (error as NSError).userInfo[NSUnderlyingErrorKey] as? NSError,
+        systemFailureError
+      )
+    }
+
+    XCTAssertEqual(mockStorage.setAppAttestKeyIDArgs, [nil])
+    XCTAssertEqual(mockArtifactStorage.setArtifactCallCount, 1)
+    XCTAssertEqual(fakeBackoffWrapper.errorHandlerResults, [.exponential])
+
+    // 2. Retried rejection (`invalidKey`): Keychain cleanup failure must not abort the retry.
+    resetMocks()
+    let invalidKeyError = NSError(domain: DCErrorDomain, code: DCError.invalidKey.rawValue)
+    mockAppCheckCoreAppAttestService.isSupportedResult = true
+    mockStorage.getAppAttestKeyIDResults.append(.success("existingKeyID"))
+    mockArtifactStorage.getArtifactResults.append(.success(nil))
+    mockAPIService.getRandomChallengeResults.append(.success(randomChallenge))
+    mockAppCheckCoreAppAttestService.attestKeyResults.append(.failure(invalidKeyError))
+    mockStorage.setAppAttestKeyIDResults.append(.success(nil))
+    mockArtifactStorage.setArtifactResults.append(.failure(keychainError))
+
+    expectAppAttestAvailabilityToBeCheckedAndNotExistingStoredKeyRequested()
+    let newKeyID = "newKeyID"
+    let attestationData = "attestation data".data(using: .utf8)!
+    expectAppAttestKeyGeneratedAndAttested(withKeyID: newKeyID, attestationData: attestationData)
+    let facToken = AppCheckCoreToken(token: "FAC token", expirationDate: Date())
+    let artifactData = "attestation artifact".data(using: .utf8)!
+    mockAPIService.attestKeyResults.append(.success(
+      AppCheckCoreAppAttestAttestationResponse(artifact: artifactData, token: facToken)
+    ))
+    mockArtifactStorage.setArtifactResults.append(.success(artifactData))
+
+    let token = try await provider.getToken()
+    XCTAssertEqual(token.token, facToken.token)
+    XCTAssertEqual(mockStorage.setAppAttestKeyIDArgs, [nil, newKeyID])
+  }
+
   func testGetToken_WhenKeyAttestationFailsWithServerUnavailable_ThenSameKeyIsRetriedAfterBackoff() async throws {
     // Use the real backoff wrapper with a controllable clock.
     var currentDate = Date()
