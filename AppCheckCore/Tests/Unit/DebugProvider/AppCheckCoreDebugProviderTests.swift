@@ -276,6 +276,30 @@ class AppCheckCoreDebugProviderTests: XCTestCase {
     XCTAssertEqual(provider.debugTokenSource, .local)
   }
 
+  func testDebugTokenSourceIsLocalWhenWhitespaceOnlyDebugTokenProvided() {
+    let storedToken = "stored token"
+    UserDefaults.standard.set(storedToken, forKey: kDebugTokenUserDefaultsKey)
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [:],
+                                         debugToken: " \n")
+
+    XCTAssertEqual(provider.debugTokenSource, .local)
+    XCTAssertEqual(provider.currentDebugToken(), storedToken)
+  }
+
+  func testCurrentTokenTrimsWhitespaceFromProvidedDebugToken() {
+    provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
+                                         serviceName: "test-service",
+                                         resourceName: "projects/test-project/apps/test-app",
+                                         environment: [:],
+                                         debugToken: " provided token\n")
+
+    XCTAssertEqual(provider.debugTokenSource, .provided)
+    XCTAssertEqual(provider.currentDebugToken(), "provided token")
+  }
+
   func testDebugTokenSourceIsProvidedWhenDebugTokenProvided() {
     provider = AppCheckCoreDebugProvider(apiService: fakeAPIService,
                                          serviceName: "test-service",
