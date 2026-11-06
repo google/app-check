@@ -267,6 +267,19 @@ class AppCheckCoreBackoffWrapperTests: XCTestCase {
       XCTAssertTrue(isBackoffError(error as NSError))
     }
     await fulfillment(of: [operationFinishExpectation, errorHandlerExpectation], timeout: 0.1)
+
+    // Once the re-anchored backoff window for attempt 2 ([2.0s, 3.0s)) elapses, retry succeeds.
+    currentDate = realNow.addingTimeInterval(3.5)
+    setUpOperationSuccess()
+    setUpErrorHandler(with: .none)
+    errorHandlerExpectation.isInverted = true
+
+    let result = try await backoffWrapper.applyBackoffToOperation(
+      operationProvider,
+      errorHandler: errorHandler
+    )
+    await fulfillment(of: [operationFinishExpectation, errorHandlerExpectation], timeout: 0.1)
+    XCTAssertEqual(result as? NSObject, operationResult as? NSObject)
   }
 
   // MARK: - Helpers
