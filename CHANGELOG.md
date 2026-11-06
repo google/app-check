@@ -1,4 +1,17 @@
 # 12.1.0
+- [added] Added
+  `AppCheckCoreDebugProvider(serviceName:resourceName:baseURL:apiKey:requestHooks:debugToken:)`,
+  which accepts a caller-provided debug token. The provided token is used when
+  no debug token environment variable is set and takes priority over a
+  previously stored or newly generated local debug token. Like environment
+  variable tokens, exchanges using the provided token don't change the local
+  token's registered state. (#134)
+- [added] Added `AppCheckCoreDebugProvider.debugTokenSource`
+  (`GACAppCheckDebugTokenSource`), which reports whether the current debug
+  token came from an environment variable, the caller-provided token, or
+  local storage. More sources may be added later; Swift `switch` statements
+  over `AppCheckCoreDebugTokenSource` should include `@unknown default`.
+  (#134)
 - [fixed] Fixed an issue where a cached token fetched while the device clock was ahead kept
   being served after the clock was corrected, because its stored dates inherited the offset.
   Cached tokens received in the future are now refreshed.

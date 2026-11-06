@@ -87,6 +87,7 @@ public enum AppCheckCoreMessageCode: Int {
   case environmentVariableDebugToken = 4002
   case debugProviderFirebaseEnvironmentVariable = 4003
   case debugProviderFailedExchange = 4004
+  case providedDebugToken = 4005
 
   // App Attest Provider
   case appAttestNotSupported = 7001
