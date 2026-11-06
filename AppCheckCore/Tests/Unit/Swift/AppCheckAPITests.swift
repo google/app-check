@@ -176,6 +176,7 @@ final class AppCheckAPITests {
     case .provided: break
     @unknown default: break
     }
+    let _: any Sendable = nilTokenDebugProvider.debugTokenSource
 
     // MARK: - AppCheckToken
 

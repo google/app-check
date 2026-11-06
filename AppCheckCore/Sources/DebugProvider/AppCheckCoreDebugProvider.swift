@@ -31,7 +31,7 @@ private let kFirebaseDebugTokenEnvKey = "FIRAAppCheckDebugToken"
   @nonexhaustive
 #endif
 @objc(GACAppCheckDebugTokenSource)
-public enum AppCheckCoreDebugTokenSource: Int {
+public enum AppCheckCoreDebugTokenSource: Int, Sendable {
   /// The token stored locally by the provider (generated on first use).
   case local = 0
 
@@ -154,7 +154,10 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
   ///   - resourceName: The App Check resource name, `projects/{project}/apps/{app}`.
   ///   - baseURL: The App Check API base URL, or `nil` for the default.
   ///   - apiKey: The API key used to call the App Check API.
-  ///   - requestHooks: See `init(serviceName:resourceName:baseURL:apiKey:requestHooks:)`.
+  ///   - requestHooks: Hooks invoked on each outgoing request. From Swift, pass
+  ///     `[AppCheckCoreAPIRequestHook]`. From Objective-C, pass an `NSArray` of blocks with the
+  ///     signature `void (^)(NSMutableURLRequest *)`; the signature is not checked at compile
+  ///     time and a mismatch will crash when the hook is invoked.
   ///   - debugToken: A debug token resolved by the caller, for example one provisioned by the
   ///     Firebase CLI and read from the host machine. The token is used when neither the
   ///     `AppCheckDebugToken` nor the `FIRAAppCheckDebugToken` environment variable is set, and
