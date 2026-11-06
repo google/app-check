@@ -1,4 +1,13 @@
 # 12.1.0
+- [fixed] When App Attest key attestation fails with a DeviceCheck error other
+  than `DCErrorServerUnavailable`, `DCErrorInvalidKey`, or `DCErrorInvalidInput`
+  (for example `DCErrorUnknownSystemFailure`), the key is now discarded and a
+  new key is generated on the next attempt, as Apple recommends. Previously the
+  key was kept, so every later token request attested the same failing key.
+  (https://github.com/google/app-check/issues/129)
+- [changed] App Attest token requests now back off exponentially after
+  DeviceCheck errors, including `DCErrorServerUnavailable`, instead of retrying
+  on every token request. (#130)
 - [added] Added
   `AppCheckCoreDebugProvider(serviceName:resourceName:baseURL:apiKey:requestHooks:debugToken:)`,
   which accepts a caller-provided debug token. The provided token is used when
