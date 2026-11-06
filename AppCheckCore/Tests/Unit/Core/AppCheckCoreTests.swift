@@ -132,6 +132,9 @@ class AppCheckCoreTests: XCTestCase {
     }
 
     XCTAssertEqual(fakeAppCheckProvider.getTokenCallCount, 1)
+    XCTAssertEqual(fakeStorage.lastSetToken, expectedToken)
+    XCTAssertEqual(fakeTokenRefresher.updateWithRefreshResultCallCount, 1)
+    XCTAssertEqual(fakeTokenDelegate.lastToken, expectedToken)
   }
 
   func testGetToken_AppCheckProviderError() async {
