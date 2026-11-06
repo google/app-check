@@ -167,6 +167,28 @@
   [debugProvider getLimitedUseTokenWithCompletion:^(GACAppCheckToken *debugToken, NSError *error){
   }];
 
+  GACAppCheckDebugProvider *providedTokenDebugProvider =
+      [[GACAppCheckDebugProvider alloc] initWithServiceName:serviceName
+                                               resourceName:resourceName
+                                                    baseURL:nil
+                                                     APIKey:apiKey
+                                               requestHooks:nil
+                                                 debugToken:@"provided_debug_token"];
+  XCTAssertNotNil(providedTokenDebugProvider);
+  // The provided token is used unless a debug token environment variable overrides it.
+  NSDictionary<NSString *, NSString *> *environment = [NSProcessInfo processInfo].environment;
+  if (environment[@"AppCheckDebugToken"].length == 0 &&
+      environment[@"FIRAAppCheckDebugToken"].length == 0) {
+    XCTAssertEqualObjects([providedTokenDebugProvider currentDebugToken], @"provided_debug_token");
+    XCTAssertEqual(providedTokenDebugProvider.debugTokenSource,
+                   GACAppCheckDebugTokenSourceProvided);
+  }
+
+  // MARK: - GACAppCheckDebugTokenSource
+  XCTAssertEqual(GACAppCheckDebugTokenSourceLocal, 0);
+  XCTAssertEqual(GACAppCheckDebugTokenSourceEnvironmentVariable, 1);
+  XCTAssertEqual(GACAppCheckDebugTokenSourceProvided, 2);
+
   // MARK: - GACDeviceCheckProvider
 #if !TARGET_OS_WATCH
   GACDeviceCheckProvider *deviceCheckProvider =
@@ -228,6 +250,7 @@
   GACAppCheckMessageCode msgFirebaseEnv =
       GACAppCheckMessageCodeDebugProviderFirebaseEnvironmentVariable;
   GACAppCheckMessageCode msgFailedExchange = GACAppCheckMessageCodeDebugProviderFailedExchange;
+  GACAppCheckMessageCode msgProvidedToken = GACAppCheckMessageCodeProvidedDebugToken;
   GACAppCheckMessageCode msgAttestNotSupported = GACAppCheckMessageCodeAppAttestNotSupported;
   GACAppCheckMessageCode msgAttestationRejected = GACAppCheckMessageCodeAttestationRejected;
   GACAppCheckMessageCode msgAssertionRejected = GACAppCheckMessageCodeAssertionRejected;
@@ -240,6 +263,7 @@
   XCTAssertEqual(msgEnvToken, 4002);
   XCTAssertEqual(msgFirebaseEnv, 4003);
   XCTAssertEqual(msgFailedExchange, 4004);
+  XCTAssertEqual(msgProvidedToken, 4005);
   XCTAssertEqual(msgAttestNotSupported, 7001);
   XCTAssertEqual(msgAttestationRejected, 7002);
   XCTAssertEqual(msgAssertionRejected, 7003);

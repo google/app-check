@@ -23,6 +23,25 @@ import Foundation
 private let kDebugTokenEnvKey = "AppCheckDebugToken"
 private let kFirebaseDebugTokenEnvKey = "FIRAAppCheckDebugToken"
 
+/// The source of the debug token used by an `AppCheckCoreDebugProvider`.
+///
+/// New sources may be added in future versions; handle unknown values with
+/// `@unknown default` in Swift or `default:` in Objective-C.
+#if hasAttribute(nonexhaustive)
+  @nonexhaustive
+#endif
+@objc(GACAppCheckDebugTokenSource)
+public enum AppCheckCoreDebugTokenSource: Int, Sendable {
+  /// The token stored locally by the provider (generated on first use).
+  case local = 0
+
+  /// The `AppCheckDebugToken` or `FIRAAppCheckDebugToken` environment variable.
+  case environmentVariable = 1
+
+  /// The debug token passed to the provider's initializer.
+  case provided = 2
+}
+
 @objc(GACAppCheckDebugProvider)
 public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
   /// Storage key for the debug token in UserDefaults.
@@ -39,34 +58,82 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
 
   private let apiService: AppCheckCoreDebugProviderAPIServiceProtocol
   private let debugTokenEnvValue: String?
+
+  /// A debug token supplied by the caller at initialization, if any.
+  ///
+  /// Used when no debug token environment variable is set, and preferred over the locally
+  /// generated token.
+  private let providedDebugToken: String?
+
   private let registeredUserDefaultsKey: String
+
+  /// The source of the debug token returned by `currentDebugToken()`.
+  ///
+  /// Determined at initialization: an environment variable takes priority over a provided token,
+  /// which takes priority over the locally stored token.
+  @objc public let debugTokenSource: AppCheckCoreDebugTokenSource
 
   // Internal initializer
   init(apiService: AppCheckCoreDebugProviderAPIServiceProtocol,
        serviceName: String,
        resourceName: String,
-       environment: [String: String]) {
+       environment: [String: String],
+       debugToken: String? = nil) {
     self.apiService = apiService
-    registeredUserDefaultsKey = Self.registeredUserDefaultsKey(
+    let registeredUserDefaultsKey = Self.registeredUserDefaultsKey(
       forServiceName: serviceName,
       resourceName: resourceName
     )
-    debugTokenEnvValue = Self.environmentVariableDebugToken(
-      registeredUserDefaultsKey: registeredUserDefaultsKey,
-      environment: environment
-    )
+    self.registeredUserDefaultsKey = registeredUserDefaultsKey
+    let debugTokenEnvValue = Self.environmentVariableDebugToken(environment: environment)
+    self.debugTokenEnvValue = debugTokenEnvValue
+    let providedDebugToken = debugToken
+      .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+      .flatMap { $0.isEmpty ? nil : $0 }
+    self.providedDebugToken = providedDebugToken
+    if debugTokenEnvValue != nil {
+      debugTokenSource = .environmentVariable
+    } else if providedDebugToken != nil {
+      debugTokenSource = .provided
+    } else {
+      debugTokenSource = .local
+    }
     super.init()
+
+    switch debugTokenSource {
+    case .local:
+      Self.logLocalDebugTokenIfNotRegistered(registeredUserDefaultsKey: registeredUserDefaultsKey)
+    case .provided:
+      AppCheckCoreLogger.log(
+        code: .providedDebugToken,
+        logLevel: .debug,
+        message: """
+        Using the debug token provided at initialization; the \(kDebugTokenEnvKey) and \
+        \(kFirebaseDebugTokenEnvKey) environment variables are not set.
+        """
+      )
+    case .environmentVariable:
+      break // The environment variable debug token was already logged.
+    }
   }
 
-  /// - Parameter requestHooks: Hooks invoked on each outgoing request. From Swift, pass
-  ///   `[AppCheckCoreAPIRequestHook]`. From Objective-C, pass an `NSArray` of blocks with the
-  ///   signature `void (^)(NSMutableURLRequest *)`; the signature is not checked at compile
-  ///   time and a mismatch will crash when the hook is invoked.
+  /// Creates a debug provider that uses the environment variable, stored, or newly generated
+  /// debug token.
   ///
-  ///   Typed `[Any]?` rather than `[AppCheckCoreAPIRequestHook]?` deliberately: Swift cannot
-  ///   bridge an `NSArray` into a Swift `Array` whose element is a function type, so the typed
-  ///   signature traps at runtime for any non-nil array passed from Objective-C. Do not
-  ///   "simplify" this type — see PR #111.
+  /// - Parameters:
+  ///   - serviceName: The name of the service (e.g. the Firebase app name) using the provider.
+  ///   - resourceName: The App Check resource name, `projects/{project}/apps/{app}`.
+  ///   - baseURL: The App Check API base URL, or `nil` for the default.
+  ///   - apiKey: The API key used to call the App Check API.
+  ///   - requestHooks: Hooks invoked on each outgoing request. From Swift, pass
+  ///     `[AppCheckCoreAPIRequestHook]`. From Objective-C, pass an `NSArray` of blocks with the
+  ///     signature `void (^)(NSMutableURLRequest *)`; the signature is not checked at compile
+  ///     time and a mismatch will crash when the hook is invoked.
+  ///
+  ///     Typed `[Any]?` rather than `[AppCheckCoreAPIRequestHook]?` deliberately: Swift cannot
+  ///     bridge an `NSArray` into a Swift `Array` whose element is a function type, so the typed
+  ///     signature traps at runtime for any non-nil array passed from Objective-C. Do not
+  ///     "simplify" this type — see PR #111.
   @objc(initWithServiceName:resourceName:baseURL:APIKey:requestHooks:)
   public convenience init(serviceName: String,
                           resourceName: String,
@@ -78,7 +145,41 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
               baseURL: baseURL,
               apiKey: apiKey,
               requestHooks: requestHooks,
-              environment: ProcessInfo.processInfo.environment)
+              debugToken: nil)
+  }
+
+  /// Creates a debug provider that prefers the given debug token over the locally stored or
+  /// generated one.
+  ///
+  /// - Parameters:
+  ///   - serviceName: The name of the service (e.g. the Firebase app name) using the provider.
+  ///   - resourceName: The App Check resource name, `projects/{project}/apps/{app}`.
+  ///   - baseURL: The App Check API base URL, or `nil` for the default.
+  ///   - apiKey: The API key used to call the App Check API.
+  ///   - requestHooks: Hooks invoked on each outgoing request. From Swift, pass
+  ///     `[AppCheckCoreAPIRequestHook]`. From Objective-C, pass an `NSArray` of blocks with the
+  ///     signature `void (^)(NSMutableURLRequest *)`; the signature is not checked at compile
+  ///     time and a mismatch will crash when the hook is invoked.
+  ///   - debugToken: A debug token resolved by the caller, for example one provisioned by the
+  ///     Firebase CLI and read from the host machine. The token is used when neither the
+  ///     `AppCheckDebugToken` nor the `FIRAAppCheckDebugToken` environment variable is set, and
+  ///     takes priority over a debug token previously stored or newly generated by this provider.
+  ///     Leading and trailing whitespace is trimmed. Pass `nil`, an empty string, or a
+  ///     whitespace-only string to fall back to the stored or generated token.
+  @objc(initWithServiceName:resourceName:baseURL:APIKey:requestHooks:debugToken:)
+  public convenience init(serviceName: String,
+                          resourceName: String,
+                          baseURL: String?,
+                          apiKey: String,
+                          requestHooks: [Any]?,
+                          debugToken: String?) {
+    self.init(serviceName: serviceName,
+              resourceName: resourceName,
+              baseURL: baseURL,
+              apiKey: apiKey,
+              requestHooks: requestHooks,
+              environment: ProcessInfo.processInfo.environment,
+              debugToken: debugToken)
   }
 
   // Additional internal initializer for testing
@@ -87,7 +188,8 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
                    baseURL: String?,
                    apiKey: String,
                    requestHooks: [Any]?,
-                   environment: [String: String]) {
+                   environment: [String: String],
+                   debugToken: String? = nil) {
     let urlSession = URLSession(configuration: .ephemeral)
     let coreAPIService = AppCheckCoreAPIService(urlSession: urlSession,
                                                 baseURL: baseURL,
@@ -99,7 +201,8 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
     self.init(apiService: debugAPIService,
               serviceName: serviceName,
               resourceName: resourceName,
-              environment: environment)
+              environment: environment,
+              debugToken: debugToken)
   }
 
   @objc public func localDebugToken() -> String {
@@ -107,7 +210,12 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
   }
 
   @objc public func currentDebugToken() -> String {
-    return debugTokenEnvValue ?? Self.localDebugToken()
+    return debugTokenEnvValue ?? providedDebugToken ?? Self.localDebugToken()
+  }
+
+  /// Whether `currentDebugToken()` falls through to the locally stored or generated token.
+  private var usesLocalDebugToken: Bool {
+    return debugTokenSource == .local
   }
 
   // MARK: - AppCheckCoreProvider
@@ -139,7 +247,12 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
         debugToken: currentDebugToken(),
         limitedUse: limitedUse
       )
-      GULUserDefaults.standard().setObject(true, forKey: registeredUserDefaultsKey)
+      // Only the locally generated token is tracked as registered: if an environment variable or
+      // provided token is later removed, the local token's registration instructions must still
+      // be logged.
+      if usesLocalDebugToken {
+        GULUserDefaults.standard().setObject(true, forKey: registeredUserDefaultsKey)
+      }
       return token
     } catch {
       let logMessage = "Failed to exchange debug token to app check token: \(error)"
@@ -150,10 +263,11 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
       )
 
       let nsError = error as NSError
-      if nsError.domain == AppCheckCoreErrorDomain && nsError.code == AppCheckCoreErrorCode
-        .serverUnreachable.rawValue {
-        // Do nothing
-      } else {
+      let isServerReachable = nsError.domain != AppCheckCoreErrorDomain ||
+        nsError.code != AppCheckCoreErrorCode.serverUnreachable.rawValue
+      // As on success, only the local token's registration is tracked: a rejected environment
+      // variable or provided token says nothing about whether the local token is registered.
+      if usesLocalDebugToken, isServerReachable {
         GULUserDefaults.standard().removeObject(forKey: registeredUserDefaultsKey)
       }
       throw error
@@ -193,8 +307,7 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
     return "\(debugTokenRegisteredUserDefaultsKeyPrefix)_\(safeServiceName)_\(safeResourceName)"
   }
 
-  private static func environmentVariableDebugToken(registeredUserDefaultsKey: String,
-                                                    environment: [String: String]) -> String? {
+  private static func environmentVariableDebugToken(environment: [String: String]) -> String? {
     let envVariableValue = environment[kDebugTokenEnvKey]?
       .isEmpty == false ? environment[kDebugTokenEnvKey] : nil
     let firebaseEnvVariableValue = environment[kFirebaseDebugTokenEnvKey]?
@@ -228,12 +341,18 @@ public class AppCheckCoreDebugProvider: NSObject, AppCheckCoreProvider {
       )
       return firebaseEnv
     } else {
-      let isRegistered = GULUserDefaults.standard().bool(forKey: registeredUserDefaultsKey)
-      if !isRegistered {
-        let message = "App Check debug token: '\(Self.localDebugToken())'."
-        AppCheckCoreLogger.log(code: .localDebugToken, logLevel: .warning, message: message)
-      }
       return nil
+    }
+  }
+
+  /// Logs the locally stored debug token unless it has previously been exchanged successfully.
+  ///
+  /// As a side effect, generates and persists the local token if none is stored yet.
+  private static func logLocalDebugTokenIfNotRegistered(registeredUserDefaultsKey: String) {
+    let isRegistered = GULUserDefaults.standard().bool(forKey: registeredUserDefaultsKey)
+    if !isRegistered {
+      let message = "App Check debug token: '\(Self.localDebugToken())'."
+      AppCheckCoreLogger.log(code: .localDebugToken, logLevel: .warning, message: message)
     }
   }
 }

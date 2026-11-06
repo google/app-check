@@ -112,6 +112,28 @@ class AppCheckCoreTests: XCTestCase {
     XCTAssertEqual(fakeTokenDelegate.lastToken, expectedToken)
   }
 
+  func testGetToken_WhenCachedTokenReceivedInFuture_RefreshesToken() async {
+    // Simulates a token fetched while the device clock was 2h ahead: the stored
+    // dates inherit the offset, so `expirationDate` still looks valid after the
+    // clock is corrected even though the JWT itself has already expired.
+    let skew: TimeInterval = 2 * 60 * 60
+    let cachedToken = AppCheckCoreToken(token: "skewed",
+                                        expirationDate: Date(timeIntervalSinceNow: skew + 60 * 60),
+                                        receivedAt: Date(timeIntervalSinceNow: skew))
+    fakeStorage.getTokenHandler = { cachedToken }
+    let expectedToken = validToken()
+    fakeAppCheckProvider.tokenToReturn = expectedToken
+
+    do {
+      let result = try await appCheck.token(forcingRefresh: false)
+      XCTAssertEqual(result, expectedToken)
+    } catch {
+      XCTFail("Unexpected error: \(error)")
+    }
+
+    XCTAssertEqual(fakeAppCheckProvider.getTokenCallCount, 1)
+  }
+
   func testGetToken_AppCheckProviderError() async {
     let cachedToken = soonExpiringToken()
     let providerError = NSError(domain: "AppCheckCoreTests", code: -1, userInfo: nil)

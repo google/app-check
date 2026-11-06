@@ -1,4 +1,4 @@
-# Unreleased
+# 12.1.0
 - [fixed] When App Attest key attestation fails with a DeviceCheck error other
   than `DCErrorServerUnavailable`, `DCErrorInvalidKey`, or `DCErrorInvalidInput`
   (for example `DCErrorUnknownSystemFailure`), the key is now discarded and a
@@ -8,6 +8,27 @@
 - [changed] App Attest token requests now back off exponentially after
   DeviceCheck errors, including `DCErrorServerUnavailable`, instead of retrying
   on every token request.
+- [added] Added
+  `AppCheckCoreDebugProvider(serviceName:resourceName:baseURL:apiKey:requestHooks:debugToken:)`,
+  which accepts a caller-provided debug token. The provided token is used when
+  no debug token environment variable is set and takes priority over a
+  previously stored or newly generated local debug token. Like environment
+  variable tokens, exchanges using the provided token don't change the local
+  token's registered state. (#134)
+- [added] Added `AppCheckCoreDebugProvider.debugTokenSource`
+  (`GACAppCheckDebugTokenSource`), which reports whether the current debug
+  token came from an environment variable, the caller-provided token, or
+  local storage. More sources may be added later; Swift `switch` statements
+  over `AppCheckCoreDebugTokenSource` should include `@unknown default`.
+  (#134)
+- [fixed] Fixed an issue where a cached token fetched while the device clock was ahead kept
+  being served after the clock was corrected, because its stored dates inherited the offset.
+  Cached tokens received in the future are now refreshed.
+  (https://github.com/firebase/firebase-ios-sdk/issues/16939)
+- [fixed] Fixed an issue where a debug token exchange using the
+  `AppCheckDebugToken` or `FIRAAppCheckDebugToken` environment variable
+  updated the locally generated debug token's registered state, which could
+  suppress or repeat its registration instructions. (#135)
 
 # 12.0.0
 - [changed] Ported AppCheckCore from Objective-C to Swift.
