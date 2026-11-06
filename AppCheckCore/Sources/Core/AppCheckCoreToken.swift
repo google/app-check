@@ -33,6 +33,10 @@ public class AppCheckCoreToken: NSObject, @unchecked Sendable {
     super.init()
   }
 
+  /// Creates an App Check token.
+  /// - Parameters:
+  ///   - token: A Firebase App Check token string.
+  ///   - expirationDate: The token's expiration date in the device's local clock time.
   @objc(initWithToken:expirationDate:)
   public convenience init(token: String, expirationDate: Date) {
     self.init(token: token, expirationDate: expirationDate, receivedAt: Date())
